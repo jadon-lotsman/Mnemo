@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Mnemo.Contracts.Dtos.Repetition;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 
@@ -26,6 +27,7 @@ namespace Mnemo.Services.Queries
         public async Task<List<RepetitionState>> GetAllByUserIdAsync(int userId)
             => await GetByUserIdQuery(userId)
             .OrderBy(s => s.LastRepetitionAt.AddDays(s.RepetitionInterval))
+            .Include(e => e.VocabularyEntry)
             .ToListAsync();
 
 

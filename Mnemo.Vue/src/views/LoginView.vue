@@ -17,42 +17,37 @@ const login = async function () {
   isLoading.value = true
 
   try {
-    // const response = await fetch('/auth/login', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({
-    //     username: username.value,
-    //   }),
-    // })
+    const response = await fetch('/api/Account/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: username.value,
+      }),
+    })
 
-    // if (!response.ok) {
-    //   // Обрабатываем ошибки (401, 422, 500 и т.д.)
-    //   let errorText = 'Ошибка входа'
-    //   try {
-    //     const errorData = await response.json()
-    //     errorText = errorData.message || errorText
-    //   } catch {
-    //     errorText = `Ошибка ${response.status}: ${response.statusText}`
-    //   }
-    //   throw new Error(errorText)
-    // }
+    if (!response.ok) {
+      // Обрабатываем ошибки (401, 422, 500 и т.д.)
+      let errorText = 'Ошибка входа'
+      try {
+        const errorData = await response.json()
+        errorText = errorData.title || errorText
+      } catch {
+        errorText = `Ошибка ${response.status}: ${response.statusText}`
+      }
+      throw new Error(errorText)
+    }
 
-    // const data = await response.json()
-    // Предполагаем, что токен приходит в поле 'token' или 'access_token'
-    // let token = data.token || data.access_token
-
-    let token
-
-    if (username.value == 'jadon') token = '123'
+    const data = await response
+    const token = data.text()
 
     if (!token) {
       throw new Error('Сервер не вернул токен')
     }
 
     // Сохраняем токен в localStorage
-    localStorage.setItem('token', token)
+    localStorage.setItem('token', (await token).toString())
 
     // Перенаправляем пользователя на главную страницу приложения
     router.push('/app')

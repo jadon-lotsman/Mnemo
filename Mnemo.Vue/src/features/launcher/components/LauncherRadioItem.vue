@@ -1,0 +1,96 @@
+<script setup lang="ts">
+defineProps({
+  modelValue: String,
+  value: String,
+  title: String,
+  description: String,
+})
+
+defineEmits(['update:modelValue'])
+</script>
+
+<template>
+  <label class="mode-radio">
+    <input
+      type="radio"
+      name="mode"
+      :value="value"
+      :checked="modelValue === value"
+      @change="$emit('update:modelValue', value)"
+    />
+    <div class="title">{{ title }}</div>
+    <div class="description">{{ description }}</div>
+  </label>
+</template>
+
+<style lang="scss" scoped>
+.mode-radio {
+  @include lift();
+
+  cursor: pointer;
+
+  box-shadow: 5px 5px 0px $shadow;
+
+  user-select: none;
+
+  border-radius: 12px;
+  padding: 10px;
+
+  background-color: $plane-white;
+
+  input {
+    display: none;
+  }
+
+  .title {
+    display: flex;
+    color: $black-font;
+
+    font-size: 16px;
+    padding-bottom: 20px;
+
+    position: relative;
+
+    &::before {
+      content: '';
+      display: block;
+
+      background-color: $plane-gray;
+
+      border-radius: 4px;
+      margin-right: 10px;
+
+      width: 20px;
+      height: 20px;
+    }
+
+    &::after {
+      content: 'check';
+      color: $gray-font;
+
+      transition: opacity 0.2s ease;
+      opacity: 0%;
+
+      position: absolute;
+      top: -5px;
+      left: -2px;
+
+      font-family: 'Material Symbols Rounded';
+      font-size: 25px;
+    }
+  }
+
+  .description {
+    color: $gray-font;
+
+    font-size: 14px;
+    font-weight: 400;
+
+    max-width: 80%;
+  }
+
+  input:checked + .title::after {
+    opacity: 100%;
+  }
+}
+</style>

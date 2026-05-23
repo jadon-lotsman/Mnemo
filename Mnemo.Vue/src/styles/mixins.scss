@@ -1,0 +1,10 @@
+@mixin lift($distance: -2px, $shadow-offset: 2px) {
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY($distance);
+    box-shadow: ($shadow-offset + 5px) ($shadow-offset + 5px) 0px $shadow;
+  }
+}

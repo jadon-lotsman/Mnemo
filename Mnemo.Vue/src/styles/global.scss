@@ -1,0 +1,76 @@
+// Reset
+* {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+ol {
+  list-style-type: none;
+}
+
+body {
+  max-width: $layoutWidth;
+  margin: 0 auto;
+  font-family: 'Inter', sans-serif;
+}
+
+input {
+  outline: none;
+  font-family: 'Inter', sans-serif;
+}
+
+button {
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+}
+
+::selection {
+  color: #181818;
+  background-color: $shadow;
+}
+
+// Basic
+button {
+  @include lift();
+
+  color: $black-font;
+  background-color: $plane-white;
+  box-shadow: 5px 5px 0px $shadow;
+
+  font-size: 16px;
+
+  padding: 10px;
+  border-radius: 12px;
+
+  &:disabled {
+    cursor: default;
+
+    color: $gray-font;
+    background-color: $plane-gray;
+  }
+}
+
+.big-button {
+  width: 100%;
+}
+
+.small-button {
+  height: 40px;
+  width: 40px;
+  min-height: 40px;
+  min-width: 40px;
+
+  position: relative;
+
+  .iconize {
+    color: $shadow;
+
+    position: absolute;
+    top: 8px;
+    left: 8px;
+  }
+}

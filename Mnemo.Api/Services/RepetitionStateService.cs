@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using Mnemo.Common;
+using Mnemo.Contracts.Dtos.Repetition;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 using Mnemo.Services.Queries;
@@ -18,6 +20,23 @@ namespace Mnemo.Services
             _stateQueries = stateQueries;
         }
 
+
+        public async Task<List<RepetitionDayResponse>> GetScheduleAsync(int userId)
+        {
+            var states = await _stateQueries.GetAllByUserIdAsync(userId);
+
+            var grouped = states
+                .GroupBy(s => s.LastRepetitionAt.AddDays(s.RepetitionInterval))
+                .Select(d => new RepetitionDayResponse
+                {
+                    Date = d.Key,
+                    VocabularyForeigns = d.Select(s => s.VocabularyEntry.Foreign).ToArray()
+                })
+                .OrderBy(d => d.Date)
+                .ToList();
+
+            return grouped;
+        }
 
 
         public async Task<RequestResult<bool>> RefreshRepetitionStatesAsync(int userId)

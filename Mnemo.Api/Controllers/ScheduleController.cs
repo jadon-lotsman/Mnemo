@@ -13,12 +13,12 @@ namespace Mnemo.Controllers
     [ApiController]
     [Authorize]
     [Route("api/[controller]")]
-    public class StateController : ControllerBase
+    public class ScheduleController : ControllerBase
     {
         private readonly StateQueries _stateQueries;
         private readonly RepetitionStateService _stateService;
 
-        public StateController(StateQueries stateQueries, RepetitionStateService stateService)
+        public ScheduleController(StateQueries stateQueries, RepetitionStateService stateService)
         {
             _stateQueries = stateQueries;
             _stateService = stateService;
@@ -29,6 +29,14 @@ namespace Mnemo.Controllers
 
         
         [HttpGet]
+        public async Task<IActionResult> GetScheduleDays()
+        {
+            var days = await _stateService.GetScheduleAsync(UserId);
+
+            return Ok(days);
+        }
+
+        [HttpGet("states")]
         public async Task<IActionResult> GetAllRepetitionStates()
         {
             var states = await _stateQueries.GetAllByUserIdAsync(UserId);
@@ -37,8 +45,8 @@ namespace Mnemo.Controllers
             return Ok(statesDto);
         }
 
-        
-        [HttpPost("{id:int}/assess")]
+
+        [HttpPost("states/{id:int}/assess")]
         public async Task<IActionResult> SelfAssessmentRepetitionState(int id, [FromBody] QualityAssessmentRequest request)
         {
             var result = await _stateService.UpdateRepetitionStateAsync(UserId, id, request.Quality, shouldIncrementCounter: false);
