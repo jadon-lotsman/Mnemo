@@ -75,7 +75,7 @@ defineEmits(['update:modelValue'])
       top: -5px;
       left: -2px;
 
-      font-family: 'Material Symbols Rounded';
+      font-family: $iconizeFont;
       font-size: 25px;
     }
   }

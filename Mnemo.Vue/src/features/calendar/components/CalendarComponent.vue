@@ -2,9 +2,12 @@
 import { onMounted, ref } from 'vue'
 import CalendarDay from './CalendarDay.vue'
 import type { RepetitionDay } from '../types/RepetitionDay'
+import { useNotify } from '@/features/notify/hooks/useNotify'
 
-const calendarData = ref<RepetitionDay[]>([])
+const notify = useNotify()
+
 const isLoading = ref<boolean>(false)
+const calendarData = ref<RepetitionDay[]>([])
 
 const fetchSchedule = async function () {
   isLoading.value = true
@@ -16,9 +19,23 @@ const fetchSchedule = async function () {
       },
     })
 
+    if (!response.ok) {
+      let errorText = 'Calendar error'
+      try {
+        const errorData = await response.json()
+        errorText = errorData.title || errorText
+      } catch {
+        errorText = `${response.status}: ${response.statusText}`
+      }
+      throw new Error(errorText)
+    }
+
     const responseData: RepetitionDay[] = await response.json()
 
     calendarData.value = fillMissingDays(responseData)
+  } catch (err: unknown) {
+    const error = err as Error
+    notify.failure(error.message ?? 'Unknown error...')
   } finally {
     isLoading.value = false
   }

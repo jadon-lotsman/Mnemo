@@ -34,3 +34,11 @@ const logout = () => {
     <button @click="logout">Logout</button>
   </main>
 </template>
+
+<style lang="scss" scoped>
+button {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+</style>

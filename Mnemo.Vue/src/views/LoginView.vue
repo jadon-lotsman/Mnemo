@@ -1,23 +1,24 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useNotify } from '@/features/notify/hooks/useNotify'
 
 const router = useRouter()
+const notify = useNotify()
 
 const username = ref<string>('')
 const isLoading = ref<boolean>(false)
-const errorMessage = ref<string>('')
 
 const login = async function () {
   if (username.value.trim() == '') {
-    errorMessage.value = 'Поле не должно быть пустым'
+    notify.failure('Username cannot be empty.')
     return
   }
 
   isLoading.value = true
 
   try {
-    const response = await fetch('/api/Account/login', {
+    const response = await fetch('/api/account/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -28,13 +29,12 @@ const login = async function () {
     })
 
     if (!response.ok) {
-      // Обрабатываем ошибки (401, 422, 500 и т.д.)
-      let errorText = 'Ошибка входа'
+      let errorText = 'Login error'
       try {
         const errorData = await response.json()
         errorText = errorData.title || errorText
       } catch {
-        errorText = `Ошибка ${response.status}: ${response.statusText}`
+        errorText = `${response.status}: ${response.statusText}`
       }
       throw new Error(errorText)
     }
@@ -43,17 +43,15 @@ const login = async function () {
     const token = data.text()
 
     if (!token) {
-      throw new Error('Сервер не вернул токен')
+      throw new Error('Session token not received.')
     }
 
-    // Сохраняем токен в localStorage
     localStorage.setItem('token', (await token).toString())
 
-    // Перенаправляем пользователя на главную страницу приложения
     router.push('/app')
   } catch (err: unknown) {
     const error = err as Error
-    errorMessage.value = error.message ?? 'Не удалось войти. Попробуйте позже.'
+    notify.failure(error.message ?? 'Unknown error...')
   } finally {
     isLoading.value = false
   }
@@ -64,8 +62,7 @@ const login = async function () {
   <form @submit.prevent="login">
     <input type="text" v-model="username" />
     <button type="submit" :disabled="isLoading">Login</button>
-    <h1 v-text="errorMessage"></h1>
   </form>
 </template>
 
-<style scoped></style>
+<style lang="scss" scoped></style>

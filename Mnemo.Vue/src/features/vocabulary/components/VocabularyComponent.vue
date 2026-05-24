@@ -26,8 +26,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="isLoading">Загрузка...</div>
-  <div v-else-if="responseData == null">Здесь ничего нет</div>
+  <div v-if="isLoading">Loading...</div>
+  <div v-else-if="responseData == null">No content</div>
   <div v-else>{{ JSON.stringify(responseData, null, 2) }}</div>
 </template>
 
