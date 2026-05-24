@@ -1,14 +1,26 @@
 <script setup lang="ts">
+import { useNotify } from '@/features/notify/hooks/useNotify'
 import type { RepetitionDay } from '../types/RepetitionDay'
+
+const notify = useNotify()
 
 const props = defineProps<{ data: RepetitionDay }>()
 
 const date = new Date(props.data.date)
 const isPlanned = props.data.vocabularyForeigns.length !== 0
+
+function showPlannedForeigns() {
+  if (!isPlanned) return
+
+  const formatted = props.data.vocabularyForeigns.map((word) => `"${word}"`).join(', ')
+  const message = `Planned: ${formatted}`
+
+  notify.info(message)
+}
 </script>
 
 <template>
-  <div class="day" :class="{ 'day--planned': isPlanned }">
+  <div class="day" :class="{ 'day--planned': isPlanned }" @click="showPlannedForeigns()">
     <span>{{ date.getDate() }}</span>
     <span>{{ date.toLocaleString('en-EN', { month: 'short' }).toLowerCase() + '.' }}</span>
   </div>
@@ -17,6 +29,7 @@ const isPlanned = props.data.vocabularyForeigns.length !== 0
 <style lang="scss" scoped>
 .day {
   cursor: default;
+  user-select: none;
 
   display: flex;
   flex-direction: column;
@@ -35,6 +48,8 @@ const isPlanned = props.data.vocabularyForeigns.length !== 0
 
   &--planned {
     @include lift();
+
+    cursor: pointer;
 
     color: $black-font;
   }

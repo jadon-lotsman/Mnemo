@@ -3,9 +3,11 @@ import CollapsibleSection from '@/common/CollapsibleSection.vue'
 import Calendar from '@/features/calendar/components/CalendarComponent.vue'
 import Launcher from '@/features/launcher/components/LauncherComponent.vue'
 import Vocabulary from '@/features/vocabulary/components/VocabularyComponent.vue'
+import { useVocabularyStore } from '@/features/vocabulary/stores/VocabularyStore'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const vocabulary = useVocabularyStore()
 
 const logout = () => {
   localStorage.removeItem('token')
@@ -25,7 +27,10 @@ const logout = () => {
 
     <CollapsibleSection title="Vocabulary">
       <template #subtext>
-        <span>some subtext</span>
+        <span
+          >{{ vocabulary.totalEntries }} entries,
+          {{ vocabulary.totalTranslations }} translations</span
+        >
       </template>
 
       <Vocabulary></Vocabulary>

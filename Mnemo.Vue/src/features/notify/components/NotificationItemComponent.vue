@@ -1,12 +1,8 @@
 <script setup lang="ts">
+import { capitalize } from '@/common/Capitalize'
 import type { NotificationItem } from '../types/NotificationItem'
 
 const props = defineProps<{ data: NotificationItem }>()
-
-function capitalize(str: string): string {
-  if (!str) return str
-  return str.charAt(0).toUpperCase() + str.slice(1)
-}
 </script>
 
 <template>
@@ -14,9 +10,12 @@ function capitalize(str: string): string {
     <span v-if="props.data.type === 'success'" class="icon">check_circle</span>
     <span v-else-if="props.data.type === 'failure'" class="icon">cancel</span>
     <span v-else class="icon">info</span>
+
     <div>
       <span class="title">{{ capitalize(props.data.type) }}</span>
-      <span class="description">{{ capitalize(props.data.message) }}</span>
+      <span class="description">{{
+        capitalize(props.data.message) + (props.data.message.endsWith('.') ? '' : '.')
+      }}</span>
     </div>
   </div>
 </template>
@@ -24,15 +23,14 @@ function capitalize(str: string): string {
 <style lang="scss" scoped>
 .notification {
   display: flex;
-  align-items: center;
+  align-items: start;
 
   pointer-events: all;
 
   border-radius: 8px;
 
-  width: 400px;
+  max-width: 400px;
   padding: 10px;
-  margin: 0px auto;
 
   background-color: $clear-white;
 
@@ -42,6 +40,7 @@ function capitalize(str: string): string {
     color: $plane-gray;
 
     margin-right: 10px;
+    margin-top: 4px;
 
     font-size: 30px;
     font-family: $iconizeFont;

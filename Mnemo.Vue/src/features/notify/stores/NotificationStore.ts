@@ -6,6 +6,8 @@ export const useNotificationStore = defineStore('notification', () => {
   const notifications = ref<NotificationItem[]>([])
 
   function addNotification(type: string, message: string) {
+    if (notifications.value.length >= 5) return
+
     const id = Date.now() + Math.random()
 
     notifications.value.push({

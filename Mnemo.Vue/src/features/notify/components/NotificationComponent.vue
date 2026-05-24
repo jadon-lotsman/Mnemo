@@ -21,18 +21,22 @@ const store = useNotificationStore()
 .notification-container {
   position: fixed;
   left: 0;
+  bottom: 20px;
 
   pointer-events: none;
 
   width: 100%;
-  bottom: 20px;
 }
 
 .notifications-list {
   display: flex;
   justify-content: end;
   flex-direction: column;
+
   gap: 5px;
+
+  width: $layoutWidth;
+  margin: 0px auto;
 }
 
 .notification-enter-active,
