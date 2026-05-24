@@ -24,7 +24,7 @@ const isPlanned = props.data.vocabularyForeigns.length !== 0
   text-align: center;
   box-shadow: 5px 5px 0px $shadow;
 
-  color: $gray-font;
+  color: $shadow;
   background-color: $plane-white;
 
   height: 65px;

@@ -26,6 +26,8 @@ function capitalize(str: string): string {
   display: flex;
   align-items: center;
 
+  pointer-events: all;
+
   border-radius: 8px;
 
   width: 400px;

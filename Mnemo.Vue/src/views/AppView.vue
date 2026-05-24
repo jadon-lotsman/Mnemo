@@ -19,7 +19,7 @@ const logout = () => {
       <Calendar></Calendar>
     </CollapsibleSection>
 
-    <CollapsibleSection title="Launcher" :initial-open="false">
+    <CollapsibleSection title="Launcher">
       <Launcher></Launcher>
     </CollapsibleSection>
 
