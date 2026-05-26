@@ -12,10 +12,9 @@ const isPlanned = props.data.vocabularyForeigns.length !== 0
 function showPlannedForeigns() {
   if (!isPlanned) return
 
-  const formatted = props.data.vocabularyForeigns.map((word) => `"${word}"`).join(', ')
-  const message = `Planned: ${formatted}`
+  const formatted = props.data.vocabularyForeigns.map((word) => `'${word}'`).join(', ')
 
-  notify.info(message)
+  notify.custom(`planned at date`, formatted)
 }
 </script>
 

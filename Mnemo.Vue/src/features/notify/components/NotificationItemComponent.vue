@@ -27,10 +27,10 @@ const props = defineProps<{ data: NotificationItem }>()
 
   pointer-events: all;
 
-  border-radius: 8px;
+  border-radius: 12px;
 
   max-width: 400px;
-  padding: 10px;
+  padding: 10px 15px;
 
   background-color: $clear-white;
 

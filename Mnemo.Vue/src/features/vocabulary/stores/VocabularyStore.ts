@@ -14,7 +14,7 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
     entries.value.reduce((sum, entry) => sum + entry.translations.length, 0),
   )
 
-  const fetchVocabulary = async function () {
+  async function fetchVocabulary() {
     isLoading.value = true
 
     try {
@@ -46,11 +46,44 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
     }
   }
 
+  async function searchVocabulary(foreign: string): Promise<VocabularyEntry[]> {
+    isLoading.value = true
+
+    try {
+      const response = await fetch(`/api/Vocabulary/entries/find?foreign=${foreign}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      })
+
+      if (!response.ok) {
+        let errorText = 'Search error'
+        try {
+          const errorData = await response.json()
+          errorText = errorData.title || errorText
+        } catch {
+          errorText = `${response.status}: ${response.statusText}`
+        }
+        throw new Error(errorText)
+      }
+      const responseData: VocabularyEntry = await response.json()
+
+      return [responseData]
+    } catch (err: unknown) {
+      const error = err as Error
+      notify.failure(error.message ?? 'Unknown error...')
+      return []
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     entries,
     totalEntries,
     totalTranslations,
     isLoading,
     fetchVocabulary,
+    searchVocabulary,
   }
 })

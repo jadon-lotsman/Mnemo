@@ -1,18 +1,31 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 const props = defineProps({
   isLoading: Boolean,
 })
+
+const emit = defineEmits<{
+  (e: 'search', query: string): void
+}>()
+
+const searchQuery = ref('')
+
+function onSubmit() {
+  emit('search', searchQuery.value)
+}
 </script>
 
 <template>
   <div class="tools-container">
-    <form class="search-form">
+    <form class="search-form" @submit.prevent="onSubmit">
       <input
+        v-model="searchQuery"
         type="search"
         :disabled="props.isLoading"
         :placeholder="props.isLoading ? 'Loading...' : 'Search...'"
       />
-      <button type="button" class="small-button" :disabled="props.isLoading">
+      <button type="submit" class="small-button" :disabled="props.isLoading">
         <span>arrow_forward</span>
       </button>
     </form>

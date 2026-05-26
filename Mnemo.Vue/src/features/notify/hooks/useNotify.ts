@@ -15,5 +15,9 @@ export function useNotify() {
     return store.addNotification('info', message)
   }
 
-  return { success, failure, info }
+  function custom(title: string, message: string) {
+    return store.addNotification(title, message)
+  }
+
+  return { success, failure, info, custom }
 }

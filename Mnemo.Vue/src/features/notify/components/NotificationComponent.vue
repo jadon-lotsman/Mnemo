@@ -33,7 +33,7 @@ const store = useNotificationStore()
   justify-content: end;
   flex-direction: column;
 
-  gap: 5px;
+  gap: 8px;
 
   width: $layoutWidth;
   margin: 0px auto;
@@ -45,12 +45,13 @@ const store = useNotificationStore()
 }
 .notification-enter-from {
   opacity: 0%;
+  transform: scale(0.97);
 }
 .notification-leave-to {
   opacity: 0%;
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 .notification-move {
-  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  transition: transform 0.3s cubic-bezier(0.3, 0.9, 0.2, 1.1);
 }
 </style>
