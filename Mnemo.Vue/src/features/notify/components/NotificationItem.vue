@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import { capitalize } from '@/shared/utils/StringExtension'
 import type { Notification } from '../types/Notification'
+import { useNotificationStore } from '../stores/NotificationStore'
 
-defineProps<{ data: Notification }>()
+const props = defineProps<{ data: Notification }>()
+
+const store = useNotificationStore()
+
+function close() {
+  store.removeNotification(props.data.id)
+}
 </script>
 
 <template>
-  <div class="notification">
+  <div class="notification" @click="close()">
     <span v-if="data.type === 'success'" class="icon">check_circle</span>
     <span v-else-if="data.type === 'failure'" class="icon">cancel</span>
     <span v-else class="icon">info</span>
@@ -32,11 +39,13 @@ defineProps<{ data: Notification }>()
   max-width: 400px;
   padding: 10px 15px;
 
-  opacity: 90%;
+  opacity: 98%;
 
   background-color: $clear-white;
 
   .icon {
+    @include iconize-text;
+
     display: block;
 
     color: $plane-gray;
@@ -45,7 +54,6 @@ defineProps<{ data: Notification }>()
     margin-top: 4px;
 
     font-size: 30px;
-    font-family: $iconizeFont;
   }
 
   .title {

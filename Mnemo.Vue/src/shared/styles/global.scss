@@ -35,8 +35,6 @@ button {
 
 // Basic
 button {
-  @include lift();
-
   color: $black-font;
   background-color: $plane-white;
   box-shadow: 5px 5px 0px $shadow;
@@ -55,10 +53,14 @@ button {
 }
 
 .big-button {
+  @include lift();
+
   width: 100%;
 }
 
 .small-button {
+  @include lift();
+
   height: 40px;
   width: 40px;
   min-height: 40px;

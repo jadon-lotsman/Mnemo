@@ -56,6 +56,8 @@ watch(
   width: 100%;
 
   .collapse-chevron {
+    @include iconize-text;
+
     color: $gray-font;
 
     transition: transform 0.1s ease;
@@ -63,10 +65,6 @@ watch(
     position: absolute;
     top: -3px;
     left: -5px;
-
-    font-size: 20px;
-
-    font-family: $iconizeFont;
 
     &--open {
       transform: rotate(90deg);

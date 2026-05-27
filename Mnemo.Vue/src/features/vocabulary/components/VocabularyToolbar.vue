@@ -50,14 +50,12 @@ function onSubmit() {
     background-color: $plane-gray;
 
     span {
+      @include iconize-text;
+
       position: absolute;
 
       top: 8px;
       left: 8px;
-
-      font-size: 24px;
-      line-height: 1;
-      font-family: $iconizeFont;
     }
   }
 

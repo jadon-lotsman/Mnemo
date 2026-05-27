@@ -37,13 +37,18 @@ const logout = () => {
       <Vocabulary></Vocabulary>
     </CollapsibleSection>
 
-    <button @click="logout">Logout</button>
+    <button @click="logout">logout</button>
   </main>
 </template>
 
 <style lang="scss" scoped>
 button {
-  position: absolute;
+  @include iconize-text;
+  @include lift();
+
+  color: $shadow;
+
+  position: fixed;
   top: 5px;
   left: 5px;
 }

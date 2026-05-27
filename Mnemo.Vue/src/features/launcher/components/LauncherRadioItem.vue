@@ -67,6 +67,8 @@ defineEmits<{
     }
 
     &::after {
+      @include iconize-text;
+
       content: 'check';
       color: $gray-font;
 
@@ -74,11 +76,10 @@ defineEmits<{
       opacity: 0%;
 
       position: absolute;
-      top: -5px;
-      left: -2px;
+      top: -4px;
+      left: -3px;
 
-      font-family: $iconizeFont;
-      font-size: 25px;
+      font-size: 26px;
     }
   }
 
