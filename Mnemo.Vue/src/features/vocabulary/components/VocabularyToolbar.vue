@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const props = defineProps({
-  isLoading: Boolean,
-})
+defineProps<{
+  isLoading: boolean
+}>()
 
 const emit = defineEmits<{
   (e: 'search', query: string): void
@@ -22,15 +22,15 @@ function onSubmit() {
       <input
         v-model="searchQuery"
         type="search"
-        :disabled="props.isLoading"
-        :placeholder="props.isLoading ? 'Loading...' : 'Search...'"
+        :disabled="isLoading"
+        :placeholder="isLoading ? 'Loading...' : 'Search...'"
       />
-      <button type="submit" class="small-button" :disabled="props.isLoading">
+      <button type="submit" class="small-button" :disabled="isLoading">
         <span>arrow_forward</span>
       </button>
     </form>
 
-    <button type="button" class="small-button" :disabled="props.isLoading">
+    <button type="button" class="small-button" :disabled="isLoading">
       <span>add</span>
     </button>
   </div>

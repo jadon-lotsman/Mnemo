@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import RadioItem from '@/features/launcher/components/LauncherRadioItem.vue'
+import { useNotify } from '@/shared/composables/useNotify'
 
-const selectedMode = ref('fast')
+const notify = useNotify()
+
+const selectedMode = ref<string>('fast')
 
 function sessionAlert() {
-  alert(`Start session ${selectedMode.value}`)
+  notify.info(`Mode: ${selectedMode.value} session`)
 }
 </script>
 

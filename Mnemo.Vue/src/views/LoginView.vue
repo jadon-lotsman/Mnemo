@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useNotify } from '@/features/notify/hooks/useNotify'
+import { onMounted, ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { useNotify } from '@/shared/composables/useNotify'
+import { ROUTE_NAMES } from '@/router'
+import { apiRequest } from '@/shared/utils/ApiRequest'
 
+const route = useRoute()
 const router = useRouter()
 const notify = useNotify()
 
@@ -15,47 +18,31 @@ const login = async function () {
     return
   }
 
-  isLoading.value = true
-
   try {
-    const response = await fetch('/api/account/login', {
+    isLoading.value = true
+
+    const result = await apiRequest<{ token: string }>('/api/account/login', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: username.value,
-      }),
+      body: JSON.stringify({ username: username.value }),
     })
 
-    if (!response.ok) {
-      let errorText = 'Login error'
-      try {
-        const errorData = await response.json()
-        errorText = errorData.title || errorText
-      } catch {
-        errorText = `${response.status}: ${response.statusText}`
-      }
-      throw new Error(errorText)
-    }
-
-    const data = await response
-    const token = data.text()
-
-    if (!token) {
+    if (!result.token) {
       throw new Error('Session token not received.')
     }
 
-    localStorage.setItem('token', (await token).toString())
+    localStorage.setItem('token', result.token.toString())
 
-    router.push('/app')
-  } catch (err: unknown) {
-    const error = err as Error
-    notify.failure(error.message ?? 'Unknown error...')
+    router.push({ name: ROUTE_NAMES.APP })
   } finally {
     isLoading.value = false
   }
 }
+
+onMounted(() => {
+  if (route.query.sessionExpired === 'true') {
+    notify.info('Session expired. Please login again')
+  }
+})
 </script>
 
 <template>

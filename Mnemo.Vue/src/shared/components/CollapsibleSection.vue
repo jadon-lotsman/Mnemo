@@ -11,7 +11,9 @@ const props = withDefaults(
   },
 )
 
-const emit = defineEmits(['toggle'])
+const emit = defineEmits<{
+  (e: 'toggle', isOpen: boolean): void
+}>()
 
 const isOpen = ref(props.initialOpen)
 
@@ -38,7 +40,7 @@ watch(
         <slot name="title">{{ title }}</slot>
       </div>
       <div class="right-text-slot">
-        <slot name="subtext" />
+        <slot name="subtitle" />
       </div>
     </div>
     <div class="content" :class="{ 'content--open': isOpen }">

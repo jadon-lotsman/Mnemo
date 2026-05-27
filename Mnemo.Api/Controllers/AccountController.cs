@@ -38,7 +38,7 @@ namespace Mnemo.Controllers
                 return Unauthorized();
 
 
-            return Ok(GenerateJwt(user));
+            return Ok( new { token = GenerateJwt(user) });
         }
 
         [HttpPost("register")]

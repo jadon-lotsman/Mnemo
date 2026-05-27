@@ -1,12 +1,14 @@
 <script setup lang="ts">
-defineProps({
-  modelValue: String,
-  value: String,
-  title: String,
-  description: String,
-})
+defineProps<{
+  modelValue: string
+  value: string
+  title: string
+  description: string
+}>()
 
-defineEmits(['update:modelValue'])
+defineEmits<{
+  (e: 'update:modelValue', query: string): void
+}>()
 </script>
 
 <template>

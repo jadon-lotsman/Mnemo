@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { capitalize } from '@/common/Capitalize'
+import { capitalize } from '@/shared/utils/StringExtension'
 import type { VocabularyEntry } from '../types/VocabularyEntry'
 
-const props = defineProps<{ data: VocabularyEntry }>()
+defineProps<{ data: VocabularyEntry }>()
 </script>
 
 <template>
   <article class="entry">
     <header>
-      <div class="foreign">{{ props.data.foreign }}</div>
-      <div class="transcription">{{ props.data.transcription }}</div>
+      <div class="foreign">{{ data.foreign }}</div>
+      <div class="transcription">{{ data.transcription }}</div>
       <ol class="translations">
-        <li v-for="translation in props.data.translations" :key="translation">{{ translation }}</li>
+        <li v-for="translation in data.translations" :key="translation">{{ translation }}</li>
       </ol>
     </header>
-    <footer v-if="props.data.examples.length > 0">
+    <footer v-if="data.examples.length > 0">
       <ol>
-        <li v-for="example in props.data.examples" :key="example">{{ capitalize(example) }}</li>
+        <li v-for="example in data.examples" :key="example">{{ capitalize(example) }}</li>
       </ol>
     </footer>
   </article>

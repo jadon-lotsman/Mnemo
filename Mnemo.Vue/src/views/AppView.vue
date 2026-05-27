@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import CollapsibleSection from '@/common/CollapsibleSection.vue'
+import CollapsibleSection from '@/shared/components/CollapsibleSection.vue'
 import Calendar from '@/features/calendar/components/CalendarComponent.vue'
 import Launcher from '@/features/launcher/components/LauncherComponent.vue'
 import Vocabulary from '@/features/vocabulary/components/VocabularyComponent.vue'
 import { useVocabularyStore } from '@/features/vocabulary/stores/VocabularyStore'
 import { useRouter } from 'vue-router'
+import { ROUTE_NAMES } from '@/router'
 
 const router = useRouter()
 const vocabulary = useVocabularyStore()
 
 const logout = () => {
   localStorage.removeItem('token')
-  router.push('/login')
+  router.push({ name: ROUTE_NAMES.LOGIN })
 }
 </script>
 
@@ -26,7 +27,7 @@ const logout = () => {
     </CollapsibleSection>
 
     <CollapsibleSection title="Vocabulary">
-      <template #subtext>
+      <template #subtitle>
         <span
           >{{ vocabulary.totalEntries }} entries,
           {{ vocabulary.totalTranslations }} translations</span

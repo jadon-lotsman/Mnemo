@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import NotificationItemComponent from '@/features/notify/components/NotificationItemComponent.vue'
+import NotificationItem from './NotificationItem.vue'
 import { useNotificationStore } from '@/features/notify/stores/NotificationStore'
 
 const store = useNotificationStore()
@@ -8,7 +8,7 @@ const store = useNotificationStore()
 <template>
   <div class="notification-container">
     <TransitionGroup name="notification" tag="div" class="notifications-list">
-      <NotificationItemComponent
+      <NotificationItem
         v-for="notification in store.notifications"
         :key="notification.id"
         :data="notification"

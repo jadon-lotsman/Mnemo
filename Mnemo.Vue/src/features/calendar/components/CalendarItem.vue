@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useNotify } from '@/features/notify/hooks/useNotify'
+import { useNotify } from '@/shared/composables/useNotify'
 import type { RepetitionDay } from '../types/RepetitionDay'
 
 const notify = useNotify()

@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { NotificationItem } from '../types/NotificationItem'
+import type { Notification } from '../types/Notification'
 
 export const useNotificationStore = defineStore('notification', () => {
-  const notifications = ref<NotificationItem[]>([])
+  const notifications = ref<Notification[]>([])
 
   function addNotification(type: string, message: string) {
     if (notifications.value.length >= 5) return

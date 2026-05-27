@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { capitalize } from '@/common/Capitalize'
-import type { NotificationItem } from '../types/NotificationItem'
+import { capitalize } from '@/shared/utils/StringExtension'
+import type { Notification } from '../types/Notification'
 
-const props = defineProps<{ data: NotificationItem }>()
+defineProps<{ data: Notification }>()
 </script>
 
 <template>
   <div class="notification">
-    <span v-if="props.data.type === 'success'" class="icon">check_circle</span>
-    <span v-else-if="props.data.type === 'failure'" class="icon">cancel</span>
+    <span v-if="data.type === 'success'" class="icon">check_circle</span>
+    <span v-else-if="data.type === 'failure'" class="icon">cancel</span>
     <span v-else class="icon">info</span>
 
     <div>
-      <span class="title">{{ capitalize(props.data.type) }}</span>
+      <span class="title">{{ capitalize(data.type) }}</span>
       <span class="description">{{
-        capitalize(props.data.message) + (props.data.message.endsWith('.') ? '' : '.')
+        capitalize(data.message) + (data.message.endsWith('.') ? '' : '.')
       }}</span>
     </div>
   </div>
@@ -31,6 +31,8 @@ const props = defineProps<{ data: NotificationItem }>()
 
   max-width: 400px;
   padding: 10px 15px;
+
+  opacity: 90%;
 
   background-color: $clear-white;
 
