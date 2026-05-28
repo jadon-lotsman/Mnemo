@@ -7,6 +7,8 @@ namespace Mnemo.Common
     {
         public static string Capitalize(this string str)
         {
+            if (string.IsNullOrWhiteSpace(str)) return str;
+
             char[] letters = str.ToLower().ToCharArray();
             letters[0] = char.ToUpper(letters[0]);
 
@@ -15,6 +17,8 @@ namespace Mnemo.Common
 
         public static string RemoveMultispaces(this string str)
         {
+            if (string.IsNullOrWhiteSpace(str)) return str;
+
             str = str.Trim();
             str = Regex.Replace(str, @"\s+", " ");
 
@@ -23,6 +27,8 @@ namespace Mnemo.Common
 
         public static string WrapWithBracketsIfNeeded(this string str)
         {
+            if (string.IsNullOrWhiteSpace(str)) return str;
+
             if (!str.StartsWith("["))
                 str = "[" + str;
             if (!str.EndsWith("]"))
@@ -33,6 +39,8 @@ namespace Mnemo.Common
 
         public static string AddLastPointIfNeeded(this string str)
         {
+            if (string.IsNullOrWhiteSpace(str)) return str;
+
             if (!str.TrimEnd().EndsWith('.'))
                 str = str + '.';
 

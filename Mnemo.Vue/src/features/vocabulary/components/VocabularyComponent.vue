@@ -1,14 +1,14 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { onMounted } from 'vue'
 import { useVocabularyStore } from '../stores/VocabularyStore.ts'
-import VocabularyItem from './VocabularyItem.vue'
+import VocabularyItem from './VocabularyItem/VocabularyItem.vue'
 import VocabularyToolbar from './VocabularyToolbar.vue'
 import type {
   VocabularyCreateRequest,
   VocabularyEntry,
   VocabularyPatchRequest,
 } from '../types/VocabularyEntry.ts'
-import { ref } from 'vue'
 
 const vocabulary = useVocabularyStore()
 const displayEntries = ref<VocabularyEntry[]>([])
@@ -46,14 +46,14 @@ async function handleCreate(localId: number, bodyRequest: VocabularyCreateReques
 
   const index = displayEntries.value.findIndex((e) => e.id === localId)
   if (index !== -1) {
-    displayEntries.value.splice(index, 1, result)
+    vocabulary.entries.splice(index, 1, result)
   }
 }
 
 async function handlePatch(remoteId: number, bodyRequest: VocabularyPatchRequest) {
   const result = await vocabulary.patchEntry(remoteId, bodyRequest)
 
-  const index = vocabulary.entries.findIndex((e) => e.id === remoteId)
+  const index = displayEntries.value.findIndex((e) => e.id === remoteId)
   if (index !== -1) {
     displayEntries.value.splice(index, 1, result)
   }
