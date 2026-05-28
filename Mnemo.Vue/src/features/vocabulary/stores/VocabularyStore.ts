@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { VocabularyEntry } from '../types/VocabularyEntry'
+import type {
+  VocabularyCreateRequest,
+  VocabularyEntry,
+  VocabularyPatchRequest,
+} from '../types/VocabularyEntry'
 import { apiRequest } from '@/shared/utils/ApiRequest'
 
 export const useVocabularyStore = defineStore('vocabulary', () => {
@@ -38,11 +42,38 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
     }
   }
 
+  async function addEntry(body: VocabularyCreateRequest): Promise<VocabularyEntry> {
+    const result = await apiRequest<VocabularyEntry>('/api/vocabulary/entries/', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    })
+
+    return result
+  }
+
+  async function patchEntry(id: number, body: VocabularyPatchRequest): Promise<VocabularyEntry> {
+    const result = await apiRequest<VocabularyEntry>(`/api/vocabulary/entries/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    })
+
+    return result
+  }
+
+  async function deleteEntry(id: number) {
+    await apiRequest<VocabularyEntry>(`/api/vocabulary/entries/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
   return {
     entries,
     totalEntries,
     totalTranslations,
     isLoading,
+    addEntry,
+    patchEntry,
+    deleteEntry,
     fetchVocabulary,
     searchVocabulary,
   }

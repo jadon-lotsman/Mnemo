@@ -31,7 +31,11 @@ export async function apiRequest<T = unknown>(url: string, options: RequestInit 
     }
 
     // Возвращаем удачный ответ
-    return (await response.json()) as T
+    if (response.status === 204) {
+      return null as T
+    } else {
+      return (await response.json()) as T
+    }
   } catch (err: unknown) {
     const error = err as Error
     const errorMessage = error.message ?? 'Network error...'

@@ -7,9 +7,14 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'search', query: string): void
+  (e: 'addNew'): void
 }>()
 
 const searchQuery = ref('')
+
+function addNew() {
+  emit('addNew')
+}
 
 function onSubmit() {
   emit('search', searchQuery.value)
@@ -30,7 +35,7 @@ function onSubmit() {
       </button>
     </form>
 
-    <button type="button" class="small-button" :disabled="isLoading">
+    <button type="button" class="small-button" :disabled="isLoading" @click="addNew">
       <span>add</span>
     </button>
   </div>

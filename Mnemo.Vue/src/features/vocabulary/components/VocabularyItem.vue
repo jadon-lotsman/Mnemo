@@ -1,72 +1,162 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import { capitalize } from '@/shared/utils/StringExtension'
-import type { VocabularyEntry } from '../types/VocabularyEntry'
-import { ref } from 'vue'
-import { useNotify } from '@/shared/composables/useNotify'
+import type {
+  VocabularyEntry,
+  VocabularyCreateRequest,
+  VocabularyPatchRequest,
+} from '../types/VocabularyEntry'
 
-const notify = useNotify()
+const props = defineProps<{
+  entry: VocabularyEntry
+}>()
 
-const props = withDefaults(
-  defineProps<{
-    data: VocabularyEntry
-    initialEditing?: boolean
-  }>(),
-  {
-    initialEditing: false,
-  },
-)
+const emits = defineEmits<{
+  (e: 'create', localId: number, bodyRequest: VocabularyCreateRequest): void
+  (e: 'patch', remoteId: number, bodyRequest: VocabularyPatchRequest): void
+}>()
 
-const isEditing = ref(props.initialEditing)
+const isCreatingMode: boolean = props.entry.id < 0
+const isEditorMode = ref<boolean>(isCreatingMode)
 
-function switchEditing() {
-  isEditing.value = !isEditing.value
+const foreignInput = ref<string>('')
+const transcriptionInput = ref<string>('')
+
+const translationsInput = ref<string>('')
+const addTranslations = ref<string[]>([])
+const removeTranslations = ref<string[]>([])
+const displayTranslations = computed(() => {
+  const all = [...props.entry.translations, ...addTranslations.value]
+  return all.filter((translation) => !removeTranslations.value.includes(translation))
+})
+
+const exampleInput = ref<string>('')
+const addExamples = ref<string[]>([])
+const removeExamples = ref<string[]>([])
+const displayExamples = computed(() => {
+  const all = [...props.entry.examples, ...addExamples.value]
+  return all.filter((example) => !removeExamples.value.includes(example))
+})
+
+function pushItem(mode: string) {
+  if (mode === 'examples') {
+    addExamples.value.push(exampleInput.value)
+    exampleInput.value = ''
+  } else {
+    addTranslations.value.push(translationsInput.value)
+    translationsInput.value = ''
+  }
 }
 
-function deleteItem(str: string) {
-  notify.custom('Remove', str)
+function removeItem(str: string, mode: string) {
+  if (mode === 'examples') {
+    if (addExamples.value.includes(str)) {
+      addExamples.value = addExamples.value.filter((example) => example !== str)
+    } else {
+      removeExamples.value.push(str)
+    }
+  } else {
+    if (addTranslations.value.includes(str)) {
+      addTranslations.value = addTranslations.value.filter((translation) => translation !== str)
+    } else {
+      removeTranslations.value.push(str)
+    }
+  }
+}
+
+function switchEditing() {
+  isEditorMode.value = !isEditorMode.value
+
+  if (isEditorMode.value === false) {
+    saveChanges()
+  }
+}
+
+function saveChanges() {
+  if (isCreatingMode) {
+    emits('create', props.entry.id, {
+      foreign: foreignInput.value,
+      transcription: transcriptionInput.value,
+      examples: addExamples.value,
+      translations: addTranslations.value,
+    })
+  } else {
+    emits('patch', props.entry.id, {
+      foreign: foreignInput.value,
+      transcription: transcriptionInput.value,
+      examplesAdd: addExamples.value,
+      examplesRemove: removeExamples.value,
+      translationsAdd: addTranslations.value,
+      translationsRemove: removeTranslations.value,
+    })
+  }
+
+  foreignInput.value = ''
+  transcriptionInput.value = ''
+
+  addExamples.value = []
+  removeExamples.value = []
+  addTranslations.value = []
+  removeTranslations.value = []
 }
 </script>
 
 <template>
-  <article class="entry" :class="{ 'editor-mode': isEditing }" @click="switchEditing">
+  <article class="entry" :class="{ 'editor-mode': isEditorMode }" @click="switchEditing">
     <header>
-      <input class="foreign" type="text" v-if="isEditing" :placeholder="data.foreign" @click.stop />
-      <div class="foreign" v-else>{{ data.foreign }}</div>
+      <input
+        class="foreign"
+        type="text"
+        v-if="isEditorMode"
+        :placeholder="entry.foreign === '' ? 'foreign' : entry.foreign"
+        v-model="foreignInput"
+        @click.stop
+      />
+      <div class="foreign" v-else>{{ entry.foreign }}</div>
 
       <input
         class="transcription"
         type="text"
-        v-if="isEditing"
-        :placeholder="data.transcription"
+        v-if="isEditorMode"
+        :placeholder="entry.transcription === '' ? 'transcription' : entry.transcription"
+        v-model="transcriptionInput"
         @click.stop
       />
-      <div class="transcription" v-else>{{ data.transcription }}</div>
+      <div class="transcription" v-else>{{ entry.transcription }}</div>
 
       <ol class="translations">
-        <div class="editable-item" v-for="translation in data.translations" :key="translation">
-          <button v-if="isEditing" @click.stop="deleteItem(translation)">close</button>
+        <div class="editable-item" v-for="translation in displayTranslations" :key="translation">
+          <button v-if="isEditorMode" @click.stop="removeItem(translation, 'translations')">
+            close
+          </button>
           <li>
             {{ translation }}
           </li>
         </div>
       </ol>
-      <form class="add-form" v-if="isEditing">
-        <input type="text" placeholder="Input a new translation..." @click.stop />
+      <form
+        class="add-form"
+        v-if="isEditorMode"
+        @submit.prevent="pushItem('translations')"
+        @click.stop
+      >
+        <input type="text" placeholder="Input a new translation..." v-model="translationsInput" />
         <button type="button" @click.stop>add</button>
       </form>
     </header>
+
     <footer>
-      <ol v-if="data.examples.length > 0">
-        <div class="editable-item" v-for="example in data.examples" :key="example">
-          <button v-if="isEditing" @click.stop="deleteItem(example)">close</button>
+      <ol v-if="displayExamples.length > 0">
+        <div class="editable-item" v-for="example in displayExamples" :key="example">
+          <button v-if="isEditorMode" @click.stop="removeItem(example, 'examples')">close</button>
           <li>
             {{ capitalize(example) }}
           </li>
         </div>
       </ol>
-      <form class="add-form" v-if="isEditing">
-        <input type="text" placeholder="Input a new example..." @click.stop />
-        <button type="button" @click.stop>add</button>
+      <form class="add-form" v-if="isEditorMode" @submit.prevent="pushItem('examples')" @click.stop>
+        <input type="text" placeholder="Input a new example..." v-model="exampleInput" />
+        <button type="submit">add</button>
       </form>
     </footer>
   </article>
