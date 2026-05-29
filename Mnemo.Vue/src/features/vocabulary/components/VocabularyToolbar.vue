@@ -1,29 +1,38 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 defineProps<{
   isLoading: boolean
 }>()
 
 const emit = defineEmits<{
-  (e: 'search', query: string): void
-  (e: 'addNew'): void
+  (e: 'submitSearch', query: string): void
+  (e: 'clickCreate'): void
 }>()
 
 const searchQuery = ref('')
 
-function addNew() {
-  emit('addNew')
+function createForm() {
+  emit('clickCreate')
 }
 
-function onSubmit() {
-  emit('search', searchQuery.value)
+function submitSearch() {
+  emit('submitSearch', searchQuery.value)
 }
+
+watch(
+  () => searchQuery.value,
+  (newVal, oldVal) => {
+    if (oldVal && newVal === '') {
+      submitSearch()
+    }
+  },
+)
 </script>
 
 <template>
   <div class="tools-container">
-    <form class="search-form" @submit.prevent="onSubmit">
+    <form class="search-form" @submit.prevent="submitSearch">
       <input
         v-model="searchQuery"
         type="search"
@@ -35,7 +44,7 @@ function onSubmit() {
       </button>
     </form>
 
-    <button type="button" class="small-button" :disabled="isLoading" @click="addNew">
+    <button type="button" class="small-button" :disabled="isLoading" @click="createForm">
       <span>add</span>
     </button>
   </div>

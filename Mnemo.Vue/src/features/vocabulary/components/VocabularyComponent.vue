@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { onMounted } from 'vue'
 import { useVocabularyStore } from '../stores/VocabularyStore.ts'
 import VocabularyItem from './VocabularyItem/VocabularyItem.vue'
@@ -11,68 +11,69 @@ import type {
 } from '../types/VocabularyEntry.ts'
 
 const vocabulary = useVocabularyStore()
-const displayEntries = ref<VocabularyEntry[]>([])
 
-onMounted(async () => {
-  await vocabulary.fetchVocabulary()
+const templateEntry = ref<VocabularyEntry>()
+const searched = ref<VocabularyEntry[]>([])
+const list = computed(() => (searched.value.length > 0 ? searched.value : vocabulary.entries))
 
-  displayEntries.value = vocabulary.entries
-})
-
-async function handleSearch(query: string) {
+async function onSearchSubmit(query: string) {
   const trimmed = query.trim()
   if (!trimmed) {
-    displayEntries.value = vocabulary.entries
+    searched.value = []
     return
   }
 
-  const result = await vocabulary.searchVocabulary(trimmed)
-  displayEntries.value = result.length > 0 ? result : vocabulary.entries
+  searched.value = await vocabulary.searchVocabulary(trimmed)
 }
 
-async function handleNew() {
-  const entry: VocabularyEntry = {
-    id: -Date.now(),
-    foreign: '',
-    transcription: '',
-    translations: [],
-    examples: [],
-  }
-  displayEntries.value.unshift(entry)
+async function onCreateButton() {
+  const toggleValue =
+    templateEntry.value === undefined
+      ? {
+          id: -Date.now(),
+          foreign: '',
+          transcription: '',
+          translations: [],
+          examples: [],
+        }
+      : undefined
+  templateEntry.value = toggleValue
 }
 
-async function handleCreate(localId: number, bodyRequest: VocabularyCreateRequest) {
-  const result = await vocabulary.addEntry(bodyRequest)
+async function onEntryCreate(bodyRequest: VocabularyCreateRequest) {
+  templateEntry.value = undefined
 
-  const index = displayEntries.value.findIndex((e) => e.id === localId)
-  if (index !== -1) {
-    vocabulary.entries.splice(index, 1, result)
-  }
+  await vocabulary.addEntry(bodyRequest)
 }
 
-async function handlePatch(remoteId: number, bodyRequest: VocabularyPatchRequest) {
-  const result = await vocabulary.patchEntry(remoteId, bodyRequest)
-
-  const index = displayEntries.value.findIndex((e) => e.id === remoteId)
-  if (index !== -1) {
-    displayEntries.value.splice(index, 1, result)
-  }
+async function onEntryPatch(id: number, bodyRequest: VocabularyPatchRequest) {
+  await vocabulary.patchEntry(id, bodyRequest)
 }
+
+async function onEntryDelete(id: number) {
+  await vocabulary.deleteEntry(id)
+}
+
+onMounted(async () => {
+  await vocabulary.fetchVocabulary()
+})
 </script>
 
 <template>
   <VocabularyToolbar
     :is-loading="vocabulary.isLoading"
-    @add-new="handleNew"
-    @search="handleSearch"
+    @submit-search="onSearchSubmit"
+    @click-create="onCreateButton"
   />
+  <VocabularyItem v-if="templateEntry" :entry="templateEntry" @create="onEntryCreate" />
   <div v-if="!vocabulary.isLoading">
     <VocabularyItem
-      v-for="entry in displayEntries"
-      :key="entry.foreign"
+      v-for="entry in list"
+      :key="entry.id"
       :entry="entry"
-      @create="handleCreate"
-      @patch="handlePatch"
+      @create="onEntryCreate"
+      @patch="onEntryPatch"
+      @delete="onEntryDelete"
     />
   </div>
 </template>

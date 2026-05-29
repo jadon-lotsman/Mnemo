@@ -19,51 +19,48 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
   async function fetchVocabulary() {
     try {
       isLoading.value = true
-
       entries.value = await apiRequest<VocabularyEntry[]>('/api/vocabulary/entries/')
     } finally {
       isLoading.value = false
     }
   }
 
-  async function searchVocabulary(foreign: string): Promise<VocabularyEntry[]> {
+  async function searchVocabulary(query: string): Promise<VocabularyEntry[]> {
     try {
       isLoading.value = true
-
-      const responseData = await apiRequest<VocabularyEntry>(
-        `/api/Vocabulary/entries/find?foreign=${foreign}`,
-      )
-
-      return [responseData]
-    } catch {
-      return []
+      return await apiRequest<VocabularyEntry[]>(`/api/Vocabulary/entries/search?query=${query}`)
     } finally {
       isLoading.value = false
     }
   }
 
-  async function addEntry(body: VocabularyCreateRequest): Promise<VocabularyEntry> {
+  async function addEntry(body: VocabularyCreateRequest) {
     const result = await apiRequest<VocabularyEntry>('/api/vocabulary/entries/', {
       method: 'POST',
       body: JSON.stringify(body),
     })
 
-    return result
+    entries.value.push(result)
   }
 
-  async function patchEntry(id: number, body: VocabularyPatchRequest): Promise<VocabularyEntry> {
+  async function patchEntry(id: number, body: VocabularyPatchRequest) {
     const result = await apiRequest<VocabularyEntry>(`/api/vocabulary/entries/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(body),
     })
 
-    return result
+    const index = entries.value.findIndex((e) => e.id === result.id)
+    if (index !== -1) {
+      entries.value.splice(index, 1, result)
+    }
   }
 
-  async function deleteEntry(id: number) {
-    await apiRequest<VocabularyEntry>(`/api/vocabulary/entries/${id}`, {
+  async function deleteEntry(deleteId: number) {
+    await apiRequest<VocabularyEntry>(`/api/vocabulary/entries/${deleteId}`, {
       method: 'DELETE',
     })
+
+    entries.value = entries.value.filter((e) => e.id !== deleteId)
   }
 
   return {

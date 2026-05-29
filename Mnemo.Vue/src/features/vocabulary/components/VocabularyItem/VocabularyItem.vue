@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import type {
   VocabularyEntry,
   VocabularyCreateRequest,
@@ -7,24 +7,22 @@ import type {
 } from '../../types/VocabularyEntry'
 import EditableField from './EditableField.vue'
 import EditableList from './EditableList.vue'
-import { useNotify } from '@/shared/composables/useNotify.ts'
 
 const props = defineProps<{
   entry: VocabularyEntry
 }>()
 
 const emits = defineEmits<{
-  (e: 'create', localId: number, bodyRequest: VocabularyCreateRequest): void
-  (e: 'patch', remoteId: number, bodyRequest: VocabularyPatchRequest): void
+  (e: 'create', bodyRequest: VocabularyCreateRequest): void
+  (e: 'delete', id: number): void
+  (e: 'patch', id: number, bodyRequest: VocabularyPatchRequest): void
 }>()
 
-const notify = useNotify()
-
-const isCreatingMode: boolean = props.entry.id < 0
-const isEditorMode = ref<boolean>(isCreatingMode)
+const isTemplateMode: boolean = props.entry.id < 0
+const isEditorMode = ref<boolean>(isTemplateMode)
 const isChanged = computed(
   () =>
-    isCreatingMode ||
+    isTemplateMode ||
     (foreignInput.value !== '' && foreignInput.value !== props.entry.foreign) ||
     (transcriptionInput.value !== '' && transcriptionInput.value !== props.entry.transcription) ||
     addTranslations.value.length > 0 ||
@@ -60,14 +58,23 @@ function switchEditing() {
   }
 }
 
+function emitDelete() {
+  emits('delete', props.entry.id)
+}
+
 function saveChanges() {
-  if (isCreatingMode) {
-    emits('create', props.entry.id, {
-      foreign: foreignInput.value,
-      transcription: transcriptionInput.value,
-      examples: addExamples.value,
-      translations: addTranslations.value,
-    })
+  foreignInput.value = foreignInput.value.trim()
+  transcriptionInput.value = transcriptionInput.value.trim()
+
+  if (isTemplateMode) {
+    if (foreignInput.value.length > 0 && addTranslations.value.length > 0) {
+      emits('create', {
+        foreign: foreignInput.value,
+        transcription: transcriptionInput.value,
+        examples: addExamples.value,
+        translations: addTranslations.value,
+      })
+    }
   } else {
     emits('patch', props.entry.id, {
       foreign: foreignInput.value,
@@ -82,7 +89,12 @@ function saveChanges() {
 </script>
 
 <template>
-  <article class="entry" :class="{ 'editor-mode': isEditorMode }" @click="switchEditing">
+  <article
+    class="entry"
+    :class="{ 'editor-mode': isEditorMode }"
+    @click.left="switchEditing"
+    @click.right.prevent="emitDelete"
+  >
     <header>
       <EditableField
         class="foreign"
@@ -197,6 +209,7 @@ function saveChanges() {
 
       margin: 0px;
       margin-top: 28px;
+      margin-bottom: 5px;
     }
 
     .translations {

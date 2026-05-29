@@ -1,14 +1,23 @@
 <script lang="ts" setup>
-defineProps<{
+import { watch } from 'vue'
+
+const props = defineProps<{
   modelValue: string
   prevValue: string
   placeholder: string
   isEditorMode: boolean
 }>()
 
-defineEmits<{
+const emits = defineEmits<{
   (e: 'update:modelValue', query: string): void
 }>()
+
+watch(
+  () => props.prevValue,
+  () => {
+    emits('update:modelValue', '')
+  },
+)
 </script>
 
 <template>
@@ -18,7 +27,7 @@ defineEmits<{
       type="text"
       :value="modelValue"
       :placeholder="prevValue || placeholder"
-      @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+      @input="emits('update:modelValue', ($event.target as HTMLInputElement).value)"
       @click.stop
     />
     <div v-else>{{ modelValue || prevValue || '' }}</div>
