@@ -32,7 +32,7 @@ const login = async function () {
 
     localStorage.setItem('token', result.token.toString())
 
-    router.push({ name: ROUTE_NAMES.APP })
+    router.push({ name: ROUTE_NAMES.VOCABULARY })
   } finally {
     isLoading.value = false
   }

@@ -1,15 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
-import AppView from '../views/AppView.vue'
+import VocabularyView from '@/views/VocabularyView.vue'
+import SessionView from '@/views/SessionView.vue'
 
 export const ROUTE_PATHS = {
   LOGIN: '/login',
-  APP: '/app',
+  VOCABULARY: '/vocabulary',
+  SESSION: '/session',
 }
 
 export const ROUTE_NAMES = {
   LOGIN: 'login',
-  APP: 'app',
+  VOCABULARY: 'vocabulary',
+  SESSION: 'session',
 }
 
 const routes = [
@@ -19,14 +22,20 @@ const routes = [
     component: LoginView,
   },
   {
-    path: ROUTE_PATHS.APP,
-    name: ROUTE_NAMES.APP,
-    component: AppView,
+    path: ROUTE_PATHS.VOCABULARY,
+    name: ROUTE_NAMES.VOCABULARY,
+    component: VocabularyView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: ROUTE_PATHS.SESSION,
+    name: ROUTE_NAMES.SESSION,
+    component: SessionView,
     meta: { requiresAuth: true },
   },
   {
     path: '/',
-    redirect: { name: ROUTE_NAMES.APP },
+    redirect: { name: ROUTE_NAMES.VOCABULARY },
   },
 ]
 
@@ -58,7 +67,7 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !authenticated) {
     next({ name: ROUTE_NAMES.LOGIN, query: { sessionExpired: 'true' } })
   } else if (to.name === ROUTE_NAMES.LOGIN && authenticated) {
-    next({ name: ROUTE_NAMES.APP })
+    next({ name: ROUTE_NAMES.VOCABULARY })
   } else {
     next()
   }
