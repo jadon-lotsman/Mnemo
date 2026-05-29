@@ -53,7 +53,7 @@ namespace Mnemo.Controllers
                 };
             }
 
-            return Ok();
+            return NoContent();
         }
 
         [HttpDelete]
@@ -97,7 +97,7 @@ namespace Mnemo.Controllers
             return Ok(tasksDto);
         }
 
-        [HttpPost("tasks/{id:int}/answer")]
+        [HttpPost("tasks/{id:int}")]
         public async Task<IActionResult> SubmitTaskAnswer(int id, [FromBody] SubmitTaskAnswerRequest request)
         {
             var result = await _sessionService.SubmitRepetitionTaskAnswerAsync(UserId, id, request.Answer);

@@ -17,28 +17,26 @@ const logout = () => {
 </script>
 
 <template>
-  <main>
-    <CollapsibleSection title="Calendar">
-      <Calendar></Calendar>
-    </CollapsibleSection>
+  <CollapsibleSection title="Calendar">
+    <Calendar></Calendar>
+  </CollapsibleSection>
 
-    <CollapsibleSection title="Launcher">
-      <Launcher></Launcher>
-    </CollapsibleSection>
+  <CollapsibleSection title="Launcher">
+    <Launcher></Launcher>
+  </CollapsibleSection>
 
-    <CollapsibleSection title="Vocabulary">
-      <template #subtitle>
-        <span
-          >{{ vocabulary.totalEntries }} entries,
-          {{ vocabulary.totalTranslations }} translations</span
-        >
-      </template>
+  <CollapsibleSection title="Vocabulary">
+    <template #subtitle>
+      <span
+        >{{ vocabulary.totalEntries }} entries,
+        {{ vocabulary.totalTranslations }} translations</span
+      >
+    </template>
 
-      <Vocabulary></Vocabulary>
-    </CollapsibleSection>
+    <Vocabulary></Vocabulary>
+  </CollapsibleSection>
 
-    <button @click="logout">logout</button>
-  </main>
+  <button @click="logout">logout</button>
 </template>
 
 <style lang="scss" scoped>

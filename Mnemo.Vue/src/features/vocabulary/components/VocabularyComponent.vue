@@ -14,7 +14,7 @@ const vocabulary = useVocabularyStore()
 
 const templateEntry = ref<VocabularyEntry>()
 const searched = ref<VocabularyEntry[]>([])
-const list = computed(() => (searched.value.length > 0 ? searched.value : vocabulary.entries))
+const entries = computed(() => (searched.value.length > 0 ? searched.value : vocabulary.entries))
 
 async function onSearchSubmit(query: string) {
   const trimmed = query.trim()
@@ -55,7 +55,9 @@ async function onEntryDelete(id: number) {
 }
 
 onMounted(async () => {
-  await vocabulary.fetchVocabulary()
+  if (vocabulary.entries.length === 0) {
+    await vocabulary.fetchVocabulary()
+  }
 })
 </script>
 
@@ -68,7 +70,7 @@ onMounted(async () => {
   <VocabularyItem v-if="templateEntry" :entry="templateEntry" @create="onEntryCreate" />
   <div v-if="!vocabulary.isLoading">
     <VocabularyItem
-      v-for="entry in list"
+      v-for="entry in entries"
       :key="entry.id"
       :entry="entry"
       @create="onEntryCreate"

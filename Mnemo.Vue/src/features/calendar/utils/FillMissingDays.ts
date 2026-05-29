@@ -10,11 +10,11 @@ export function fillMissingDays(days: RepetitionDay[]): RepetitionDay[] {
   const endDate = new Date(lastDateStr ?? '')
 
   let diff = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
-  if (diff < 6) {
-    diff = 6
+  if (diff < 5) {
+    diff = 5
   }
 
-  const totalDays = diff
+  const totalDays = diff + 1 + (6 - ((diff + 1) % 6))
 
   const daysMap = new Map<string, RepetitionDay>()
   for (const day of days) {

@@ -1,19 +1,22 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import RadioItem from '@/features/launcher/components/LauncherRadioItem.vue'
-import { useNotify } from '@/shared/composables/useNotify'
-
-const notify = useNotify()
+import { apiRequest } from '@/shared/utils/ApiRequest'
+import router, { ROUTE_NAMES } from '@/router'
 
 const selectedMode = ref<string>('fast')
 
-function sessionAlert() {
-  notify.info(`Mode: ${selectedMode.value} session`)
+async function onSubmit() {
+  await apiRequest<string>(`/api/session?mode=${selectedMode.value}`, {
+    method: 'POST',
+  })
+
+  router.push({ name: ROUTE_NAMES.SESSION })
 }
 </script>
 
 <template>
-  <form @submit.prevent="sessionAlert">
+  <form @submit.prevent="onSubmit">
     <div class="mode-grid">
       <RadioItem
         v-model="selectedMode"
