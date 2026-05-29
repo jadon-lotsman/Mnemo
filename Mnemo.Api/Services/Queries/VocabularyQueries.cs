@@ -36,6 +36,11 @@ namespace Mnemo.Services.Queries
         public async Task<List<VocabularyEntry>> GetAllByUserIdAsync(int userId)
             => await GetByUserIdQuery(userId).ToListAsync();
 
+        public async Task<List<VocabularyEntry>> SearchLikeAsync(int userId, string query)
+            => await GetByUserIdQuery(userId)
+                .Where(e => e.Foreign.Contains(query))
+                .ToListAsync();
+
 
         public async Task<Dictionary<int, VocabularyEntry>> GetDictByIdsAsync(int userId, IEnumerable<int> ids)
         {

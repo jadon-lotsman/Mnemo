@@ -62,6 +62,18 @@ namespace Mnemo.Controllers
             return Ok(entryDto);
         }
 
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchEntriesByQuery([FromQuery] string query)
+        {
+            var entries = await _vocabularyQueries.SearchLikeAsync(UserId, query);
+
+            if (entries == null)
+                return NotFound();
+
+            var entryDto = Mapper.MapToDto(entries);
+            return Ok(entryDto);
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> CreateEntry([FromBody] CreateVocabularyEntryRequest dto)
