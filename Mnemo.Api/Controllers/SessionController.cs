@@ -46,10 +46,10 @@ namespace Mnemo.Controllers
             {
                 return result.ErrorCode switch
                 {
-                    ErrorCode.UserNotFound => NotFound(result.ErrorMessage),
-                    ErrorCode.TaskNotFound => NotFound(result.ErrorMessage),
-                    ErrorCode.SessionNotFinished => BadRequest(result.ErrorMessage),
-                    _ => StatusCode(500, result.ErrorMessage)
+                    ErrorCode.UserNotFound => NotFound(new { message = result.ErrorMessage }),
+                    ErrorCode.TaskNotFound => NotFound(new { message = result.ErrorMessage }),
+                    ErrorCode.SessionNotFinished => BadRequest(new { message = result.ErrorMessage }),
+                    _ => StatusCode(500, new { message = result.ErrorMessage })
                 };
             }
 
@@ -65,8 +65,8 @@ namespace Mnemo.Controllers
             {
                 return result.ErrorCode switch
                 {
-                    ErrorCode.SessionNotFound => NotFound(result.ErrorMessage),
-                    _ => StatusCode(500, result.ErrorMessage)
+                    ErrorCode.SessionNotFound => NotFound(new { message = result.ErrorMessage }),
+                    _ => StatusCode(500, new { message = result.ErrorMessage })
                 };
             }
 
@@ -106,8 +106,8 @@ namespace Mnemo.Controllers
             {
                 return result.ErrorCode switch
                 {
-                    ErrorCode.TaskNotFound => NotFound(result.ErrorMessage),
-                    _ => StatusCode(500, result.ErrorMessage)
+                    ErrorCode.TaskNotFound => NotFound(new { message = result.ErrorMessage }),
+                    _ => StatusCode(500, new { message = result.ErrorMessage})
                 };
             }
 

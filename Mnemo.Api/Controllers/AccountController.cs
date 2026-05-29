@@ -50,9 +50,9 @@ namespace Mnemo.Controllers
             {
                 return result.ErrorCode switch
                 {
-                    ErrorCode.UsernameTaken => Conflict(result.ErrorMessage),
-                    ErrorCode.InvalidPassword => BadRequest(result.ErrorMessage),
-                    _ => StatusCode(500, result.ErrorMessage)
+                    ErrorCode.UsernameTaken => Conflict(new { message = result.ErrorMessage }),
+                    ErrorCode.InvalidPassword => BadRequest(new { message = result.ErrorMessage }),
+                    _ => StatusCode(500, new { message = result.ErrorMessage })
                 };
             }
 

@@ -1,4 +1,6 @@
-﻿namespace Mnemo.Common
+﻿using System.Text.RegularExpressions;
+
+namespace Mnemo.Common
 {
     public enum ErrorCode
     {
@@ -41,7 +43,7 @@
         {
             IsSuccess = false;
             ErrorCode = errorCode;
-            ErrorMessage = errorMessage ?? errorCode.ToString();
+            ErrorMessage = errorMessage ?? errorCode.ToString().SplitCamelCase();
         }
 
 

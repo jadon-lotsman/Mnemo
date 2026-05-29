@@ -67,8 +67,8 @@ namespace Mnemo.Services
 
             var targetEntries = mode switch
             {
-                "random" => _vocabularyQueries.GetRandomByUserId(userId),
-                "due"  => _vocabularyQueries.GetDueByUserIdAsync(userId),
+                "fast" => _vocabularyQueries.GetRandomByUserId(userId),
+                "planned"  => _vocabularyQueries.GetDueByUserIdAsync(userId),
                 _ => new List<VocabularyEntry>()
             };
 

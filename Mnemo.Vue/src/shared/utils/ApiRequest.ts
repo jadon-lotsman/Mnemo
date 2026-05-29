@@ -27,7 +27,18 @@ export async function apiRequest<T = unknown>(url: string, options: RequestInit 
     }
 
     if (!response.ok) {
-      throw new Error(`${response.status}: ${response.statusText}`)
+      let errorMessage = ''
+
+      try {
+        const errorBody = await response.json()
+        if (errorBody && typeof errorBody === 'object') {
+          errorMessage = response.statusText + ` (${errorBody.message})`
+        }
+      } catch {
+        errorMessage = response.statusText
+      }
+
+      throw new Error(`${response.status}: ${errorMessage}`)
     }
 
     // Возвращаем удачный ответ

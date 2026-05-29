@@ -5,6 +5,13 @@ namespace Mnemo.Common
 {
     public static class StringExtension
     {
+        public static string SplitCamelCase(this string str)
+        {
+            if (string.IsNullOrWhiteSpace(str)) return str;
+
+            return Regex.Replace(str, @"(?<!^)(?=[A-Z][a-z])|(?<=[a-z])(?=[A-Z])", " ");
+        }
+
         public static string Capitalize(this string str)
         {
             if (string.IsNullOrWhiteSpace(str)) return str;
