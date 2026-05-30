@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useNotify } from '@/shared/composables/useNotify'
 import { ROUTE_NAMES } from '@/router'
 import { apiRequest } from '@/shared/utils/ApiRequest'
+import CollapsibleSection from '@/shared/components/CollapsibleSection.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -46,10 +47,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <form @submit.prevent="login">
-    <input type="text" v-model="username" />
-    <button type="submit" :disabled="isLoading">Login</button>
-  </form>
+  <CollapsibleSection title="Login">
+    <form @submit.prevent="login">
+      <input class="input" type="text" placeholder="Username..." v-model="username" />
+      <button class="big-button" type="submit" :disabled="isLoading">Login</button>
+    </form>
+  </CollapsibleSection>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+button {
+  margin-top: 20px;
+}
+</style>

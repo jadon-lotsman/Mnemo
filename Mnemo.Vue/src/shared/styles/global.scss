@@ -34,6 +34,29 @@ button {
 }
 
 // Basic
+.input {
+  color: $black-font;
+
+  border: $plane-gray 3px solid;
+  box-shadow: 5px 5px 0px $shadow;
+
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s ease;
+
+  border-radius: 12px;
+  padding: 10px;
+
+  width: 100%;
+
+  font-size: 16px;
+
+  &:focus {
+    box-shadow: 8px 8px 0px $shadow;
+    transform: translateY(-3px);
+  }
+}
+
 button {
   color: $black-font;
   background-color: $plane-white;
@@ -49,6 +72,10 @@ button {
 
     color: $gray-font;
     background-color: $plane-gray;
+  }
+
+  &:active {
+    color: $gray-font;
   }
 }
 

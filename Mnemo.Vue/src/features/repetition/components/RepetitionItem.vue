@@ -32,7 +32,7 @@ function submitAnswer() {
         <!-- <div class="part-of-speech">(сущ.)</div> -->
       </header>
       <footer>
-        <input type="text" :placeholder="placeholder" v-model="userAnswer" />
+        <input class="input" type="text" :placeholder="placeholder" v-model="userAnswer" />
       </footer>
       <button type="submit" class="big-button" :disabled="userAnswer === ''">Submit</button>
     </form>
@@ -70,14 +70,9 @@ function submitAnswer() {
     padding: 0px 14px 0px 14px;
     margin-bottom: 18px;
 
-    input {
-      border: $plane-gray 3px solid;
-      border-radius: 10px;
-      padding: 5px 10px;
-
-      width: 100%;
-
-      font-size: 16px;
+    .input {
+      transform: none !important;
+      box-shadow: none !important;
     }
   }
 

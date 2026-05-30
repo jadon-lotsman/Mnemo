@@ -9,6 +9,7 @@ import type {
   VocabularyEntry,
   VocabularyPatchRequest,
 } from '../types/VocabularyEntry.ts'
+import ItemSkeleton from './VocabularyItem/ItemSkeleton.vue'
 
 const vocabulary = useVocabularyStore()
 
@@ -68,7 +69,11 @@ onMounted(async () => {
     @click-create="onCreateButton"
   />
   <VocabularyItem v-if="templateEntry" :entry="templateEntry" @create="onEntryCreate" />
-  <div v-if="!vocabulary.isLoading">
+
+  <div v-if="vocabulary.isLoading">
+    <ItemSkeleton v-for="e in 4" :key="e" />
+  </div>
+  <div v-else>
     <VocabularyItem
       v-for="entry in entries"
       :key="entry.id"

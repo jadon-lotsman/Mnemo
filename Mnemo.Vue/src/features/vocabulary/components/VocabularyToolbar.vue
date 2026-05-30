@@ -11,6 +11,7 @@ const emit = defineEmits<{
 }>()
 
 const searchQuery = ref('')
+const inputRef = ref<HTMLInputElement | null>(null)
 
 function createForm() {
   emit('clickCreate')
@@ -25,6 +26,7 @@ watch(
   (newVal, oldVal) => {
     if (oldVal && newVal === '') {
       submitSearch()
+      inputRef.value?.blur()
     }
   },
 )
@@ -34,11 +36,21 @@ watch(
   <div class="tools-container">
     <form class="search-form" @submit.prevent="submitSearch">
       <input
+        ref="inputRef"
         v-model="searchQuery"
         type="search"
         :disabled="isLoading"
         :placeholder="isLoading ? 'Loading...' : 'Search...'"
       />
+      <button
+        class="clear-button"
+        v-if="searchQuery !== ''"
+        type="button"
+        :disabled="isLoading"
+        @click="searchQuery = ''"
+      >
+        <span>close_small</span>
+      </button>
       <button type="submit" class="small-button" :disabled="isLoading">
         <span>arrow_forward</span>
       </button>
@@ -74,13 +86,18 @@ watch(
   }
 
   .search-form {
-    @include lift();
+    position: relative;
 
     display: flex;
     justify-content: space-between;
-    background-color: $clear-white;
+
+    background-color: $plane-gray;
     box-shadow: 5px 5px 0px $shadow;
     width: 100%;
+
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s ease;
 
     border-radius: 12px;
     margin-bottom: 15px;
@@ -91,7 +108,7 @@ watch(
       border: 3px solid $plane-gray;
       border-radius: 12px 0px 0px 12px;
       border-right: none;
-      background-color: inherit;
+      background-color: $clear-white;
 
       padding: 8px 12px;
       width: 100%;
@@ -101,9 +118,32 @@ watch(
     }
 
     button {
-      @include lift(0, 0);
+      transform: none !important;
+      box-shadow: none !important;
 
       margin-left: -10px;
+    }
+
+    .clear-button {
+      @include iconize-text;
+
+      position: absolute;
+
+      right: 48px;
+      top: 8px;
+
+      color: $shadow;
+      background-color: $plane-gray;
+
+      padding: 0px;
+      border-radius: 50%;
+
+      opacity: 70%;
+    }
+
+    &:focus-within {
+      box-shadow: 8px 8px 0px $shadow;
+      transform: translateY(-3px);
     }
   }
 }
