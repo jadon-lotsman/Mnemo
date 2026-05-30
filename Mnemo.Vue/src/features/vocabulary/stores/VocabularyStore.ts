@@ -56,11 +56,11 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
   }
 
   async function deleteEntry(deleteId: number) {
+    entries.value = entries.value.filter((e) => e.id !== deleteId)
+
     await apiRequest<VocabularyEntry>(`/api/vocabulary/entries/${deleteId}`, {
       method: 'DELETE',
     })
-
-    entries.value = entries.value.filter((e) => e.id !== deleteId)
   }
 
   return {

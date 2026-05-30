@@ -9,10 +9,7 @@ export function fillMissingDays(days: RepetitionDay[]): RepetitionDay[] {
   const startDate = new Date(firstDateStr ?? '')
   const endDate = new Date(lastDateStr ?? '')
 
-  let diff = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
-  if (diff < 5) {
-    diff = 5
-  }
+  const diff = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
 
   const totalDays = diff + 1 + (6 - ((diff + 1) % 6))
 

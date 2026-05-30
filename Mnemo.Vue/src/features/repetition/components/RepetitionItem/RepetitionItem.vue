@@ -4,7 +4,7 @@ import type { RepetitionTask } from '../../types/RepetitionTask'
 import RepetitionRadioItem from './RepetitionRadioItem.vue'
 
 const props = defineProps<{
-  list_number: number
+  listNumber: number
   task: RepetitionTask
 }>()
 
@@ -27,7 +27,7 @@ function submitAnswer() {
     <form @submit.prevent="submitAnswer">
       <header>
         <div class="prompt">
-          <span>{{ list_number }}. Translate </span>
+          <span>{{ listNumber + 1 }}. Translate </span>
           <span class="bold">"{{ task.prompt }}"</span>
         </div>
         <!-- <div class="part-of-speech">(сущ.)</div> -->

@@ -32,7 +32,7 @@ onMounted(async () => {
   <RepetitionItem
     v-for="(task, index) in tasks"
     :key="task.id"
-    :list_number="index + 1"
+    :list-number="index"
     :task="task"
     @submit-answer="onSubmitAnswer"
   />

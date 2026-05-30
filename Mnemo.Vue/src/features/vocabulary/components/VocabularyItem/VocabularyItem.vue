@@ -51,7 +51,10 @@ function handleTranslationsUpdate(added: string[], removed: string[]) {
 }
 
 function switchEditing() {
-  isEditorMode.value = !isEditorMode.value
+  const canSwitch =
+    !isTemplateMode || (foreignInput.value.length > 0 && addTranslations.value.length > 0)
+
+  if (canSwitch) isEditorMode.value = !isEditorMode.value
 
   if (!isEditorMode.value && isChanged.value) {
     saveChanges()
@@ -67,14 +70,12 @@ function saveChanges() {
   transcriptionInput.value = transcriptionInput.value.trim()
 
   if (isTemplateMode) {
-    if (foreignInput.value.length > 0 && addTranslations.value.length > 0) {
-      emits('create', {
-        foreign: foreignInput.value,
-        transcription: transcriptionInput.value,
-        examples: addExamples.value,
-        translations: addTranslations.value,
-      })
-    }
+    emits('create', {
+      foreign: foreignInput.value,
+      transcription: transcriptionInput.value,
+      examples: addExamples.value,
+      translations: addTranslations.value,
+    })
   } else {
     emits('patch', props.entry.id, {
       foreign: foreignInput.value,
