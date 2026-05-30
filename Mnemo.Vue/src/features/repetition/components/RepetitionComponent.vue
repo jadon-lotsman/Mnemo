@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue'
-import RepetitionItem from './RepetitionItem.vue'
+import RepetitionItem from './RepetitionItem/RepetitionItem.vue'
 import type { RepetitionTask } from '../types/RepetitionTask.ts'
 import { apiRequest } from '@/shared/utils/ApiRequest.ts'
 

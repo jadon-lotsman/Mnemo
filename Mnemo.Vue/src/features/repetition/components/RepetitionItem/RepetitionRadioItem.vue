@@ -2,8 +2,6 @@
 defineProps<{
   modelValue: string
   value: string
-  title: string
-  description: string
 }>()
 
 defineEmits<{
@@ -12,46 +10,28 @@ defineEmits<{
 </script>
 
 <template>
-  <label class="mode-radio">
+  <label class="answer-radio">
     <input
       type="radio"
-      name="mode"
+      name="option"
       :value="value"
       :checked="modelValue === value"
       @change="$emit('update:modelValue', value)"
     />
-    <div class="title">{{ title }}</div>
-    <div class="description">{{ description }}</div>
+    <div>{{ value }}</div>
   </label>
 </template>
 
 <style lang="scss" scoped>
-.mode-radio {
-  @include lift();
-
-  cursor: pointer;
-
-  box-shadow: 5px 5px 0px $shadow;
-
-  user-select: none;
-
-  border-radius: 12px;
-  padding: 10px;
-
-  background-color: $plane-white;
-
+.answer-radio {
   input {
     display: none;
   }
 
-  .title {
-    display: flex;
-    color: $black-font;
-
-    font-size: 16px;
-    padding-bottom: 20px;
-
+  div {
     position: relative;
+
+    display: flex;
 
     &::before {
       content: '';
@@ -82,16 +62,7 @@ defineEmits<{
     }
   }
 
-  .description {
-    color: $gray-font;
-
-    font-size: 14px;
-    font-weight: 400;
-
-    max-width: 80%;
-  }
-
-  input:checked + .title::after {
+  input:checked + div::after {
     opacity: 100%;
   }
 }

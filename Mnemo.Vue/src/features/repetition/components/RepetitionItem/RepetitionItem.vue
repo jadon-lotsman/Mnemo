@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import type { RepetitionTask } from '../types/RepetitionTask'
+import type { RepetitionTask } from '../../types/RepetitionTask'
+import RepetitionRadioItem from './RepetitionRadioItem.vue'
 
 const props = defineProps<{
   list_number: number
@@ -12,7 +13,7 @@ const emits = defineEmits<{
 }>()
 
 const userAnswer = ref<string>('')
-const placeholder = ref<string>('Translation is...')
+const placeholder = ref<string>('Type the translation...')
 
 function submitAnswer() {
   emits('submitAnswer', props.task.id, userAnswer.value)
@@ -32,7 +33,21 @@ function submitAnswer() {
         <!-- <div class="part-of-speech">(сущ.)</div> -->
       </header>
       <footer>
-        <input class="input" type="text" :placeholder="placeholder" v-model="userAnswer" />
+        <input
+          v-if="task.options.length === 0"
+          class="text-input"
+          type="text"
+          :placeholder="placeholder"
+          v-model="userAnswer"
+        />
+        <div v-else class="option-input">
+          <RepetitionRadioItem
+            v-for="option in task.options"
+            :key="option"
+            :value="option"
+            v-model="userAnswer"
+          />
+        </div>
       </footer>
       <button type="submit" class="big-button" :disabled="userAnswer === ''">Submit</button>
     </form>
@@ -67,12 +82,25 @@ function submitAnswer() {
   }
 
   footer {
-    padding: 0px 14px 0px 14px;
+    padding: 0px 15px;
     margin-bottom: 18px;
 
-    .input {
-      transform: none !important;
-      box-shadow: none !important;
+    .text-input {
+      background-color: $plane-gray;
+      color: $black-font;
+
+      border-radius: 8px;
+      padding: 7px 10px;
+
+      width: 100%;
+
+      font-size: 15px;
+    }
+
+    .option-input {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
   }
 
