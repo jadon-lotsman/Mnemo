@@ -31,6 +31,15 @@ namespace Mnemo.Services.Queries
             .ToListAsync();
 
 
+        public async Task<Dictionary<int, RepetitionState>> GetDictByEntryIdsAsync(int userId, IEnumerable<int> ids)
+        {
+            var list = await GetByUserIdQuery(userId)
+                .Where(s => ids.Contains(s.VocabularyEntryId))
+                .ToListAsync();
+
+            return list.ToDictionary(s => s.Id);
+        }
+
         public async Task<List<VocabularyEntry>> GetEntriesWithoutRepetitionStateAsync(int userId)
         {
             return await _context.Entries.Where(e => e.User.Id == userId)

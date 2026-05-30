@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Mnemo.Contracts.Dtos.Repetition;
 using Mnemo.Data;
 using Mnemo.Common;
-using Mnemo.Services.Handlers;
 using Mnemo.Data.Entities;
 using Mnemo.Services.Queries;
 
@@ -21,12 +20,11 @@ namespace Mnemo.Services
         private VocabularyQueries _vocabularyQueries;
 
         private RepetitionStateService _stateService;
-        private RepetitionResultHandler _resultHandler;
 
         private static Random _random = new Random();
 
 
-        public RepetitionSessionService(AppDbContext context, AccountQueries accountQueries, SessionQueries sessionQueries, VocabularyQueries vocabularyQueries, RepetitionStateService stateService, RepetitionResultHandler resultHandler)
+        public RepetitionSessionService(AppDbContext context, AccountQueries accountQueries, SessionQueries sessionQueries, VocabularyQueries vocabularyQueries, RepetitionStateService stateService)
         {
             _context = context;
 
@@ -35,7 +33,6 @@ namespace Mnemo.Services
             _vocabularyQueries = vocabularyQueries;
 
             _stateService = stateService;
-            _resultHandler = resultHandler;
         }
 
 
@@ -62,7 +59,7 @@ namespace Mnemo.Services
                 return RequestResult<RepetitionSession>.Failure(ErrorCode.SessionNotFinished);
 
 
-            await _stateService.RefreshRepetitionStatesAsync(userId);
+            await _stateService.CreateNonExistentRepetitionStatesAsync(userId);
 
 
             var targetEntries = mode switch
@@ -78,7 +75,7 @@ namespace Mnemo.Services
 
             var tasks = targetEntries.Select(e => new RepetitionTask(e, _random.Next(2) == 0)).ToList();
 
-            var session = new RepetitionSession(userId, tasks);
+            var session = new RepetitionSession(userId, tasks, mode == "planned" ? true : false);
 
             await _context.RepetitionSessions.AddAsync(session);
             await _context.SaveChangesAsync();
@@ -96,14 +93,53 @@ namespace Mnemo.Services
 
             var tasks = await _sessionQueries.GetTasksByUserIdAsync(userId);
 
-            //if (tasks.Count == 0)
-            //    return ServiceResult<RepetitionResult>.Failure(ServiceErrorCode.SessionNoTasks);
-
+            if (tasks.Count == 0)
+                return RequestResult<RepetitionResult>.Failure(ErrorCode.TaskNotFound);
 
             session.FinishedAt = DateTime.UtcNow;
 
-            RepetitionResult result = await _resultHandler.ExecuteAsync(userId, tasks);
 
+            var rawEntriesIds = tasks.Select(t => t.BaseVocabularyEntryId).ToList();
+            var rawEntriesDict = await _vocabularyQueries.GetDictByIdsAsync(userId, rawEntriesIds);
+            int missedEntriesCounter = 0;
+            var existEntries = new List<VocabularyEntry>();
+
+            int correctTaskCounter = 0;
+            var entryIdToQuality = new Dictionary<int, double>();
+
+            foreach (var task in tasks)
+            {
+                if (rawEntriesDict.TryGetValue(task.BaseVocabularyEntryId, out var entry) && entry != null)
+                {
+                    existEntries.Add(entry);
+
+                    double similarity;
+
+                    if (task.IsForwardQuestion)
+                        similarity = entry.Translations.Max(task.UserAnswer.ComputeLevenshteinSimilarity);
+                    else
+                        similarity = task.UserAnswer.ComputeLevenshteinSimilarity(entry.Foreign);
+
+
+                    double quality = SM2Helper.ComputeQuality(task.RepetitionSession.AverageActionTime, task.ActionTimeSpan, task.ActionCounter, similarity);
+                    
+                    entryIdToQuality.Add(entry.Id, quality);
+
+                    if (SM2Helper.IsPassingQuality(quality))
+                        correctTaskCounter++;
+                }
+                else
+                {
+                    missedEntriesCounter++;
+                }
+            }
+
+
+            if (session.IsPlanned)
+                await _stateService.SetQualityRepetitionStateAsync(userId, entryIdToQuality);
+
+            
+            RepetitionResult result = new RepetitionResult(correctTaskCounter, existEntries);
             result.StartedAt = session.StartedAt;
             result.FinishedAt = session.FinishedAt.Value;
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Mnemo.Common;
 using Mnemo.Contracts.Dtos.Repetition;
@@ -39,7 +40,7 @@ namespace Mnemo.Services
         }
 
 
-        public async Task<RequestResult<bool>> RefreshRepetitionStatesAsync(int userId)
+        public async Task<RequestResult<bool>> CreateNonExistentRepetitionStatesAsync(int userId)
         {
             var entries = await _stateQueries.GetEntriesWithoutRepetitionStateAsync(userId);
 
@@ -49,44 +50,52 @@ namespace Mnemo.Services
 
             var states = entries.Select(e => new RepetitionState(userId, e)).ToList();
             await _context.RepetitionStates.AddRangeAsync(states);
+            await _context.SaveChangesAsync();
 
             return RequestResult<bool>.Success(true);
         }
 
 
-        public async Task<RequestResult<RepetitionState>> UpdateRepetitionStateAsync(int userId, int entryId, double quality, bool shouldIncrementCounter)
+        public async Task<RequestResult<bool>> SetQualityRepetitionStateAsync(int userId, Dictionary<int, double> entryIdToQuality, bool isSelfAssess=false)
         {
-            var state = await _stateQueries.GetByEntryIdAsync(userId, entryId);
+            var stateDict = await _stateQueries.GetDictByEntryIdsAsync(userId, entryIdToQuality.Keys);
 
-            if (state == null)
-                return RequestResult<RepetitionState>.Failure(ErrorCode.StateNotFound);
+            if (!stateDict.Values.Any())
+                return RequestResult<bool>.Success(false);
 
 
-            if (shouldIncrementCounter)
+            foreach (var state in stateDict.Values)
             {
-                state.RepetitionCounter = SM2Helper.IsPassingQuality(quality) ? state.RepetitionCounter + 1 : 0;
-                state.CanSelfAssess = SM2Helper.IsPassingQuality(quality);
-                state.LastRepetitionAt = DateOnly.FromDateTime(DateTime.UtcNow);
+                if (entryIdToQuality.TryGetValue(state.VocabularyEntryId, out double quality))
+                {
+                    if (isSelfAssess)
+                    {
+                        if (!state.CanSelfAssess)
+                            return RequestResult<bool>.Failure(ErrorCode.ActionNotAllowed);
+
+                        state.CanSelfAssess = false;
+                    }
+                    else
+                    {
+                        state.RepetitionCounter = SM2Helper.IsPassingQuality(quality) ? state.RepetitionCounter + 1 : 0;
+                        state.CanSelfAssess = SM2Helper.IsPassingQuality(quality);
+                        state.LastRepetitionAt = DateOnly.FromDateTime(DateTime.UtcNow);
+                    }
+
+
+                    (int interval, double easinessFactor)
+                        = SM2Helper.NextIntervalAndEf(state.EasinessFactor, state.RepetitionInterval, state.RepetitionCounter, quality);
+
+                    state.RepetitionInterval = interval;
+                    state.EasinessFactor = easinessFactor;
+                }
             }
-            else
-            {
-                if (!state.CanSelfAssess)
-                    return RequestResult<RepetitionState>.Failure(ErrorCode.ActionNotAllowed);
-
-                state.CanSelfAssess = false;
-            }
-
-
-            (int interval, double easinessFactor)
-                = SM2Helper.NextIntervalAndEf(state.EasinessFactor, state.RepetitionInterval, state.RepetitionCounter, quality);
-
-            state.RepetitionInterval = interval;
-            state.EasinessFactor = easinessFactor;
-
 
             await _context.SaveChangesAsync();
 
-            return RequestResult<RepetitionState>.Success(state);
+            Console.WriteLine($"Updated {stateDict.Count} states");
+
+            return RequestResult<bool>.Success(true);
         }
     }
 }

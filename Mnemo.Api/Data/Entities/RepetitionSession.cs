@@ -11,7 +11,7 @@ namespace Mnemo.Data.Entities
         public int Id { get; set; }
 
         public bool InProccess => !FinishedAt.HasValue;
-        public bool IsFinished => FinishedAt.HasValue;
+        public bool IsPlanned { get; set; }
         public DateTime StartedAt { get; set; }
         public DateTime? FinishedAt { get; set; }
         public DateTime LastActionAt { get; set; }
@@ -33,7 +33,7 @@ namespace Mnemo.Data.Entities
 
         public RepetitionSession() { }
 
-        public RepetitionSession(int userId, List<RepetitionTask> tasks)
+        public RepetitionSession(int userId, List<RepetitionTask> tasks, bool isPlanned)
         {
             StartedAt       = DateTime.UtcNow;
             LastActionAt    = StartedAt;
@@ -41,6 +41,7 @@ namespace Mnemo.Data.Entities
 
             UserId = userId;
             Tasks = tasks;
+            IsPlanned = isPlanned;
         }
     }
 }

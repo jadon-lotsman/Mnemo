@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mnemo.Data;
 using Mnemo.Services;
-using Mnemo.Services.Handlers;
 using Mnemo.Services.Queries;
 
 namespace Mnemo.Tests.Integration
@@ -32,9 +31,6 @@ namespace Mnemo.Tests.Integration
             services.AddScoped<SessionQueries>();
             services.AddScoped<StateQueries>();
             services.AddScoped<VocabularyQueries>();
-
-            // DI Handlers
-            services.AddScoped<RepetitionResultHandler>();
 
             // DI Services
             services.AddScoped<AccountManagementService>();

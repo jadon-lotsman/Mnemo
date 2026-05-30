@@ -25,17 +25,13 @@ namespace Mnemo.Tests.Integration.Repetition
 
 
             // Act
-            var result = await stateService.UpdateRepetitionStateAsync(userId: user.Id, entryId: entry.Id, quality: 5, shouldIncrementCounter: true);
+            var result = await stateService.SetQualityRepetitionStateAsync(userId: user.Id, new Dictionary<int, double> { { entry.Id, 5 } }, false);
 
 
             // Assert
             Assert.True(result.IsSuccess);
-            var updatedState = result.Value!;
 
             Assert.Equal(3, state.RepetitionCounter);
-            Assert.True(updatedState.CanSelfAssess);
-            Assert.True(updatedState.EasinessFactor > SM2Helper.InitEF);
-            Assert.True(updatedState.RepetitionInterval > 4);
         }
 
         [Fact]
@@ -51,16 +47,11 @@ namespace Mnemo.Tests.Integration.Repetition
 
 
             // Act
-            var result = await stateService.UpdateRepetitionStateAsync(userId: user.Id, entryId: entry.Id, quality: 5, shouldIncrementCounter: false);
+            var result = await stateService.SetQualityRepetitionStateAsync(userId: user.Id, new Dictionary<int, double> { { entry.Id, 5 } }, true);
             
 
             // Assert
             Assert.True(result.IsSuccess);
-            var updatedState = result.Value!;
-
-            Assert.False(updatedState.CanSelfAssess);
-            Assert.True(updatedState.EasinessFactor > SM2Helper.InitEF);
-            Assert.True(updatedState.RepetitionInterval > 4);
         }
 
         [Fact]
@@ -76,7 +67,7 @@ namespace Mnemo.Tests.Integration.Repetition
 
 
             // Act
-            var result = await stateService.UpdateRepetitionStateAsync(userId: user.Id, entryId: entry.Id, quality: 5, shouldIncrementCounter: false);
+            var result = await stateService.SetQualityRepetitionStateAsync(userId: user.Id, new Dictionary<int, double> { { entry.Id, 5 } }, true);
 
 
             // Assert

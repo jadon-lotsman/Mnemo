@@ -25,7 +25,7 @@ namespace Mnemo.Tests.Integration.Repetition
             var state1 = DataSeeder.CreateState(id: 1, userId: user.Id, entryId: entry1.Id, repetitionCounter: 2, repetitionInterval: 4, ef: SM2Helper.InitEF);
             var state2 = DataSeeder.CreateState(id: 2, userId: user.Id, entryId: entry2.Id, repetitionCounter: 2, repetitionInterval: 4, ef: SM2Helper.InitEF);
 
-            var existingSession = new RepetitionSession(user.Id, new List<RepetitionTask>() { new RepetitionTask(entry1, true), new RepetitionTask(entry2, false) });
+            var existingSession = new RepetitionSession(user.Id, new List<RepetitionTask>() { new RepetitionTask(entry1, true), new RepetitionTask(entry2, false) }, true);
 
             DbContext.RepetitionSessions.Add(existingSession);
             await DbContext.SaveChangesAsync();

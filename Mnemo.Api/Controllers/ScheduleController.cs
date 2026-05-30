@@ -49,7 +49,7 @@ namespace Mnemo.Controllers
         [HttpPost("states/{id:int}/assess")]
         public async Task<IActionResult> SelfAssessmentRepetitionState(int id, [FromBody] QualityAssessmentRequest request)
         {
-            var result = await _stateService.UpdateRepetitionStateAsync(UserId, id, request.Quality, shouldIncrementCounter: false);
+            var result = await _stateService.SetQualityRepetitionStateAsync(UserId, new Dictionary<int, double> { { id, request.Quality } }, true);
 
             if (!result.IsSuccess)
             {
@@ -61,8 +61,7 @@ namespace Mnemo.Controllers
                 };
             }
 
-            var stateDto = Mapper.MapToDto(result.Value);
-            return Ok(stateDto);
+            return NoContent();
         }
     }
 }

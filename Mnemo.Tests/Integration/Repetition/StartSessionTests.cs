@@ -26,7 +26,7 @@ namespace Mnemo.Tests.Integration.Repetition
 
 
             // Act
-            var result = await sessionService.StartRepetitionSessionAsync(user.Id, "random");
+            var result = await sessionService.StartRepetitionSessionAsync(user.Id, "fast");
 
 
             // Assert
@@ -44,7 +44,7 @@ namespace Mnemo.Tests.Integration.Repetition
         {
             // Arrange
             var user            = DataSeeder.CreateUser(id: 3, username: "Bob");
-            var existingSession = new RepetitionSession(user.Id, new List<RepetitionTask>());
+            var existingSession = new RepetitionSession(user.Id, new List<RepetitionTask>(), true);
 
             DbContext.RepetitionSessions.Add(existingSession);
             await DbContext.SaveChangesAsync();
@@ -53,7 +53,7 @@ namespace Mnemo.Tests.Integration.Repetition
 
 
             // Act
-            var result = await sessionService.StartRepetitionSessionAsync(user.Id, "random");
+            var result = await sessionService.StartRepetitionSessionAsync(user.Id, "fast");
 
 
             // Assert
