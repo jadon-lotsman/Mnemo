@@ -51,18 +51,23 @@ namespace Mnemo.Services.Queries
             return list.ToDictionary(e => e.Id);
         }
 
-        public List<VocabularyEntry> GetRandomByUserId(int userId, int count = 5)
+        public List<VocabularyEntry> GetRandomByUserId(int userId, int take, int? excludeId = null)
         {
-            return _context.Entries.Where(e => e.User.Id == userId)
+            var query = GetByUserIdQuery(userId);
+
+            if (excludeId.HasValue)
+                query = query.Where(e => e.Id != excludeId);
+
+            return query
                 .AsEnumerable()
-                .OrderBy(x => Guid.NewGuid())
-                .Take(count)
+                .OrderBy(e => Guid.NewGuid())
+                .Take(take)
                 .ToList();
         }
 
         public List<VocabularyEntry> GetDueByUserIdAsync(int userId, int count = 5)
         {
-            return _context.Entries.Where(e => e.User.Id == userId)
+            return GetByUserIdQuery(userId)
                 .Include(e => e.RepetitionState)
                 .Where(e => e.RepetitionState.LastRepetitionAt.AddDays(e.RepetitionState.RepetitionInterval) <= DateOnly.FromDateTime(DateTime.UtcNow))
                 .Take(count)

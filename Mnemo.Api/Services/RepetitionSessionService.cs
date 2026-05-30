@@ -64,7 +64,7 @@ namespace Mnemo.Services
 
             var targetEntries = mode switch
             {
-                "fast" => _vocabularyQueries.GetRandomByUserId(userId),
+                "fast" => _vocabularyQueries.GetRandomByUserId(userId, 10),
                 "planned"  => _vocabularyQueries.GetDueByUserIdAsync(userId),
                 _ => new List<VocabularyEntry>()
             };
@@ -73,7 +73,42 @@ namespace Mnemo.Services
                 return RequestResult<RepetitionSession>.Failure(ErrorCode.TaskNotFound);
 
 
-            var tasks = targetEntries.Select(e => new RepetitionTask(e, _random.Next(2) == 0)).ToList();
+            var tasks = new List<RepetitionTask>();
+            foreach (var target in targetEntries)
+            {
+                bool isForwardQuestion = _random.Next(2) == 0;
+                bool withOptions = _random.Next(2) == 0;
+
+                string prompt, answer;
+                if (isForwardQuestion)
+                {
+                    answer = target.Translations[0];
+                    prompt = target.Foreign;
+                }
+                else
+                {
+                    answer = target.Foreign;
+                    prompt = target.Translations[0];
+                }
+
+                var options = new List<string>();
+                if(withOptions)
+                {
+                    var otherEntries = _vocabularyQueries.GetRandomByUserId(userId, 3, target.Id);
+
+                    foreach (var entry in otherEntries)
+                    {
+                        string option = isForwardQuestion ? entry.Translations[0] : entry.Foreign;
+                        if (!options.Contains(option) && option != answer)
+                            options.Add(option);
+                    }
+
+                    options.Add(answer);
+                    options = options.OrderBy(x => Guid.NewGuid()).ToList();
+                }
+
+                tasks.Add(new RepetitionTask(target.Id, isForwardQuestion, prompt, options));
+            }
 
             var session = new RepetitionSession(userId, tasks, mode == "planned" ? true : false);
 

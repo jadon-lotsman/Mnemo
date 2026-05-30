@@ -12,6 +12,7 @@ namespace Mnemo.Data.Entities
         public int BaseVocabularyEntryId { get; set; }
 
         public string Prompt { get; set; }
+        public List<string> Options { get; set; }
         public string UserAnswer { get; set; }
         public bool IsForwardQuestion { get; set; }
         public int ActionCounter { get; set; }
@@ -24,13 +25,14 @@ namespace Mnemo.Data.Entities
 
         public RepetitionTask() { }
 
-        public RepetitionTask(VocabularyEntry entry, bool isForwardQuestion)
+        public RepetitionTask(int entryId, bool isForwardQuestion, string prompt, List<string> options)
         {
-            BaseVocabularyEntryId = entry.Id;
-
-            Prompt = isForwardQuestion ? entry.Foreign : entry.Translations[0];
-            UserAnswer = string.Empty;
             IsForwardQuestion = isForwardQuestion;
+            Prompt = prompt;
+            Options = options;
+            UserAnswer = string.Empty;
+
+            BaseVocabularyEntryId = entryId;
         }
     }
 }

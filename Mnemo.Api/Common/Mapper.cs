@@ -69,7 +69,7 @@ namespace Mnemo.Common
             {
                 Id          =   task.Id,
                 Prompt      =   task.Prompt,
-                UserAnswer  =   task.UserAnswer
+                Options     =   task.Options.ToArray(),
             };
         }
 
