@@ -9,6 +9,7 @@ using Mnemo.Data;
 using Mnemo.Common;
 using Mnemo.Data.Entities;
 using Mnemo.Services.Queries;
+using Mnemo.Services.Strategies;
 
 namespace Mnemo.Services
 {
@@ -21,7 +22,6 @@ namespace Mnemo.Services
 
         private RepetitionStateService _stateService;
 
-        private static Random _random = new Random();
 
 
         public RepetitionSessionService(AppDbContext context, AccountQueries accountQueries, SessionQueries sessionQueries, VocabularyQueries vocabularyQueries, RepetitionStateService stateService)
@@ -58,59 +58,25 @@ namespace Mnemo.Services
             if (await _sessionQueries.ExistsByUserId(userId))
                 return RequestResult<RepetitionSession>.Failure(ErrorCode.SessionNotFinished);
 
+            IRepetitionTaskStrategy? strategy = mode switch
+            {
+                "fast" => new RandomRepetitionTaskStrategy(_vocabularyQueries),
+                "planned" => new PlannedRepetitionTaskStrategy(_vocabularyQueries),
+                _ => null
+            };
+
+            if(strategy == null)
+                return RequestResult<RepetitionSession>.Failure(ErrorCode.InvalidData);
+
 
             await _stateService.CreateNonExistentRepetitionStatesAsync(userId);
 
+            var tasks = await strategy.GetTasksAsync(userId);
 
-            var targetEntries = mode switch
-            {
-                "fast" => _vocabularyQueries.GetRandomByUserId(userId, 10),
-                "planned"  => _vocabularyQueries.GetDueByUserIdAsync(userId),
-                _ => new List<VocabularyEntry>()
-            };
-
-            if (!targetEntries.Any())
+            if (!tasks.Any())
                 return RequestResult<RepetitionSession>.Failure(ErrorCode.TaskNotFound);
 
-
-            var tasks = new List<RepetitionTask>();
-            foreach (var target in targetEntries)
-            {
-                bool isForwardQuestion = _random.Next(2) == 0;
-                bool withOptions = _random.Next(2) == 0;
-
-                string prompt, answer;
-                if (isForwardQuestion)
-                {
-                    answer = target.Translations[0];
-                    prompt = target.Foreign;
-                }
-                else
-                {
-                    answer = target.Foreign;
-                    prompt = target.Translations[0];
-                }
-
-                var options = new List<string>();
-                if(withOptions)
-                {
-                    var otherEntries = _vocabularyQueries.GetRandomByUserId(userId, 3, target.Id);
-
-                    foreach (var entry in otherEntries)
-                    {
-                        string option = isForwardQuestion ? entry.Translations[0] : entry.Foreign;
-                        if (!options.Contains(option) && option != answer)
-                            options.Add(option);
-                    }
-
-                    options.Add(answer);
-                    options = options.OrderBy(x => Guid.NewGuid()).ToList();
-                }
-
-                tasks.Add(new RepetitionTask(target.Id, isForwardQuestion, prompt, options));
-            }
-
-            var session = new RepetitionSession(userId, tasks, mode == "planned" ? true : false);
+            var session = new RepetitionSession(userId, tasks, mode == "planned");
 
             await _context.RepetitionSessions.AddAsync(session);
             await _context.SaveChangesAsync();

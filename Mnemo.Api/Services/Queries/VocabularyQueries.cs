@@ -65,12 +65,11 @@ namespace Mnemo.Services.Queries
                 .ToList();
         }
 
-        public List<VocabularyEntry> GetDueByUserIdAsync(int userId, int count = 5)
+        public List<VocabularyEntry> GetDueByUserId(int userId)
         {
             return GetByUserIdQuery(userId)
                 .Include(e => e.RepetitionState)
                 .Where(e => e.RepetitionState.LastRepetitionAt.AddDays(e.RepetitionState.RepetitionInterval) <= DateOnly.FromDateTime(DateTime.UtcNow))
-                .Take(count)
                 .ToList();
         }
     }
