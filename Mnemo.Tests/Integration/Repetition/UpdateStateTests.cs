@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Mnemo.Common;
-using Mnemo.Tests.Integration;
 using Mnemo.Services;
 
 namespace Mnemo.Tests.Integration.Repetition
@@ -38,7 +31,7 @@ namespace Mnemo.Tests.Integration.Repetition
         public async Task SelfAssessment_WhenAllowed_ShouldUpdateStateAndDisableFlag()
         {
             // Arrange
-            var user  = DataSeeder.CreateUser (id: 3, username: "Bob");
+            var user = DataSeeder.CreateUser(id: 3, username: "Bob");
             var entry = DataSeeder.CreateEntry(id: 7, userId: user.Id, foreign: "apple", translations: "яблоко");
             var state = DataSeeder.CreateState(id: 1, userId: user.Id, entryId: entry.Id, repetitionCounter: 2, repetitionInterval: 4, ef: SM2Helper.InitEF);
             state.CanSelfAssess = true;
@@ -48,7 +41,7 @@ namespace Mnemo.Tests.Integration.Repetition
 
             // Act
             var result = await stateService.SetQualityRepetitionStateAsync(userId: user.Id, new Dictionary<int, double> { { entry.Id, 5 } }, true);
-            
+
 
             // Assert
             Assert.True(result.IsSuccess);
@@ -58,7 +51,7 @@ namespace Mnemo.Tests.Integration.Repetition
         public async Task SelfAssessment_WhenNotAllowed_ShouldReturnFailure()
         {
             // Arrange
-            var user  = DataSeeder.CreateUser (id: 3, username: "Bob");
+            var user = DataSeeder.CreateUser(id: 3, username: "Bob");
             var entry = DataSeeder.CreateEntry(id: 7, userId: user.Id, foreign: "apple", translations: "яблоко");
             var state = DataSeeder.CreateState(id: 1, userId: user.Id, entryId: entry.Id, repetitionCounter: 2, repetitionInterval: 4, ef: SM2Helper.InitEF);
             state.CanSelfAssess = false;

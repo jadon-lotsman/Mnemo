@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Mnemo.Data.Entities;
-using Mnemo.Tests.Integration;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Mnemo.Common;
 using Mnemo.Data.Entities;
 using Mnemo.Services;
@@ -18,7 +11,7 @@ namespace Mnemo.Tests.Integration.Repetition
         public async Task StartSession_WhenNoActiveSession_ShouldCreateNewSession()
         {
             // Arrange
-            var user   = DataSeeder.CreateUser(id: 3, username: "Bob");
+            var user = DataSeeder.CreateUser(id: 3, username: "Bob");
             var entry1 = DataSeeder.CreateEntry(id: 7, userId: user.Id, foreign: "apple", translations: "яблоко");
             var entry2 = DataSeeder.CreateEntry(id: 8, userId: user.Id, foreign: "banana", translations: "банан");
 
@@ -43,8 +36,8 @@ namespace Mnemo.Tests.Integration.Repetition
         public async Task StartSession_WhenActiveSessionExists_ShouldReturnFailure()
         {
             // Arrange
-            var user            = DataSeeder.CreateUser(id: 3, username: "Bob");
-            var existingSession = new RepetitionSession(user.Id, new List<RepetitionTask>(), true);
+            var user = DataSeeder.CreateUser(id: 3, username: "Bob");
+            var existingSession = new RepetitionSession(user.Id, new List<RepetitionTask>());
 
             DbContext.RepetitionSessions.Add(existingSession);
             await DbContext.SaveChangesAsync();
@@ -58,7 +51,7 @@ namespace Mnemo.Tests.Integration.Repetition
 
             // Assert
             Assert.False(result.IsSuccess);
-            Assert.Equal(ErrorCode.SessionNotFinished, result.ErrorCode);
+            Assert.Equal(ErrorCode.DuplicateSession, result.ErrorCode);
         }
     }
 }

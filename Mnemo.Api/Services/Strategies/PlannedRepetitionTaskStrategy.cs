@@ -1,4 +1,6 @@
-﻿using Mnemo.Data.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Mnemo.Common;
+using Mnemo.Data.Entities;
 using Mnemo.Services.Factories;
 using Mnemo.Services.Queries;
 
@@ -17,12 +19,19 @@ namespace Mnemo.Services.Strategies
         {
             var taskFactory = new RepetitionTaskFactory();
 
-            var entries = _vocabularyQueries.GetDueByUserId(userId);
+            var targetEntries = await _vocabularyQueries
+                .GetRandomByUserIdQuery(userId, 10)
+                .Include(e => e.RepetitionState)
+                .DueEntries()
+                .ToListAsync();
+
             var tasks = new List<RepetitionTask>();
 
-            foreach (var entry in entries)
+            foreach (var entry in targetEntries)
             {
-                var entriesForOptions = _vocabularyQueries.GetRandomByUserId(userId, 3, entry.Id);
+                var entriesForOptions = await _vocabularyQueries
+                    .GetRandomByUserIdQuery(userId, 3, entry.Id)
+                    .ToListAsync();
 
                 tasks.Add(taskFactory.Create(entry, entriesForOptions));
             }

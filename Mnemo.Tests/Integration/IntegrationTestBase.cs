@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Mnemo.Data;
 using Mnemo.Services;
@@ -14,7 +9,7 @@ namespace Mnemo.Tests.Integration
     public class IntegrationTestBase : IDisposable
     {
         protected IServiceProvider ServiceProvider { get; private set; }
-        protected AppDbContext DbContext {  get; private set; }
+        protected AppDbContext DbContext { get; private set; }
         protected TestDataSeeder DataSeeder { get; private set; }
 
 

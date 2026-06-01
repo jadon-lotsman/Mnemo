@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Mnemo.Contracts.Dtos.Repetition;
-using Mnemo.Common;
 using Mnemo.Contracts.Dtos.Repetition.Requests;
 using Mnemo.Services.Queries;
 using Mnemo.Services;
+using Mnemo.Common;
 
 namespace Mnemo.Controllers
 {
@@ -47,8 +47,8 @@ namespace Mnemo.Controllers
                 return result.ErrorCode switch
                 {
                     ErrorCode.UserNotFound => NotFound(new { message = result.ErrorMessage }),
-                    ErrorCode.TaskNotFound => NotFound(new { message = result.ErrorMessage }),
-                    ErrorCode.SessionNotFinished => BadRequest(new { message = result.ErrorMessage }),
+                    ErrorCode.TaskGenerationFailed => UnprocessableEntity(new { message = result.ErrorMessage }),
+                    ErrorCode.DuplicateSession => Conflict(new { message = result.ErrorMessage }),
                     _ => StatusCode(500, new { message = result.ErrorMessage })
                 };
             }
@@ -65,6 +65,7 @@ namespace Mnemo.Controllers
             {
                 return result.ErrorCode switch
                 {
+                    ErrorCode.InvalidData => BadRequest(new { message = result.ErrorMessage }),
                     ErrorCode.SessionNotFound => NotFound(new { message = result.ErrorMessage }),
                     _ => StatusCode(500, new { message = result.ErrorMessage })
                 };

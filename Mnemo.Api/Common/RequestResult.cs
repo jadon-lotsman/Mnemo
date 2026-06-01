@@ -10,7 +10,6 @@ namespace Mnemo.Common
 
         // 403 Forbidden
         ActionNotAllowed,
-        SessionNotFinished,
 
         // 404 NotFound
         UserNotFound,
@@ -22,6 +21,10 @@ namespace Mnemo.Common
         // 409 Conflict/Dublicate
         UsernameTaken,
         DuplicateEntry,
+        DuplicateSession,
+
+        // 422 UnprocessableEntity
+        TaskGenerationFailed
     }
 
 

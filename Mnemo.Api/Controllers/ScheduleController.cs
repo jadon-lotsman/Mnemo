@@ -55,6 +55,7 @@ namespace Mnemo.Controllers
             {
                 return result.ErrorCode switch
                 {
+                    ErrorCode.InvalidData => BadRequest(new { message = result.ErrorMessage }),
                     ErrorCode.TaskNotFound => NotFound(new { message = result.ErrorMessage }),
                     ErrorCode.ActionNotAllowed => BadRequest(new { message = result.ErrorMessage }),
                     _ => StatusCode(500, new { message = result.ErrorMessage })

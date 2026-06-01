@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Mnemo.Common;
+﻿using Mnemo.Common;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 
@@ -52,7 +47,7 @@ namespace Mnemo.Tests.Integration
         }
 
         public RepetitionState CreateState(int id, int userId, int entryId,
-            int repetitionCounter=0, int repetitionInterval=SM2Helper.MinInterval, double ef=SM2Helper.InitEF, bool canSelfAssess=false)
+            int repetitionCounter = 0, int repetitionInterval = SM2Helper.MinInterval, double ef = SM2Helper.InitEF, bool canSelfAssess = false)
         {
             var state = new RepetitionState()
             {

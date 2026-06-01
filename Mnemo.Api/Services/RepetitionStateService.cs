@@ -27,7 +27,7 @@ namespace Mnemo.Services
             var states = await _stateQueries.GetAllByUserIdAsync(userId);
 
             var grouped = states
-                .GroupBy(s => s.LastRepetitionAt.AddDays(s.RepetitionInterval))
+                .GroupBy(s => s.NextRepetitionAt)
                 .Select(d => new RepetitionDayResponse
                 {
                     Date = d.Key,
@@ -56,44 +56,60 @@ namespace Mnemo.Services
         }
 
 
-        public async Task<RequestResult<bool>> SetQualityRepetitionStateAsync(int userId, Dictionary<int, double> entryIdToQuality, bool isSelfAssess=false)
+        public async Task<RequestResult<bool>> SetQualityRepetitionStateAsync(int userId, Dictionary<int, double> entryIdToQuality, bool isSelfAssess = false)
         {
+            if (entryIdToQuality == null || !entryIdToQuality.Any())
+                return RequestResult<bool>.Failure(ErrorCode.InvalidData, "Entry-quality is empty");
+
+
             var stateDict = await _stateQueries.GetDictByEntryIdsAsync(userId, entryIdToQuality.Keys);
 
-            if (!stateDict.Values.Any())
+            if (stateDict.Count == 0)
                 return RequestResult<bool>.Success(false);
 
 
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
             foreach (var state in stateDict.Values)
             {
-                if (entryIdToQuality.TryGetValue(state.VocabularyEntryId, out double quality))
+                if (!entryIdToQuality.TryGetValue(state.VocabularyEntryId, out double quality))
+                    continue;
+
+
+                if (state.NextRepetitionAt > today)
                 {
-                    if (isSelfAssess)
-                    {
-                        if (!state.CanSelfAssess)
-                            return RequestResult<bool>.Failure(ErrorCode.ActionNotAllowed);
-
-                        state.CanSelfAssess = false;
-                    }
-                    else
-                    {
-                        state.RepetitionCounter = SM2Helper.IsPassingQuality(quality) ? state.RepetitionCounter + 1 : 0;
-                        state.CanSelfAssess = SM2Helper.IsPassingQuality(quality);
-                        state.LastRepetitionAt = DateOnly.FromDateTime(DateTime.UtcNow);
-                    }
-
-
-                    (int interval, double easinessFactor)
-                        = SM2Helper.NextIntervalAndEf(state.EasinessFactor, state.RepetitionInterval, state.RepetitionCounter, quality);
-
-                    state.RepetitionInterval = interval;
-                    state.EasinessFactor = easinessFactor;
+                    state.LastRepetitionAt = today;
+                    continue;
                 }
+
+                if (quality < 0 || quality > 5)
+                    return RequestResult<bool>.Failure(ErrorCode.InvalidData, $"Quality {quality} out of range 0...5");
+
+
+                if (isSelfAssess)
+                {
+                    if (!state.CanSelfAssess)
+                        return RequestResult<bool>.Failure(ErrorCode.ActionNotAllowed, "Self-assessment not allowed");
+
+                    state.CanSelfAssess = false;
+                }
+                else
+                {
+                    state.RepetitionCounter = SM2Helper.IsPassingQuality(quality) ? state.RepetitionCounter + 1 : 0;
+                    state.CanSelfAssess = SM2Helper.IsPassingQuality(quality);
+                    state.LastRepetitionAt = today;
+                }
+
+
+                (int interval, double easinessFactor)
+                    = SM2Helper.NextIntervalAndEf(state.EasinessFactor, state.RepetitionInterval, state.RepetitionCounter, quality);
+
+                state.RepetitionInterval = interval;
+                state.EasinessFactor = easinessFactor;
+                state.NextRepetitionAt = state.LastRepetitionAt.AddDays(interval);
             }
 
             await _context.SaveChangesAsync();
-
-            Console.WriteLine($"Updated {stateDict.Count} states");
 
             return RequestResult<bool>.Success(true);
         }

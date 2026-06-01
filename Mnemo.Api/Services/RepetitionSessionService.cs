@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Mnemo.Common;
 using Mnemo.Contracts.Dtos.Repetition;
 using Mnemo.Data;
-using Mnemo.Common;
 using Mnemo.Data.Entities;
 using Mnemo.Services.Queries;
 using Mnemo.Services.Strategies;
@@ -44,8 +44,8 @@ namespace Mnemo.Services
 
             var session = await _sessionQueries.GetByUserIdAsync(userId);
 
-            if (session == null)    return RequestResult<RepetitionSession>.Failure(ErrorCode.SessionNotFound);
-            else return RequestResult<RepetitionSession>.Failure(ErrorCode.SessionNotFinished);
+            if (session == null) return RequestResult<RepetitionSession>.Failure(ErrorCode.SessionNotFound);
+            else return RequestResult<RepetitionSession>.Failure(ErrorCode.DuplicateSession);
         }
 
 
@@ -56,7 +56,7 @@ namespace Mnemo.Services
                 return RequestResult<RepetitionSession>.Failure(ErrorCode.UserNotFound);
 
             if (await _sessionQueries.ExistsByUserId(userId))
-                return RequestResult<RepetitionSession>.Failure(ErrorCode.SessionNotFinished);
+                return RequestResult<RepetitionSession>.Failure(ErrorCode.DuplicateSession, "Session already exist");
 
             IRepetitionTaskStrategy? strategy = mode switch
             {
@@ -65,7 +65,7 @@ namespace Mnemo.Services
                 _ => null
             };
 
-            if(strategy == null)
+            if (strategy == null)
                 return RequestResult<RepetitionSession>.Failure(ErrorCode.InvalidData);
 
 
@@ -74,9 +74,9 @@ namespace Mnemo.Services
             var tasks = await strategy.GetTasksAsync(userId);
 
             if (!tasks.Any())
-                return RequestResult<RepetitionSession>.Failure(ErrorCode.TaskNotFound);
+                return RequestResult<RepetitionSession>.Failure(ErrorCode.TaskGenerationFailed);
 
-            var session = new RepetitionSession(userId, tasks, mode == "planned");
+            var session = new RepetitionSession(userId, tasks);
 
             await _context.RepetitionSessions.AddAsync(session);
             await _context.SaveChangesAsync();
@@ -93,9 +93,6 @@ namespace Mnemo.Services
 
 
             var tasks = await _sessionQueries.GetTasksByUserIdAsync(userId);
-
-            if (tasks.Count == 0)
-                return RequestResult<RepetitionResult>.Failure(ErrorCode.TaskNotFound);
 
             session.FinishedAt = DateTime.UtcNow;
 
@@ -123,7 +120,7 @@ namespace Mnemo.Services
 
 
                     double quality = SM2Helper.ComputeQuality(task.RepetitionSession.AverageActionTime, task.ActionTimeSpan, task.ActionCounter, similarity);
-                    
+
                     entryIdToQuality.Add(entry.Id, quality);
 
                     if (SM2Helper.IsPassingQuality(quality))
@@ -136,10 +133,8 @@ namespace Mnemo.Services
             }
 
 
-            if (session.IsPlanned)
-                await _stateService.SetQualityRepetitionStateAsync(userId, entryIdToQuality);
+            await _stateService.SetQualityRepetitionStateAsync(userId, entryIdToQuality);
 
-            
             RepetitionResult result = new RepetitionResult(correctTaskCounter, existEntries);
             result.StartedAt = session.StartedAt;
             result.FinishedAt = session.FinishedAt.Value;
@@ -160,12 +155,12 @@ namespace Mnemo.Services
                 return RequestResult<RepetitionTask>.Failure(ErrorCode.TaskNotFound);
 
 
-            var currentTime     = DateTime.UtcNow;
-            var lastActionTime  = task.RepetitionSession.LastActionAt;
+            var currentTime = DateTime.UtcNow;
+            var lastActionTime = task.RepetitionSession.LastActionAt;
 
             task.ActionCounter++;
-            task.UserAnswer             = answer;
-            task.ActionTimeSpan         = currentTime - lastActionTime;
+            task.UserAnswer = answer;
+            task.ActionTimeSpan = currentTime - lastActionTime;
             task.RepetitionSession.LastActionAt = currentTime;
 
             await _context.SaveChangesAsync();

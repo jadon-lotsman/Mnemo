@@ -19,6 +19,18 @@ namespace Mnemo.Services.Queries
         private IQueryable<VocabularyEntry> GetByUserIdQuery(int userId)
             => _context.Entries.Where(e => e.User.Id == userId);
 
+        public IQueryable<VocabularyEntry> GetRandomByUserIdQuery(int userId, int take, params int[] excludeIds)
+        {
+            var query = GetByUserIdQuery(userId);
+
+            if (excludeIds != null && excludeIds.Any())
+                query = query.Where(e => !excludeIds.Contains(e.Id));
+
+            return query
+                .Take(take)
+                .OrderBy(e => EF.Functions.Random());
+        }
+
 
         public async Task<bool> ExistsByIdAsync(int userId, int id)
             => await GetByUserIdQuery(userId).AnyAsync(e => e.Id == id);
@@ -41,7 +53,6 @@ namespace Mnemo.Services.Queries
                 .Where(e => e.Foreign.Contains(query))
                 .ToListAsync();
 
-
         public async Task<Dictionary<int, VocabularyEntry>> GetDictByIdsAsync(int userId, IEnumerable<int> ids)
         {
             var list = await GetByUserIdQuery(userId)
@@ -49,28 +60,6 @@ namespace Mnemo.Services.Queries
                 .ToListAsync();
 
             return list.ToDictionary(e => e.Id);
-        }
-
-        public List<VocabularyEntry> GetRandomByUserId(int userId, int take, int? excludeId = null)
-        {
-            var query = GetByUserIdQuery(userId);
-
-            if (excludeId.HasValue)
-                query = query.Where(e => e.Id != excludeId);
-
-            return query
-                .AsEnumerable()
-                .OrderBy(e => Guid.NewGuid())
-                .Take(take)
-                .ToList();
-        }
-
-        public List<VocabularyEntry> GetDueByUserId(int userId)
-        {
-            return GetByUserIdQuery(userId)
-                .Include(e => e.RepetitionState)
-                .Where(e => e.RepetitionState.LastRepetitionAt.AddDays(e.RepetitionState.RepetitionInterval) <= DateOnly.FromDateTime(DateTime.UtcNow))
-                .ToList();
         }
     }
 }
