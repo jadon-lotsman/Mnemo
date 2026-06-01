@@ -22,17 +22,66 @@ namespace Mnemo.Data.Entities
 
         public RepetitionState() { }
 
-        public RepetitionState(int userId, VocabularyEntry entry)
+        public RepetitionState(int userId, int entryId)
         {
             RepetitionCounter = 0;
             RepetitionInterval = SM2Helper.MinInterval;
             EasinessFactor = SM2Helper.InitEF;
             CanSelfAssess = false;
             LastRepetitionAt = DateOnly.FromDateTime(DateTime.UtcNow);
-            NextRepetitionAt = LastRepetitionAt.AddDays(SM2Helper.MinInterval);
+            NextRepetitionAt = LastRepetitionAt.AddDays(RepetitionInterval);
 
             UserId = userId;
-            VocabularyEntry = entry;
+            VocabularyEntryId = entryId;
         }
+
+
+        public bool TryRecordQuality(double quality, bool isSelfAssess, DateOnly today, out string? errorMessage)
+        {
+            if (isSelfAssess && !CanSelfAssess)
+            {
+                errorMessage = "Self-assessment not allowed";
+                return false;
+            }
+            else if (quality < SM2Helper.MinQuality || quality > SM2Helper.MaxQuality)
+            {
+                errorMessage = $"Quality {Math.Round(quality, 1)} out of range {SM2Helper.MinQuality}...{SM2Helper.MaxQuality}";
+                return false;
+            }
+
+
+            if (IsDueAt(today))
+            {
+                if (isSelfAssess)
+                {
+                    CanSelfAssess = false;
+                }
+                else
+                {
+                    bool isPassing = SM2Helper.IsPassingQuality(quality);
+                    RepetitionCounter = isPassing ? RepetitionCounter + 1 : 0;
+                    CanSelfAssess = isPassing;
+                    LastRepetitionAt = today;
+                }
+
+
+                (int interval, double easinessFactor)
+                    = SM2Helper.NextIntervalAndEf(EasinessFactor, RepetitionInterval, RepetitionCounter, quality);
+
+                RepetitionInterval = interval;
+                EasinessFactor = easinessFactor;
+                NextRepetitionAt = LastRepetitionAt.AddDays(interval);
+            }
+            else
+            {
+                LastRepetitionAt = today;
+            }
+
+
+            errorMessage = null;
+            return true;
+        }
+
+        public bool IsDueAt(DateOnly date) => NextRepetitionAt <= date;
     }
 }

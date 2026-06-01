@@ -20,8 +20,8 @@ namespace Mnemo.Tests.Integration.Repetition
 
             var tasks = new List<RepetitionTask>()
             {
-                new RepetitionTask(entry1.Id, true, entry1.Foreign, []),
-                new RepetitionTask(entry2.Id, false, entry1.Translations[0], [])
+                new RepetitionTask(true, entry1.Foreign, [], entry1.Id),
+                new RepetitionTask(false, entry1.Translations[0], [], entry2.Id)
             };
 
             var existingSession = new RepetitionSession(user.Id, tasks);

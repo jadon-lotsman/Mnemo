@@ -20,7 +20,7 @@ namespace Mnemo.Services.Strategies
             var taskFactory = new RepetitionTaskFactory();
 
             var targetEntries = await _vocabularyQueries
-                .GetRandomByUserIdQuery(userId, 10)
+                .GetRandomByUserIdQuery(userId)
                 .Include(e => e.RepetitionState)
                 .DueEntries()
                 .ToListAsync();

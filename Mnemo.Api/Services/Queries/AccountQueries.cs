@@ -15,7 +15,7 @@ namespace Mnemo.Services.Queries
         }
 
 
-
+        // Getters
         public async Task<bool> ExistsByIdAsync(int userId)
             => await _context.Users.AnyAsync(u => u.Id == userId);
 

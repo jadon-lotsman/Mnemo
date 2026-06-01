@@ -29,8 +29,10 @@ namespace Mnemo.Services.Strategies
 
             foreach (var entry in targetEntries)
             {
+                int[] arrayIds = targetEntries.Select(e => e.Id).ToArray();
+
                 var entriesForOptions = await _vocabularyQueries
-                    .GetRandomByUserIdQuery(userId, 3, entry.Id)
+                    .GetRandomByUserIdQuery(userId, 3, arrayIds)
                     .ToListAsync();
 
                 tasks.Add(taskFactory.Create(entry, entriesForOptions));

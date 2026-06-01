@@ -10,12 +10,14 @@ namespace Mnemo.Services
     {
         private AppDbContext _context;
         private StateQueries _stateQueries;
+        private VocabularyQueries _vocabularyQueries;
 
 
-        public RepetitionStateService(AppDbContext context, StateQueries stateQueries)
+        public RepetitionStateService(AppDbContext context, StateQueries stateQueries, VocabularyQueries vocabularyQueries)
         {
             _context = context;
             _stateQueries = stateQueries;
+            _vocabularyQueries = vocabularyQueries;
         }
 
 
@@ -39,13 +41,13 @@ namespace Mnemo.Services
 
         public async Task<RequestResult<bool>> CreateNonExistentRepetitionStatesAsync(int userId)
         {
-            var entries = await _stateQueries.GetEntriesWithoutRepetitionStateAsync(userId);
+            var entries = await _vocabularyQueries.GetEntriesWithoutRepetitionStateAsync(userId);
 
             if (!entries.Any())
                 return RequestResult<bool>.Success(false);
 
 
-            var states = entries.Select(e => new RepetitionState(userId, e)).ToList();
+            var states = entries.Select(e => new RepetitionState(userId, e.Id)).ToList();
             await _context.RepetitionStates.AddRangeAsync(states);
             await _context.SaveChangesAsync();
 
@@ -53,7 +55,7 @@ namespace Mnemo.Services
         }
 
 
-        public async Task<RequestResult<bool>> SetQualityRepetitionStateAsync(int userId, Dictionary<int, double> entryIdToQuality, bool isSelfAssess = false)
+        public async Task<RequestResult<bool>> RecordQualityRepetitionStateAsync(int userId, Dictionary<int, double> entryIdToQuality, bool isSelfAssess = false)
         {
             if (entryIdToQuality == null || !entryIdToQuality.Any())
                 return RequestResult<bool>.Failure(ErrorCode.InvalidData, "Entry-quality is empty");
@@ -72,38 +74,8 @@ namespace Mnemo.Services
                 if (!entryIdToQuality.TryGetValue(state.VocabularyEntryId, out double quality))
                     continue;
 
-
-                if (state.NextRepetitionAt > today)
-                {
-                    state.LastRepetitionAt = today;
-                    continue;
-                }
-
-                if (quality < 0 || quality > 5)
-                    return RequestResult<bool>.Failure(ErrorCode.InvalidData, $"Quality {quality} out of range 0...5");
-
-
-                if (isSelfAssess)
-                {
-                    if (!state.CanSelfAssess)
-                        return RequestResult<bool>.Failure(ErrorCode.ActionNotAllowed, "Self-assessment not allowed");
-
-                    state.CanSelfAssess = false;
-                }
-                else
-                {
-                    state.RepetitionCounter = SM2Helper.IsPassingQuality(quality) ? state.RepetitionCounter + 1 : 0;
-                    state.CanSelfAssess = SM2Helper.IsPassingQuality(quality);
-                    state.LastRepetitionAt = today;
-                }
-
-
-                (int interval, double easinessFactor)
-                    = SM2Helper.NextIntervalAndEf(state.EasinessFactor, state.RepetitionInterval, state.RepetitionCounter, quality);
-
-                state.RepetitionInterval = interval;
-                state.EasinessFactor = easinessFactor;
-                state.NextRepetitionAt = state.LastRepetitionAt.AddDays(interval);
+                if(!state.TryRecordQuality(quality, isSelfAssess, today, out string? errorMessage))
+                    return RequestResult<bool>.Failure(isSelfAssess ? ErrorCode.ActionNotAllowed : ErrorCode.InvalidData, errorMessage);
             }
 
             await _context.SaveChangesAsync();

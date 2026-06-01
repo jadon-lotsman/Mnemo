@@ -91,7 +91,7 @@ namespace Mnemo.Services
             session.FinishedAt = DateTime.UtcNow;
 
 
-            var rawEntriesIds = tasks.Select(t => t.BaseVocabularyEntryId).ToList();
+            var rawEntriesIds = tasks.Select(t => t.VocabularyEntryId).ToList();
             var rawEntriesDict = await _vocabularyQueries.GetDictByIdsAsync(userId, rawEntriesIds);
             int missedEntriesCounter = 0;
             var existEntries = new List<VocabularyEntry>();
@@ -101,19 +101,11 @@ namespace Mnemo.Services
 
             foreach (var task in tasks)
             {
-                if (rawEntriesDict.TryGetValue(task.BaseVocabularyEntryId, out var entry) && entry != null)
+                if (rawEntriesDict.TryGetValue(task.VocabularyEntryId, out var entry) && entry != null)
                 {
                     existEntries.Add(entry);
 
-                    double similarity;
-
-                    if (task.IsForwardQuestion)
-                        similarity = entry.Translations.Max(task.UserAnswer.ComputeLevenshteinSimilarity);
-                    else
-                        similarity = task.UserAnswer.ComputeLevenshteinSimilarity(entry.Foreign);
-
-
-                    double quality = SM2Helper.ComputeQuality(task.RepetitionSession.AverageActionTime, task.ActionTimeSpan, task.ActionCounter, similarity);
+                    double quality = task.ComputeQuality();
 
                     entryIdToQuality.Add(entry.Id, quality);
 
@@ -127,7 +119,7 @@ namespace Mnemo.Services
             }
 
 
-            await _stateService.SetQualityRepetitionStateAsync(userId, entryIdToQuality);
+            var recordResult = await _stateService.RecordQualityRepetitionStateAsync(userId, entryIdToQuality);
 
             RepetitionResult result = new RepetitionResult(correctTaskCounter, existEntries);
             result.StartedAt = session.StartedAt;
@@ -137,6 +129,9 @@ namespace Mnemo.Services
             _context.RepetitionSessions.Remove(session);
             _context.RepetitionTasks.RemoveRange(tasks);
             await _context.SaveChangesAsync();
+
+            if (!recordResult.IsSuccess)
+                return RequestResult<RepetitionResult>.Failure(recordResult.ErrorCode!.Value, recordResult.ErrorMessage);
 
             return RequestResult<RepetitionResult>.Success(result);
         }
@@ -150,12 +145,7 @@ namespace Mnemo.Services
 
 
             var currentTime = DateTime.UtcNow;
-            var lastActionTime = task.RepetitionSession.LastActionAt;
-
-            task.ActionCounter++;
-            task.UserAnswer = answer;
-            task.ActionTimeSpan = currentTime - lastActionTime;
-            task.RepetitionSession.LastActionAt = currentTime;
+            task.SubmitAnswer(answer, currentTime);
 
             await _context.SaveChangesAsync();
 

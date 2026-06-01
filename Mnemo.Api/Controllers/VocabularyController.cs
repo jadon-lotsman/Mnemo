@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Mnemo.Contracts.Dtos.Vocabulary.Requests;
 using Mnemo.Services;
 using Mnemo.Services.Queries;
@@ -30,7 +31,7 @@ namespace Mnemo.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllEntries()
         {
-            var entries = await _vocabularyQueries.GetAllByUserIdAsync(UserId);
+            var entries = await _vocabularyQueries.GetByUserIdQuery(UserId).ToListAsync();
 
             var entriesDto = Mapper.MapToDto(entries);
             return Ok(entriesDto);
@@ -63,7 +64,7 @@ namespace Mnemo.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> SearchEntriesByQuery([FromQuery] string query)
         {
-            var entries = await _vocabularyQueries.SearchLikeAsync(UserId, query);
+            var entries = await _vocabularyQueries.GetLikeByForeignAndTranslationsAsync(UserId, query);
 
             if (entries == null)
                 return NotFound();

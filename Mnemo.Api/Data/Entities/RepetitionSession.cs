@@ -13,7 +13,8 @@
             get
             {
                 var sum = TimeSpan.Zero;
-                Tasks.Select(i => sum.Add(i.ActionTimeSpan));
+                foreach (var task in Tasks)
+                    sum += task.ActionTimeSpan;
                 return sum / Tasks.Count;
             }
         }

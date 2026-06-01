@@ -15,9 +15,10 @@ namespace Mnemo.Services.Queries
         }
 
 
-
-        private IQueryable<RepetitionState> GetByUserIdQuery(int userId)
+        // Queries
+        public IQueryable<RepetitionState> GetByUserIdQuery(int userId)
             => _context.RepetitionStates.Where(s => s.UserId == userId);
+
 
 
         public async Task<RepetitionState?> GetByEntryIdAsync(int userId, int entryId)
@@ -29,7 +30,6 @@ namespace Mnemo.Services.Queries
             .Include(e => e.VocabularyEntry)
             .ToListAsync();
 
-
         public async Task<Dictionary<int, RepetitionState>> GetDictByEntryIdsAsync(int userId, IEnumerable<int> ids)
         {
             var list = await GetByUserIdQuery(userId)
@@ -37,13 +37,6 @@ namespace Mnemo.Services.Queries
                 .ToListAsync();
 
             return list.ToDictionary(s => s.Id);
-        }
-
-        public async Task<List<VocabularyEntry>> GetEntriesWithoutRepetitionStateAsync(int userId)
-        {
-            return await _context.Entries.Where(e => e.User.Id == userId)
-                .Where(e => e.RepetitionState == null)
-                .ToListAsync();
         }
     }
 }

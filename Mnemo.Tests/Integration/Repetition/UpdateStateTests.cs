@@ -18,7 +18,7 @@ namespace Mnemo.Tests.Integration.Repetition
 
 
             // Act
-            var result = await stateService.SetQualityRepetitionStateAsync(userId: user.Id, new Dictionary<int, double> { { entry.Id, 5 } }, false);
+            var result = await stateService.RecordQualityRepetitionStateAsync(userId: user.Id, new Dictionary<int, double> { { entry.Id, 5 } }, false);
 
 
             // Assert
@@ -40,7 +40,7 @@ namespace Mnemo.Tests.Integration.Repetition
 
 
             // Act
-            var result = await stateService.SetQualityRepetitionStateAsync(userId: user.Id, new Dictionary<int, double> { { entry.Id, 5 } }, true);
+            var result = await stateService.RecordQualityRepetitionStateAsync(userId: user.Id, new Dictionary<int, double> { { entry.Id, 5 } }, true);
 
 
             // Assert
@@ -60,7 +60,7 @@ namespace Mnemo.Tests.Integration.Repetition
 
 
             // Act
-            var result = await stateService.SetQualityRepetitionStateAsync(userId: user.Id, new Dictionary<int, double> { { entry.Id, 5 } }, true);
+            var result = await stateService.RecordQualityRepetitionStateAsync(userId: user.Id, new Dictionary<int, double> { { entry.Id, 5 } }, true);
 
 
             // Assert

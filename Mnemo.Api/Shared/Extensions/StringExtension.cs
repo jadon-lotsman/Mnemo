@@ -36,9 +36,9 @@ namespace Mnemo.Shared.Extensions
         {
             if (string.IsNullOrWhiteSpace(str)) return str;
 
-            if (!str.StartsWith("["))
+            if (!str.StartsWith("[") && !str.StartsWith("/"))
                 str = "[" + str;
-            if (!str.EndsWith("]"))
+            if (!str.EndsWith("]") && !str.EndsWith("/"))
                 str = str + "]";
 
             return str;
@@ -57,6 +57,8 @@ namespace Mnemo.Shared.Extensions
 
         public static double ComputeLevenshteinSimilarity(this string a, string b)
         {
+            if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b)) return 0;
+
             const double delete_cost = 1.1d;
             const double insertion_cost = 1.1d;
             const double replacement_cost = 1.0d;

@@ -8,6 +8,9 @@
         public const int MinInterval = 1;
         public const int MaxInterval = 365;
 
+        public const int MinQuality = 0;
+        public const int MaxQuality = 5;
+
         private const int FirstIntervalDays = 1;
         private const int SecondIntervalDays = 3;
 
@@ -24,7 +27,7 @@
 
             double Knowledge = 0.6 * Accuracy + 0.2 * Stability + 0.2 * Reaction;
 
-            double Quality = Knowledge * 5;
+            double Quality = Math.Clamp(Knowledge, 0, 1) * MaxQuality;
 
             return Quality;
         }
@@ -51,7 +54,7 @@
                 nextInterval = Math.Clamp(nextInterval, MinInterval, MaxInterval);
             }
 
-            nextEasinessFactor = easinessFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+            nextEasinessFactor = easinessFactor + (0.1 - (MaxQuality - quality) * (0.08 + (MaxQuality - quality) * 0.02));
             nextEasinessFactor = Math.Max(nextEasinessFactor, MinEF);
 
             return (nextInterval, nextEasinessFactor);

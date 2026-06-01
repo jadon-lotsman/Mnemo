@@ -4,12 +4,10 @@ namespace Mnemo.Services.Factories
 {
     public class RepetitionTaskFactory
     {
-        private static Random _random = new Random();
-
         public RepetitionTask Create(VocabularyEntry baseEntry, List<VocabularyEntry> entriesForOptions)
         {
-            bool isForwardQuestion = _random.Next(2) == 0;
-            bool withOptions = _random.Next(2) == 0;
+            bool isForwardQuestion = Random.Shared.Next(2) == 0;
+            bool withOptions = entriesForOptions.Count >= 2 ? Random.Shared.Next(2) == 0 : false;
 
             string prompt, answer;
             if (isForwardQuestion)
@@ -37,7 +35,7 @@ namespace Mnemo.Services.Factories
                 options = options.OrderBy(x => Guid.NewGuid()).ToList();
             }
 
-            return new RepetitionTask(baseEntry.Id, isForwardQuestion, prompt, options);
+            return new RepetitionTask(isForwardQuestion, prompt, options, baseEntry.Id);
         }
     }
 }
