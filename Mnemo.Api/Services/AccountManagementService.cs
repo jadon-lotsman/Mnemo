@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Mnemo.Data;
 using Mnemo.Data.Entities;
-using Mnemo.Data;
-using Mnemo.Common;
 using Mnemo.Services.Queries;
+using Mnemo.Shared;
 
 namespace Mnemo.Services
 {
@@ -29,7 +23,7 @@ namespace Mnemo.Services
         public async Task<RequestResult<bool>> CreateAsync(string username)
         {
             if (await _accountQueries.ExistsByUsernameAsync(username))
-                return RequestResult<bool>.Failure(ErrorCode.UsernameTaken);
+                return RequestResult<bool>.Failure(ErrorCode.UsernameTaken, $"Username '{username}' Is Taken");
 
             //if (string.IsNullOrWhiteSpace(password))
             //    return RequestResult<bool>.Failure("INVALID_PASSWORD");

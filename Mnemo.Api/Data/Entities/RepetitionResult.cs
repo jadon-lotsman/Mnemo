@@ -1,6 +1,4 @@
-﻿using Mnemo.Contracts.Dtos.Vocabulary;
-
-namespace Mnemo.Data.Entities
+﻿namespace Mnemo.Data.Entities
 {
     public class RepetitionResult
     {

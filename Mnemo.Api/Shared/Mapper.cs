@@ -1,12 +1,10 @@
-﻿using System.Formats.Tar;
-using System.Reflection;
-using Microsoft.IdentityModel.Tokens;
-using Mnemo.Contracts.Dtos.Repetition;
-using Mnemo.Contracts.Dtos.Vocabulary;
+﻿using Mnemo.Contracts.Dtos.Repetition.Responses;
 using Mnemo.Contracts.Dtos.Vocabulary.Requests;
+using Mnemo.Contracts.Dtos.Vocabulary.Responses;
 using Mnemo.Data.Entities;
+using Mnemo.Shared.Extensions;
 
-namespace Mnemo.Common
+namespace Mnemo.Shared
 {
     public static class Mapper
     {
@@ -29,11 +27,11 @@ namespace Mnemo.Common
 
             return new VocabularyEntryResponse
             {
-                Id              =   entry.Id,
-                Foreign         =   PrepareForeign(entry.Foreign),
-                Transcription   =   PrepareTranscription(entry.Transcription),
-                Examples        =   PrepareExamples(entry.Examples),
-                Translations    =   PrepareTranslations(entry.Translations)
+                Id = entry.Id,
+                Foreign = PrepareForeign(entry.Foreign),
+                Transcription = PrepareTranscription(entry.Transcription),
+                Examples = PrepareExamples(entry.Examples),
+                Translations = PrepareTranslations(entry.Translations)
             };
         }
 
@@ -53,7 +51,7 @@ namespace Mnemo.Common
             return new RepetitionResultResponse
             {
                 Correct = result.Correct,
-                Total   = result.Total,
+                Total = result.Total,
                 Percent = result.Percent,
                 StartedAt = result.StartedAt,
                 FinishedAt = result.FinishedAt,
@@ -67,9 +65,9 @@ namespace Mnemo.Common
 
             return new RepetitionTaskResponse
             {
-                Id          =   task.Id,
-                Prompt      =   task.Prompt,
-                Options     =   task.Options.ToArray(),
+                Id = task.Id,
+                Prompt = task.Prompt,
+                Options = task.Options.ToArray(),
             };
         }
 
@@ -88,13 +86,13 @@ namespace Mnemo.Common
 
             return new RepetitionStateResponse
             {
-                Id                  = state.Id,
-                RepetitionCounter   = state.RepetitionCounter,
-                RepetitionInterval  = state.RepetitionInterval,
-                EasinessFactor      = state.EasinessFactor,
-                CanSelfAssess       = state.CanSelfAssess,
-                NextRepetitionAt    = state.NextRepetitionAt,
-                VocabularyEntry     = MapToDto(state.VocabularyEntry)
+                Id = state.Id,
+                RepetitionCounter = state.RepetitionCounter,
+                RepetitionInterval = state.RepetitionInterval,
+                EasinessFactor = state.EasinessFactor,
+                CanSelfAssess = state.CanSelfAssess,
+                NextRepetitionAt = state.NextRepetitionAt,
+                VocabularyEntry = MapToDto(state.VocabularyEntry)
             };
         }
 
@@ -112,11 +110,11 @@ namespace Mnemo.Common
         {
             return new VocabularyEntry()
             {
-                Foreign         =   PrepareForeign(dto.Foreign),
-                Transcription   =   PrepareTranscription(dto.Transcription),
-                Examples        =   PrepareExamples(dto.Examples).ToList(),
-                Translations    =   PrepareTranslations(dto.Translations).ToList(),
-                UserId          =   userId
+                Foreign = PrepareForeign(dto.Foreign),
+                Transcription = PrepareTranscription(dto.Transcription),
+                Examples = PrepareExamples(dto.Examples).ToList(),
+                Translations = PrepareTranslations(dto.Translations).ToList(),
+                UserId = userId
             };
         }
 

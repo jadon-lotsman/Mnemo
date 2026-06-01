@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Mnemo.Common;
 using Mnemo.Services;
+using Mnemo.Shared;
 
 namespace Mnemo.Tests.Integration.Repetition
 {

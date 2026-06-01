@@ -1,9 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Mnemo.Common;
-using Mnemo.Contracts.Dtos.Repetition;
 using Mnemo.Data.Entities;
 using Mnemo.Services.Factories;
 using Mnemo.Services.Queries;
+using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Services.Strategies
 {

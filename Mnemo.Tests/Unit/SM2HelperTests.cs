@@ -1,4 +1,4 @@
-using Mnemo.Common;
+using Mnemo.Shared;
 
 namespace Mnemo.Tests.Unit
 {

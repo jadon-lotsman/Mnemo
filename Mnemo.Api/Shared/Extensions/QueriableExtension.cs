@@ -1,7 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Mnemo.Data.Entities;
+﻿using Mnemo.Data.Entities;
 
-namespace Mnemo.Common
+namespace Mnemo.Shared.Extensions
 {
     public static class QueriableExtension
     {
@@ -10,7 +9,7 @@ namespace Mnemo.Common
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
             return source
-            .Where(e => e.RepetitionState != null && 
+            .Where(e => e.RepetitionState != null &&
                         e.RepetitionState.NextRepetitionAt <= today);
         }
 

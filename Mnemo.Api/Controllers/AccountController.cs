@@ -1,13 +1,13 @@
-﻿using System.Security.Claims;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
-using Mnemo.Common;
 using Mnemo.Contracts.Dtos.Account.Requests;
-using Mnemo.Services.Queries;
 using Mnemo.Data.Entities;
 using Mnemo.Services;
+using Mnemo.Services.Queries;
+using Mnemo.Shared;
 
 namespace Mnemo.Controllers
 {
@@ -38,7 +38,7 @@ namespace Mnemo.Controllers
                 return Unauthorized();
 
 
-            return Ok( new { token = GenerateJwt(user) });
+            return Ok(new { token = GenerateJwt(user) });
         }
 
         [HttpPost("register")]
@@ -71,7 +71,7 @@ namespace Mnemo.Controllers
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken (
+            var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,

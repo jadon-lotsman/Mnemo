@@ -1,6 +1,6 @@
-﻿using Mnemo.Common;
-using Mnemo.Data;
+﻿using Mnemo.Data;
 using Mnemo.Data.Entities;
+using Mnemo.Shared;
 
 namespace Mnemo.Tests.Integration
 {

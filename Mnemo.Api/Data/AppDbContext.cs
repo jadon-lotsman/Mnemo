@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Mnemo.Data.Entities;
 
 namespace Mnemo.Data
@@ -17,7 +12,7 @@ namespace Mnemo.Data
         public DbSet<RepetitionSession> RepetitionSessions { get; set; }
         public DbSet<RepetitionState> RepetitionStates { get; set; }
         public DbSet<RepetitionTask> RepetitionTasks { get; set; }
-        
+
 
         public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)

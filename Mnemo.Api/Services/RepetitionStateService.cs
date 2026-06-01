@@ -1,11 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Mnemo.Common;
-using Mnemo.Contracts.Dtos.Repetition;
+﻿using Mnemo.Contracts.Dtos.Repetition.Responses;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 using Mnemo.Services.Queries;
+using Mnemo.Shared;
 
 namespace Mnemo.Services
 {

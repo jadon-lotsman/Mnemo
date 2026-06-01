@@ -1,6 +1,6 @@
-﻿using Mnemo.Contracts.Dtos.Vocabulary;
+﻿using Mnemo.Contracts.Dtos.Vocabulary.Responses;
 
-namespace Mnemo.Contracts.Dtos.Repetition
+namespace Mnemo.Contracts.Dtos.Repetition.Responses
 {
     public class RepetitionStateResponse
     {

@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Mnemo.Common;
-using Mnemo.Contracts.Dtos.Repetition;
-using Mnemo.Data;
+﻿using Mnemo.Data;
 using Mnemo.Data.Entities;
 using Mnemo.Services.Queries;
 using Mnemo.Services.Strategies;
+using Mnemo.Shared;
+using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Services
 {
@@ -56,7 +50,7 @@ namespace Mnemo.Services
                 return RequestResult<RepetitionSession>.Failure(ErrorCode.UserNotFound);
 
             if (await _sessionQueries.ExistsByUserId(userId))
-                return RequestResult<RepetitionSession>.Failure(ErrorCode.DuplicateSession, "Session already exist");
+                return RequestResult<RepetitionSession>.Failure(ErrorCode.DuplicateSession, "Session already exists");
 
             IRepetitionTaskStrategy? strategy = mode switch
             {

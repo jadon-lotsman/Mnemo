@@ -1,12 +1,10 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Mnemo.Common;
 using Mnemo.Contracts.Dtos.Repetition.Requests;
 using Mnemo.Services;
 using Mnemo.Services.Queries;
+using Mnemo.Shared;
 
 namespace Mnemo.Controllers
 {
@@ -27,7 +25,7 @@ namespace Mnemo.Controllers
         private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
 
-        
+
         [HttpGet]
         public async Task<IActionResult> GetScheduleDays()
         {

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Mnemo.Data.Entities
+﻿namespace Mnemo.Data.Entities
 {
     public class RepetitionSession
     {
@@ -34,9 +28,9 @@ namespace Mnemo.Data.Entities
 
         public RepetitionSession(int userId, List<RepetitionTask> tasks)
         {
-            StartedAt       = DateTime.UtcNow;
-            LastActionAt    = StartedAt;
-            FinishedAt      = null;
+            StartedAt = DateTime.UtcNow;
+            LastActionAt = StartedAt;
+            FinishedAt = null;
 
             UserId = userId;
             Tasks = tasks;

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Mnemo.Data.Entities
+﻿namespace Mnemo.Data.Entities
 {
     public class VocabularyEntry
     {
@@ -25,9 +18,9 @@ namespace Mnemo.Data.Entities
 
         public VocabularyEntry()
         {
-            Examples        = new List<string>();
-            Translations    = new List<string>();
-            CreatedAt       = DateTime.UtcNow;
+            Examples = new List<string>();
+            Translations = new List<string>();
+            CreatedAt = DateTime.UtcNow;
         }
     }
 }

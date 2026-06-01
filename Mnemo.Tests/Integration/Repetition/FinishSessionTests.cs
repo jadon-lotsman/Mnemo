@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Mnemo.Common;
 using Mnemo.Data.Entities;
 using Mnemo.Services;
 using Mnemo.Services.Queries;
+using Mnemo.Shared;
 
 namespace Mnemo.Tests.Integration.Repetition
 {

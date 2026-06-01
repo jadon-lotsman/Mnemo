@@ -1,4 +1,4 @@
-﻿using Mnemo.Common;
+﻿using Mnemo.Shared;
 
 namespace Mnemo.Data.Entities
 {
@@ -24,12 +24,12 @@ namespace Mnemo.Data.Entities
 
         public RepetitionState(int userId, VocabularyEntry entry)
         {
-            RepetitionCounter   = 0;
-            RepetitionInterval  = SM2Helper.MinInterval;
-            EasinessFactor      = SM2Helper.InitEF;
-            CanSelfAssess       = false;
-            LastRepetitionAt    = DateOnly.FromDateTime(DateTime.UtcNow);
-            NextRepetitionAt    = LastRepetitionAt.AddDays(SM2Helper.MinInterval);
+            RepetitionCounter = 0;
+            RepetitionInterval = SM2Helper.MinInterval;
+            EasinessFactor = SM2Helper.InitEF;
+            CanSelfAssess = false;
+            LastRepetitionAt = DateOnly.FromDateTime(DateTime.UtcNow);
+            NextRepetitionAt = LastRepetitionAt.AddDays(SM2Helper.MinInterval);
 
             UserId = userId;
             VocabularyEntry = entry;

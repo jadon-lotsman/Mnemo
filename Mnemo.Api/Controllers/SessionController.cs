@@ -1,13 +1,10 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Mnemo.Contracts.Dtos.Repetition;
 using Mnemo.Contracts.Dtos.Repetition.Requests;
-using Mnemo.Services.Queries;
 using Mnemo.Services;
-using Mnemo.Common;
+using Mnemo.Services.Queries;
+using Mnemo.Shared;
 
 namespace Mnemo.Controllers
 {
@@ -108,7 +105,7 @@ namespace Mnemo.Controllers
                 return result.ErrorCode switch
                 {
                     ErrorCode.TaskNotFound => NotFound(new { message = result.ErrorMessage }),
-                    _ => StatusCode(500, new { message = result.ErrorMessage})
+                    _ => StatusCode(500, new { message = result.ErrorMessage })
                 };
             }
 

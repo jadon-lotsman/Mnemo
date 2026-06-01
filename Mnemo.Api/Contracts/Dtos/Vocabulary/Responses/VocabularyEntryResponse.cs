@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Mnemo.Contracts.Dtos.Vocabulary
+﻿namespace Mnemo.Contracts.Dtos.Vocabulary.Responses
 {
     public class VocabularyEntryResponse
     {

@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore;
-using Mnemo.Common;
-using Mnemo.Contracts.Dtos.Vocabulary.Requests;
+﻿using Mnemo.Contracts.Dtos.Vocabulary.Requests;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 using Mnemo.Services.Queries;
+using Mnemo.Shared;
 
 namespace Mnemo.Services
 {
@@ -38,7 +34,7 @@ namespace Mnemo.Services
             string foreign = Mapper.PrepareForeign(dto.Foreign!);
 
             if (await _vocabularyQueries.ExistsByForeignAsync(userId, foreign))
-                return RequestResult<VocabularyEntry>.Failure(ErrorCode.DuplicateEntry);
+                return RequestResult<VocabularyEntry>.Failure(ErrorCode.DuplicateEntry, "Entry already exists");
 
 
             var entry = Mapper.MapToEntry(dto, userId);
@@ -74,7 +70,7 @@ namespace Mnemo.Services
 
             if (currentEntry == null)
                 return RequestResult<bool>.Failure(ErrorCode.EntryNotFound);
-                
+
 
             _context.Entries.Remove(currentEntry);
             await _context.SaveChangesAsync();

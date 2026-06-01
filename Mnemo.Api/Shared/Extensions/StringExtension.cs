@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Mnemo.Common
+namespace Mnemo.Shared.Extensions
 {
     public static class StringExtension
     {
@@ -64,10 +64,10 @@ namespace Mnemo.Common
             a = a.ToLower().Replace(" ", "");
             b = b.ToLower().Replace(" ", "");
 
-            int m = a.Length+1;
-            int n = b.Length+1;
+            int m = a.Length + 1;
+            int n = b.Length + 1;
 
-            double [,] D = new double[m, n];
+            double[,] D = new double[m, n];
 
             for (int i = 0; i < m; i++)
                 D[i, 0] = i;
@@ -78,7 +78,7 @@ namespace Mnemo.Common
             {
                 for (int j = 1; j < n; j++)
                 {
-                    double cost = a[i-1] == b[j-1] ? 0 : replacement_cost;
+                    double cost = a[i - 1] == b[j - 1] ? 0 : replacement_cost;
                     D[i, j] = Math.Min
                     (
                         D[i - 1, j] + delete_cost,
@@ -92,7 +92,7 @@ namespace Mnemo.Common
                 }
             }
 
-            return 1 - D[m-1, n-1] / (m + n);
+            return 1 - D[m - 1, n - 1] / (m + n);
         }
 
 

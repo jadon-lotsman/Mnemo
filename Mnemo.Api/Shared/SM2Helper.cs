@@ -1,4 +1,4 @@
-﻿namespace Mnemo.Common
+﻿namespace Mnemo.Shared
 {
     public static class SM2Helper
     {
@@ -14,7 +14,7 @@
 
         public static double ComputeQuality(TimeSpan averageTime, TimeSpan actionTime, int actionCounter, double similarity)
         {
-            var changeCounter = Math.Max(0, actionCounter-1);
+            var changeCounter = Math.Max(0, actionCounter - 1);
             double Stability = Math.Exp(-changeCounter);
 
             double Accuracy = CalcFuzzyAccuracy(similarity);
@@ -60,14 +60,14 @@
 
         public static bool IsPassingQuality(double quality) => quality >= 3;
 
-        private static double CalcFuzzyAccuracy(double similarity, double min=0.75, double max=0.9)
+        private static double CalcFuzzyAccuracy(double similarity, double min = 0.75, double max = 0.9)
         {
             if (similarity <= min) return 0;
             if (similarity >= max) return 1;
             return (similarity - min) / (max - min);
         }
 
-        private static double CalcSigmoidReaction(double ratio, double min=0.7, double max=1.3, double center=1.0, double steepness=3.0)
+        private static double CalcSigmoidReaction(double ratio, double min = 0.7, double max = 1.3, double center = 1.0, double steepness = 3.0)
         {
             return min + (max - min) / (1.0 + Math.Exp(-steepness * (ratio - center)));
         }

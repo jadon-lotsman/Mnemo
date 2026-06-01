@@ -1,12 +1,10 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Mnemo.Common;
 using Mnemo.Contracts.Dtos.Vocabulary.Requests;
-using Mnemo.Services.Queries;
 using Mnemo.Services;
+using Mnemo.Services.Queries;
+using Mnemo.Shared;
 
 namespace Mnemo.Controllers
 {
@@ -57,7 +55,7 @@ namespace Mnemo.Controllers
 
             if (entry == null)
                 return NotFound();
-            
+
             var entryDto = Mapper.MapToDto(entry);
             return Ok(entryDto);
         }
@@ -119,7 +117,7 @@ namespace Mnemo.Controllers
         {
             var result = await _vocabularyService.RemoveEntryByIdAsync(UserId, id);
 
-            if(!result.IsSuccess)
+            if (!result.IsSuccess)
             {
                 return result.ErrorCode switch
                 {

@@ -1,6 +1,4 @@
-﻿using Mnemo.Contracts.Dtos.Vocabulary;
-
-namespace Mnemo.Contracts.Dtos.Repetition
+﻿namespace Mnemo.Contracts.Dtos.Repetition.Responses
 {
     public class RepetitionDayResponse
     {

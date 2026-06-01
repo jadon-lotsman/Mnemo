@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Mnemo.Data.Entities;
-using Mnemo.Services.Queries;
+﻿using Mnemo.Data.Entities;
 
 namespace Mnemo.Services.Factories
 {
