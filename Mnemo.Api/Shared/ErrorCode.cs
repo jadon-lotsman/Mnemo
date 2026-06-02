@@ -14,12 +14,11 @@
         EntryNotFound,
         StateNotFound,
         TaskNotFound,
-        SessionNotFound,
+        RepetitionNotFound,
 
         // 409 Conflict/Dublicate
         UsernameTaken,
         DuplicateEntry,
-        DuplicateSession,
 
         // 422 UnprocessableEntity
         TaskGenerationFailed

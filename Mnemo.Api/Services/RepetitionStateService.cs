@@ -70,21 +70,21 @@ namespace Mnemo.Services
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
             RequestResult<bool>? errorResult = null;
 
+            if (entryIdToQuality.Count != stateDict.Count)
+                errorResult = RequestResult<bool>.Failure(ErrorCode.StateNotFound);
+
             foreach (var state in stateDict.Values)
             {
                 if (!entryIdToQuality.TryGetValue(state.VocabularyEntryId, out double quality))
                     continue;
 
-                if(!state.TryRecordQuality(quality, isSelfAssess, today, out string? errorMessage) && errorResult == null)
+                if (!state.TryRecordQuality(quality, isSelfAssess, today, out string? errorMessage) && errorResult == null)
                     errorResult = RequestResult<bool>.Failure(isSelfAssess ? ErrorCode.ActionNotAllowed : ErrorCode.InvalidData, errorMessage);
             }
             
             await _context.SaveChangesAsync();
 
-            if (errorResult != null)
-                return errorResult;
-
-            return RequestResult<bool>.Success(true);
+            return errorResult ?? RequestResult<bool>.Success(true);
         }
     }
 }

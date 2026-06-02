@@ -7,31 +7,31 @@ namespace Mnemo.Data.Entities
     public class RepetitionTask
     {
         public int Id { get; set; }
+        public int AsessmentEntryId { get; set; }
 
         public string Prompt { get; set; }
         public List<string> Options { get; set; }
+        public List<string> CorrectAnswers { get; set; }
         public string UserAnswer { get; set; }
-        public bool IsForwardQuestion { get; set; }
         public int ActionCounter { get; set; }
         public TimeSpan ElapsedTime { get; set; }
 
 
-        public int RepetitionSessionId { get; set; }
-        public RepetitionSession RepetitionSession { get; set; }
-        public int VocabularyEntryId { get; set; }
-        public VocabularyEntry VocabularyEntry { get; set; }
+        public int UserId { get; set; }
+        public User User { get; set; }
 
 
         public RepetitionTask() { }
 
-        public RepetitionTask(bool isForwardQuestion, string prompt, List<string> options, int entryId)
+        public RepetitionTask(string prompt, List<string> correctAnswers, List<string> options, int userId, int entryId)
         {
-            IsForwardQuestion = isForwardQuestion;
             Prompt = prompt;
             Options = options;
+            CorrectAnswers = correctAnswers;
             UserAnswer = string.Empty;
 
-            VocabularyEntryId = entryId;
+            UserId = userId;
+            AsessmentEntryId = entryId;
         }
 
 
@@ -39,19 +39,16 @@ namespace Mnemo.Data.Entities
         {
             ActionCounter++;
             UserAnswer = userAnswer;
-            ElapsedTime = elapsedTime;
+
+            if (ElapsedTime == TimeSpan.Zero)
+                ElapsedTime = elapsedTime;
         }
 
-        public double ComputeQuality()
+        public double ComputeQuality(TimeSpan averageTime)
         {
-            double similarity;
+            double similarity = CorrectAnswers.Max(UserAnswer.ComputeLevenshteinSimilarity);
 
-            if (IsForwardQuestion)
-                similarity = VocabularyEntry.Translations.Max(UserAnswer.ComputeLevenshteinSimilarity);
-            else
-                similarity = UserAnswer.ComputeLevenshteinSimilarity(VocabularyEntry.Foreign);
-
-            return SM2Helper.ComputeQuality(RepetitionSession.AverageActionTime, ElapsedTime, ActionCounter, similarity);
+            return SM2Helper.ComputeQuality(averageTime, ElapsedTime, ActionCounter, similarity);
         }
     }
 }

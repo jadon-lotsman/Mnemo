@@ -81,13 +81,13 @@ namespace Mnemo
 
             // DI Queries
             services.AddScoped<AccountQueries>();
-            services.AddScoped<SessionQueries>();
+            services.AddScoped<TaskQueries>();
             services.AddScoped<StateQueries>();
             services.AddScoped<VocabularyQueries>();
 
             // DI Services
             services.AddScoped<AccountManagementService>();
-            services.AddScoped<RepetitionSessionService>();
+            services.AddScoped<RepetitionTaskService>();
             services.AddScoped<RepetitionStateService>();
             services.AddScoped<VocabularyManagementService>();
 

@@ -3,15 +3,27 @@ import { ref } from 'vue'
 import RadioItem from '@/features/launcher/components/LauncherRadioItem.vue'
 import { apiRequest } from '@/shared/utils/ApiRequest'
 import router, { ROUTE_NAMES } from '@/router'
+import type { RepetitionTask } from '@/features/repetition/types/RepetitionTask'
+import { useNotify } from '@/shared/composables/useNotify'
+
+const notify = useNotify()
 
 const selectedMode = ref<string>('fast')
 
 async function onSubmit() {
-  await apiRequest<string>(`/api/session?mode=${selectedMode.value}`, {
-    method: 'POST',
-  })
+  const result = await apiRequest<{ inProcess: string }>('/api/repetition/')
 
-  router.push({ name: ROUTE_NAMES.SESSION })
+  if (result.inProcess) {
+    notify.success('Repetition already exists. Redirecting...')
+
+    router.push({ name: ROUTE_NAMES.REPETITION })
+  } else {
+    await apiRequest<RepetitionTask[]>(`/api/repetition?mode=${selectedMode.value}`, {
+      method: 'POST',
+    })
+
+    router.push({ name: ROUTE_NAMES.REPETITION })
+  }
 }
 </script>
 
@@ -21,7 +33,7 @@ async function onSubmit() {
       <RadioItem
         v-model="selectedMode"
         value="fast"
-        title="Fast session"
+        title="Fast repetition"
         description="Random words without save results"
       />
       <RadioItem

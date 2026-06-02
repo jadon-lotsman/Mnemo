@@ -27,7 +27,9 @@ namespace Mnemo.Services.Queries
                 query = query.Where(e => !excludeIds.Contains(e.Id));
 
             if (take.HasValue)
-                query = query.Take(take.Value);
+                query = query
+                    .OrderBy(e => e.Id)
+                    .Take(take.Value);
 
             return query
                 .OrderBy(e => EF.Functions.Random());

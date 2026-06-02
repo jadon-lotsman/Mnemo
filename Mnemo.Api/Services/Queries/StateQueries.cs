@@ -20,7 +20,7 @@ namespace Mnemo.Services.Queries
             => _context.RepetitionStates.Where(s => s.UserId == userId);
 
 
-
+        // Getters
         public async Task<RepetitionState?> GetByEntryIdAsync(int userId, int entryId)
             => await GetByUserIdQuery(userId).FirstOrDefaultAsync(s => s.VocabularyEntryId == entryId);
 

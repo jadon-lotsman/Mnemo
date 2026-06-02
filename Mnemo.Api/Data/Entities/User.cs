@@ -8,7 +8,7 @@
         public DateTime RegisteredAt { get; set; }
 
 
-        public RepetitionSession? RepetitionSession { get; set; }
+        public List<RepetitionTask> RepetitionTasks { get; set; }
         public List<RepetitionState> RepetitionStates { get; set; }
         public List<VocabularyEntry> VocabularyEntries { get; set; }
 

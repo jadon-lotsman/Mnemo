@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Mnemo.Contracts.Dtos.Repetition.Requests;
 using Mnemo.Services;
 using Mnemo.Services.Queries;
@@ -11,15 +12,15 @@ namespace Mnemo.Controllers
     [ApiController]
     [Authorize]
     [Route("api/[controller]")]
-    public class SessionController : ControllerBase
+    public class RepetitionController : ControllerBase
     {
-        private readonly SessionQueries _sessionQueries;
-        private readonly RepetitionSessionService _sessionService;
+        private readonly TaskQueries _taskQueries;
+        private readonly RepetitionTaskService _taskService;
 
-        public SessionController(SessionQueries sessionQueries, RepetitionSessionService sessionService)
+        public RepetitionController(TaskQueries sessionQueries, RepetitionTaskService taskService)
         {
-            _sessionQueries = sessionQueries;
-            _sessionService = sessionService;
+            _taskQueries = sessionQueries;
+            _taskService = taskService;
         }
 
         private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -27,43 +28,53 @@ namespace Mnemo.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetRepetitionSessionStatus()
+        public async Task<IActionResult> ExistsRepetitionStatus()
         {
-            var result = await _sessionService.GetRepetitionSessionStatusAsync(UserId);
-
-            return StatusCode(500, result.ErrorMessage);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> StartRepetitionSession([FromQuery] string mode)
-        {
-            var result = await _sessionService.StartRepetitionSessionAsync(UserId, mode);
+            var result = await _taskService.ExistsRepetitionAsync(UserId);
 
             if (!result.IsSuccess)
             {
                 return result.ErrorCode switch
                 {
                     ErrorCode.UserNotFound => NotFound(new { message = result.ErrorMessage }),
-                    ErrorCode.TaskGenerationFailed => UnprocessableEntity(new { message = result.ErrorMessage }),
-                    ErrorCode.DuplicateSession => Conflict(new { message = result.ErrorMessage }),
                     _ => StatusCode(500, new { message = result.ErrorMessage })
                 };
             }
 
-            return NoContent();
+            return Ok(new { inProcess = result.Value });
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> FinishRepetitionSession()
+        [HttpPost]
+        public async Task<IActionResult> StartRepetitionSession([FromQuery] string mode)
         {
-            var result = await _sessionService.FinishRepetitionSessionAsync(UserId);
+            var result = await _taskService.StartRepetitionAsync(UserId, mode);
 
             if (!result.IsSuccess)
             {
                 return result.ErrorCode switch
                 {
                     ErrorCode.InvalidData => BadRequest(new { message = result.ErrorMessage }),
-                    ErrorCode.SessionNotFound => NotFound(new { message = result.ErrorMessage }),
+                    ErrorCode.UserNotFound => NotFound(new { message = result.ErrorMessage }),
+                    ErrorCode.TaskGenerationFailed => UnprocessableEntity(new { message = result.ErrorMessage }),
+                    _ => StatusCode(500, new { message = result.ErrorMessage })
+                };
+            }
+
+            return Ok(result.Value);
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> FinishRepetitionSession()
+        {
+            var result = await _taskService.FinishRepetitionAsync(UserId);
+
+            if (!result.IsSuccess)
+            {
+                return result.ErrorCode switch
+                {
+                    ErrorCode.InvalidData => BadRequest(new { message = result.ErrorMessage }),
+                    ErrorCode.StateNotFound => NotFound(new { message = result.ErrorMessage }),
+                    ErrorCode.RepetitionNotFound => NotFound(new { message = result.ErrorMessage }),
                     _ => StatusCode(500, new { message = result.ErrorMessage })
                 };
             }
@@ -77,7 +88,7 @@ namespace Mnemo.Controllers
         [HttpGet("tasks")]
         public async Task<IActionResult> GetAllTasks()
         {
-            var tasks = await _sessionQueries.GetTasksByUserIdAsync(UserId);
+            var tasks = await _taskQueries.GetByUserIdQuery(UserId).ToListAsync();
 
             var tasksDto = Mapper.MapToDto(tasks);
             return Ok(tasksDto);
@@ -86,7 +97,7 @@ namespace Mnemo.Controllers
         [HttpGet("tasks/{id:int}")]
         public async Task<IActionResult> GetTaskById(int id)
         {
-            var task = await _sessionQueries.GetTaskByIdAsync(UserId, id);
+            var task = await _taskQueries.GetTaskByIdAsync(UserId, id);
 
             if (task == null)
                 return NotFound();
@@ -98,7 +109,7 @@ namespace Mnemo.Controllers
         [HttpPost("tasks/{id:int}")]
         public async Task<IActionResult> SubmitTaskAnswer(int id, [FromBody] SubmitTaskAnswerRequest request)
         {
-            var result = await _sessionService.SubmitRepetitionTaskAnswerAsync(UserId, id, request.UserAnswer, TimeSpan.FromMilliseconds(request.ElapsedTimeMilliseconds));
+            var result = await _taskService.SubmitRepetitionTaskAnswerAsync(UserId, id, request.UserAnswer, TimeSpan.FromMilliseconds(request.ElapsedTimeMilliseconds));
 
             if (!result.IsSuccess)
             {

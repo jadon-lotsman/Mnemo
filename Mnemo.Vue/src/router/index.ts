@@ -1,18 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import VocabularyView from '@/views/VocabularyView.vue'
-import SessionView from '@/views/SessionView.vue'
+import RepetitionView from '@/views/RepetitionView.vue'
 
 export const ROUTE_PATHS = {
   LOGIN: '/login',
   VOCABULARY: '/vocabulary',
-  SESSION: '/session',
+  REPETITION: '/repetition',
 }
 
 export const ROUTE_NAMES = {
   LOGIN: 'login',
   VOCABULARY: 'vocabulary',
-  SESSION: 'session',
+  REPETITION: 'repetition',
 }
 
 const routes = [
@@ -28,9 +28,9 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: ROUTE_PATHS.SESSION,
-    name: ROUTE_NAMES.SESSION,
-    component: SessionView,
+    path: ROUTE_PATHS.REPETITION,
+    name: ROUTE_NAMES.REPETITION,
+    component: RepetitionView,
     meta: { requiresAuth: true },
   },
   {

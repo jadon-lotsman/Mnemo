@@ -11,7 +11,7 @@ let lastAction: number = Date.now()
 async function fetchRepetition() {
   try {
     isLoading.value = true
-    tasks.value = await apiRequest<RepetitionTask[]>('/api/session/tasks/')
+    tasks.value = await apiRequest<RepetitionTask[]>('/api/repetition/tasks/')
   } finally {
     isLoading.value = false
     lastAction = Date.now()
@@ -22,7 +22,7 @@ function onSubmitAnswer(id: number, answer: string) {
   const timeNow = Date.now()
   const elapsedTimeMilliseconds = timeNow - lastAction
 
-  apiRequest<RepetitionTask>(`/api/session/tasks/${id}`, {
+  apiRequest<RepetitionTask>(`/api/repetition/tasks/${id}`, {
     method: 'POST',
     body: JSON.stringify({
       UserAnswer: answer,

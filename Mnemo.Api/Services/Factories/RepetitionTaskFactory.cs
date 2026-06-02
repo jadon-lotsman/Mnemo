@@ -9,15 +9,16 @@ namespace Mnemo.Services.Factories
             bool isForwardQuestion = Random.Shared.Next(2) == 0;
             bool withOptions = entriesForOptions.Count >= 2 ? Random.Shared.Next(2) == 0 : false;
 
-            string prompt, answer;
+            string prompt;
+            var correctAnswers = new List<string>();
             if (isForwardQuestion)
             {
-                answer = baseEntry.Translations[0];
+                correctAnswers = baseEntry.Translations.ToList();
                 prompt = baseEntry.Foreign;
             }
             else
             {
-                answer = baseEntry.Foreign;
+                correctAnswers.Add(baseEntry.Foreign);
                 prompt = baseEntry.Translations[0];
             }
 
@@ -27,15 +28,15 @@ namespace Mnemo.Services.Factories
                 foreach (var entry in entriesForOptions)
                 {
                     string option = isForwardQuestion ? entry.Translations[0] : entry.Foreign;
-                    if (!options.Contains(option) && option != answer)
+                    if (!options.Contains(option) && !correctAnswers.Contains(option))
                         options.Add(option);
                 }
 
-                options.Add(answer);
+                options.Add(correctAnswers[0]);
                 options = options.OrderBy(x => Guid.NewGuid()).ToList();
             }
 
-            return new RepetitionTask(isForwardQuestion, prompt, options, baseEntry.Id);
+            return new RepetitionTask(prompt, correctAnswers, options, baseEntry.UserId, baseEntry.Id);
         }
     }
 }
