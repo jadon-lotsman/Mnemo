@@ -6,6 +6,7 @@ import { apiRequest } from '@/shared/utils/ApiRequest.ts'
 
 const isLoading = ref<boolean>(false)
 const tasks = ref<RepetitionTask[]>([])
+let lastAction: number = Date.now()
 
 async function fetchRepetition() {
   try {
@@ -13,14 +14,23 @@ async function fetchRepetition() {
     tasks.value = await apiRequest<RepetitionTask[]>('/api/session/tasks/')
   } finally {
     isLoading.value = false
+    lastAction = Date.now()
   }
 }
 
 function onSubmitAnswer(id: number, answer: string) {
+  const timeNow = Date.now()
+  const elapsedTimeMilliseconds = timeNow - lastAction
+
   apiRequest<RepetitionTask>(`/api/session/tasks/${id}`, {
     method: 'POST',
-    body: JSON.stringify({ answer: answer }),
+    body: JSON.stringify({
+      UserAnswer: answer,
+      ElapsedTimeMilliseconds: elapsedTimeMilliseconds,
+    }),
   })
+
+  lastAction = timeNow
 }
 
 onMounted(async () => {

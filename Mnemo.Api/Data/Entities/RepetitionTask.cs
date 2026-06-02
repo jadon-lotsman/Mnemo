@@ -13,7 +13,7 @@ namespace Mnemo.Data.Entities
         public string UserAnswer { get; set; }
         public bool IsForwardQuestion { get; set; }
         public int ActionCounter { get; set; }
-        public TimeSpan ActionTimeSpan { get; set; }
+        public TimeSpan ElapsedTime { get; set; }
 
 
         public int RepetitionSessionId { get; set; }
@@ -35,12 +35,11 @@ namespace Mnemo.Data.Entities
         }
 
 
-        public void SubmitAnswer(string userAnswer, DateTime currentTime)
+        public void SubmitAnswer(string userAnswer, TimeSpan elapsedTime)
         {
             ActionCounter++;
             UserAnswer = userAnswer;
-            ActionTimeSpan = currentTime - RepetitionSession.LastActionAt;
-            RepetitionSession.LastActionAt = currentTime;
+            ElapsedTime = elapsedTime;
         }
 
         public double ComputeQuality()
@@ -52,7 +51,7 @@ namespace Mnemo.Data.Entities
             else
                 similarity = UserAnswer.ComputeLevenshteinSimilarity(VocabularyEntry.Foreign);
 
-            return SM2Helper.ComputeQuality(RepetitionSession.AverageActionTime, ActionTimeSpan, ActionCounter, similarity);
+            return SM2Helper.ComputeQuality(RepetitionSession.AverageActionTime, ElapsedTime, ActionCounter, similarity);
         }
     }
 }

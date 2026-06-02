@@ -98,7 +98,7 @@ namespace Mnemo.Controllers
         [HttpPost("tasks/{id:int}")]
         public async Task<IActionResult> SubmitTaskAnswer(int id, [FromBody] SubmitTaskAnswerRequest request)
         {
-            var result = await _sessionService.SubmitRepetitionTaskAnswerAsync(UserId, id, request.Answer);
+            var result = await _sessionService.SubmitRepetitionTaskAnswerAsync(UserId, id, request.UserAnswer, TimeSpan.FromMilliseconds(request.ElapsedTimeMilliseconds));
 
             if (!result.IsSuccess)
             {

@@ -14,7 +14,7 @@
             {
                 var sum = TimeSpan.Zero;
                 foreach (var task in Tasks)
-                    sum += task.ActionTimeSpan;
+                    sum += task.ElapsedTime;
                 return sum / Tasks.Count;
             }
         }

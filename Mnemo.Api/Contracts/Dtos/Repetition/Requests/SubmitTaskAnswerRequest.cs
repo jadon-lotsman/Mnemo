@@ -2,6 +2,7 @@
 {
     public class SubmitTaskAnswerRequest
     {
-        public string? Answer { get; set; }
+        public string UserAnswer { get; set; }
+        public int ElapsedTimeMilliseconds { get; set; }
     }
 }

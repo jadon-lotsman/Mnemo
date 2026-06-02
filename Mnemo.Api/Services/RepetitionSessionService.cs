@@ -136,7 +136,7 @@ namespace Mnemo.Services
             return RequestResult<RepetitionResult>.Success(result);
         }
 
-        public async Task<RequestResult<RepetitionTask>> SubmitRepetitionTaskAnswerAsync(int userId, int taskId, string answer)
+        public async Task<RequestResult<RepetitionTask>> SubmitRepetitionTaskAnswerAsync(int userId, int taskId, string answer, TimeSpan elapsedTime)
         {
             var task = await _sessionQueries.GetTaskByIdAsync(userId, taskId);
 
@@ -144,8 +144,7 @@ namespace Mnemo.Services
                 return RequestResult<RepetitionTask>.Failure(ErrorCode.TaskNotFound);
 
 
-            var currentTime = DateTime.UtcNow;
-            task.SubmitAnswer(answer, currentTime);
+            task.SubmitAnswer(answer, elapsedTime);
 
             await _context.SaveChangesAsync();
 
