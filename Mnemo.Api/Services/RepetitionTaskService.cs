@@ -94,8 +94,7 @@ namespace Mnemo.Services
 
             foreach (var task in tasks)
             {
-                double quality = task.ComputeQuality(averageTime);
-
+                double quality = task.GetQuality(averageTime);
 
                 entryIdToQuality.Add(task.AsessmentEntryId, quality);
 

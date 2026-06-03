@@ -19,5 +19,15 @@ namespace Mnemo.Data
             //Database.EnsureDeleted();
             Database.EnsureCreated();
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<RepetitionTask>()
+                .HasDiscriminator<string>("task_type")
+                .HasValue<TextRepetitionTask>("text")
+                .HasValue<OptionRepetitionTask>("option")
+                .HasValue<OptionRepetitionTask>("parts")
+                .HasValue<YesOrNoRepetitionTask>("yesorno");
+        }
     }
 }

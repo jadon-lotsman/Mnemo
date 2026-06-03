@@ -63,12 +63,20 @@ namespace Mnemo.Shared
         {
             if (task == null) return null;
 
-            return new RepetitionTaskResponse
-            {
-                Id = task.Id,
-                Prompt = task.Prompt,
-                Options = task.Options.ToArray(),
-            };
+            if (task is OptionRepetitionTask option)
+                return new RepetitionTaskResponse
+                {
+                    Id = option.Id,
+                    Prompt = option.Prompt,
+                    Options = option.Options.ToArray(),
+                };
+            else
+                return new RepetitionTaskResponse
+                {
+                    Id = task.Id,
+                    Prompt = task.Prompt,
+                    Options = [],
+                };
         }
 
         public static RepetitionTaskResponse[] MapToDto(IEnumerable<RepetitionTask> task)

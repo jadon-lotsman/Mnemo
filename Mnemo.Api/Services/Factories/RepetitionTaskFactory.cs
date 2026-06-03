@@ -32,11 +32,10 @@ namespace Mnemo.Services.Factories
                         options.Add(option);
                 }
 
-                options.Add(correctAnswers[0]);
-                options = options.OrderBy(x => Guid.NewGuid()).ToList();
+                return new OptionRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, options, correctAnswers[0]);
             }
 
-            return new RepetitionTask(prompt, correctAnswers, options, baseEntry.UserId, baseEntry.Id);
+            return new TextRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, correctAnswers);
         }
     }
 }

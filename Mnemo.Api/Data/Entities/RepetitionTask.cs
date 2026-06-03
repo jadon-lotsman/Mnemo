@@ -1,17 +1,16 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Mnemo.Shared;
 using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Data.Entities
 {
-    public class RepetitionTask
+    public abstract class RepetitionTask
     {
         public int Id { get; set; }
         public int AsessmentEntryId { get; set; }
 
         public string Prompt { get; set; }
-        public List<string> Options { get; set; }
-        public List<string> CorrectAnswers { get; set; }
         public string UserAnswer { get; set; }
         public int ActionCounter { get; set; }
         public TimeSpan ElapsedTime { get; set; }
@@ -23,11 +22,9 @@ namespace Mnemo.Data.Entities
 
         public RepetitionTask() { }
 
-        public RepetitionTask(string prompt, List<string> correctAnswers, List<string> options, int userId, int entryId)
+        public RepetitionTask(string prompt, int userId, int entryId)
         {
             Prompt = prompt;
-            Options = options;
-            CorrectAnswers = correctAnswers;
             UserAnswer = string.Empty;
 
             UserId = userId;
@@ -44,11 +41,107 @@ namespace Mnemo.Data.Entities
                 ElapsedTime = elapsedTime;
         }
 
-        public double ComputeQuality(TimeSpan averageTime)
+
+        protected abstract double GetSimilarity();
+
+        public double GetQuality(TimeSpan averageTime)
         {
-            double similarity = CorrectAnswers.Max(UserAnswer.ComputeLevenshteinSimilarity);
+            double similarity = GetSimilarity();
 
             return SM2Helper.ComputeQuality(averageTime, ElapsedTime, ActionCounter, similarity);
+        }
+    }
+
+    public class TextRepetitionTask : RepetitionTask
+    {
+        public List<string> CorrectAnswers { get; set; }
+
+
+        public TextRepetitionTask() { }
+
+        public TextRepetitionTask(string prompt, int userId, int entryId, List<string> correctAnswers) : base(prompt, userId, entryId)
+        { 
+            CorrectAnswers = correctAnswers;
+        }
+
+        protected override double GetSimilarity()
+        {
+            return CorrectAnswers.Max(UserAnswer.ComputeLevenshteinSimilarity);
+        }
+    }
+
+    public class OptionRepetitionTask : RepetitionTask
+    {
+        public List<string> Options { get; set; }
+        public string CorrectOption { get; set; }
+
+
+        public OptionRepetitionTask() { }
+
+        public OptionRepetitionTask(string prompt, int userId, int entryId, List<string> options, string correctOption) : base(prompt, userId, entryId)
+        {
+            if (!options.Contains(correctOption))
+                options.Add(correctOption);
+
+            Options = options
+                .OrderBy(x => Random.Shared.Next())
+                .ToList();
+
+            CorrectOption = correctOption;
+        }
+
+        protected override double GetSimilarity()
+        {
+            return CorrectOption == UserAnswer ? 1.0 : 0.0;
+        }
+    }
+
+    public class OrderPartsRepetitionTask : RepetitionTask
+    {
+        public List<string> SentenceParts { get; set; }
+        public string CorrectOrder { get; set; }
+
+
+        public OrderPartsRepetitionTask() { }
+
+        public OrderPartsRepetitionTask(string prompt, int userId, int entryId, string sentence) : base(prompt, userId, entryId)
+        {
+            SentenceParts = sentence.RemoveMultispaces()
+                .Split(" ")
+                .OrderBy(x => Random.Shared.Next())
+                .ToList();
+
+            CorrectOrder = sentence;
+        }
+
+        protected override double GetSimilarity()
+        {
+            return UserAnswer == CorrectOrder ? 1.0 : 0.0;
+        }
+    }
+
+    public class YesOrNoRepetitionTask : RepetitionTask
+    {
+        public bool CorrectYesOrNo { get; set; }
+
+
+        public YesOrNoRepetitionTask() { }
+
+        public YesOrNoRepetitionTask(string prompt, int userId, int entryId, bool correctYesOrNo) : base(prompt, userId, entryId)
+        {
+            CorrectYesOrNo = correctYesOrNo;
+        }
+
+        protected override double GetSimilarity()
+        {
+            bool isCorrect = UserAnswer switch
+            {
+                "да" or "yes" or "true" => CorrectYesOrNo,
+                "нет" or "no" or "false" => !CorrectYesOrNo,
+                _ => false
+            };
+
+            return isCorrect ? 1.0 : 0.0;
         }
     }
 }
