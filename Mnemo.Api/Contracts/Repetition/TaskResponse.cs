@@ -33,5 +33,6 @@ namespace Mnemo.Contracts.Repetition
     public class YesOrNoTaskResponse : TaskResponse
     {
         public override string TaskType => "yesorno";
+        public string Option { get; set; }
     }
 }

@@ -15,9 +15,9 @@ namespace Mnemo.Services.RepetitionService.Factories
                 return CreateOptionsTask(isForward, baseEntry, entriesForOptions);
             if (rnd < 50 && baseEntry.Examples.Any())
                 return CreateOrderPartsTask(baseEntry);
-            if (rnd < 75)
+            if (rnd < 75 || !entriesForOptions.Any())
                 return CreateTextTask(isForward, baseEntry);
-            return CreateYesOrNoTask(isForward, baseEntry, entriesForOptions[0]);
+            return CreateYesOrNoTask(baseEntry, entriesForOptions[0]);
         }
 
         public TextRepetitionTask CreateTextTask(bool isForward, VocabularyEntry baseEntry)
@@ -52,20 +52,24 @@ namespace Mnemo.Services.RepetitionService.Factories
             return new OrderPartsRepetitionTask(baseEntry.UserId, baseEntry.Id, sentence);
         }
 
-        public YesOrNoRepetitionTask CreateYesOrNoTask(bool isForward, VocabularyEntry baseEntry, VocabularyEntry entryForOption)
+        public YesOrNoRepetitionTask CreateYesOrNoTask(VocabularyEntry baseEntry, VocabularyEntry entryForOption)
         {
-            string prompt = isForward ? baseEntry.Foreign : baseEntry.Translations[0];
+            string prompt = baseEntry.Foreign;
             string option;
 
             bool isCorrect = Random.Shared.Next(2) == 0;
             if (isCorrect)
-                option = isForward ? baseEntry.Translations[0] : baseEntry.Foreign;
+            {
+                int index = Random.Shared.Next(baseEntry.Translations.Count);
+                option = baseEntry.Translations[index];
+            }
             else
-                option = isForward ? entryForOption.Translations[0] : entryForOption.Foreign;
+            {
+                int index = Random.Shared.Next(entryForOption.Translations.Count);
+                option = entryForOption.Translations[index];
+            }
 
-            prompt = $"{prompt} -> {option}";
-
-            return new YesOrNoRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, isCorrect);
+            return new YesOrNoRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, option, isCorrect);
         }
     }
 }

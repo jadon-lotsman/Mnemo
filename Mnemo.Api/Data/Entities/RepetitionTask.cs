@@ -122,13 +122,15 @@ namespace Mnemo.Data.Entities
 
     public class YesOrNoRepetitionTask : RepetitionTask
     {
+        public string Option { get; set; }
         public bool CorrectYesOrNo { get; set; }
 
 
         public YesOrNoRepetitionTask() { }
 
-        public YesOrNoRepetitionTask(string prompt, int userId, int entryId, bool correctYesOrNo) : base(prompt, userId, entryId)
+        public YesOrNoRepetitionTask(string prompt, int userId, int entryId, string option, bool correctYesOrNo) : base(prompt, userId, entryId)
         {
+            Option = option;
             CorrectYesOrNo = correctYesOrNo;
         }
 

@@ -96,7 +96,8 @@ namespace Mnemo.Services.RepetitionService
             {
                 double quality = task.GetQuality(averageTime);
 
-                entryIdToQuality.Add(task.AsessmentEntryId, quality);
+                if (!entryIdToQuality.ContainsKey(task.AsessmentEntryId))
+                    entryIdToQuality.Add(task.AsessmentEntryId, quality);
 
                 if (SM2Helper.IsPassingQuality(quality))
                     correctTaskCounter++;

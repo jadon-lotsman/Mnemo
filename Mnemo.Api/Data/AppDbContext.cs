@@ -26,7 +26,7 @@ namespace Mnemo.Data
                 .HasDiscriminator<string>("task_type")
                 .HasValue<TextRepetitionTask>("text")
                 .HasValue<OptionRepetitionTask>("option")
-                .HasValue<OptionRepetitionTask>("parts")
+                .HasValue<OrderPartsRepetitionTask>("parts")
                 .HasValue<YesOrNoRepetitionTask>("yesorno");
         }
     }
