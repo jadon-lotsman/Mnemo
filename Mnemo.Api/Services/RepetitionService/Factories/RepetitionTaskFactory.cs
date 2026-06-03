@@ -1,4 +1,6 @@
-﻿using Mnemo.Data.Entities;
+﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.Options;
+using Mnemo.Data.Entities;
 
 namespace Mnemo.Services.RepetitionService.Factories
 {
@@ -6,36 +8,64 @@ namespace Mnemo.Services.RepetitionService.Factories
     {
         public RepetitionTask Create(VocabularyEntry baseEntry, List<VocabularyEntry> entriesForOptions)
         {
-            bool isForwardQuestion = Random.Shared.Next(2) == 0;
-            bool withOptions = entriesForOptions.Count >= 2 ? Random.Shared.Next(2) == 0 : false;
+            bool isForward = Random.Shared.Next(2) == 0;
+            int rnd = Random.Shared.Next(100);
 
-            string prompt;
-            var correctAnswers = new List<string>();
-            if (isForwardQuestion)
-            {
-                correctAnswers = baseEntry.Translations.ToList();
-                prompt = baseEntry.Foreign;
-            }
-            else
-            {
-                correctAnswers.Add(baseEntry.Foreign);
-                prompt = baseEntry.Translations[0];
-            }
+            if (rnd < 30 && entriesForOptions.Count >= 3)
+                return CreateOptionsTask(isForward, baseEntry, entriesForOptions);
+            if (rnd < 50 && baseEntry.Examples.Any())
+                return CreateOrderPartsTask(baseEntry);
+            if (rnd < 75)
+                return CreateTextTask(isForward, baseEntry);
+            return CreateYesOrNoTask(isForward, baseEntry, entriesForOptions[0]);
+        }
+
+        public TextRepetitionTask CreateTextTask(bool isForward, VocabularyEntry baseEntry)
+        {
+            string prompt = isForward ? baseEntry.Foreign : baseEntry.Translations[0];
+            var correct   = isForward ? baseEntry.Translations : [baseEntry.Foreign];
+
+            return new TextRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, correct);
+        }
+
+        public OptionRepetitionTask CreateOptionsTask(bool isForward, VocabularyEntry baseEntry, List<VocabularyEntry> entriesForOptions)
+        {
+            string prompt = isForward ? baseEntry.Foreign : baseEntry.Translations[0];
+            var correct = isForward ? baseEntry.Translations[0] : baseEntry.Foreign;
 
             var options = new List<string>();
-            if (withOptions)
+            foreach (var entry in entriesForOptions)
             {
-                foreach (var entry in entriesForOptions)
-                {
-                    string option = isForwardQuestion ? entry.Translations[0] : entry.Foreign;
-                    if (!options.Contains(option) && !correctAnswers.Contains(option))
-                        options.Add(option);
-                }
-
-                return new OptionRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, options, correctAnswers[0]);
+                string option = isForward ? entry.Translations[0] : entry.Foreign;
+                if (!options.Contains(option) && correct != option)
+                    options.Add(option);
             }
 
-            return new TextRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, correctAnswers);
+            return new OptionRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, options, correct);
+        }
+
+        public OrderPartsRepetitionTask CreateOrderPartsTask(VocabularyEntry baseEntry)
+        {
+            int index = Random.Shared.Next(baseEntry.Examples.Count);
+            var sentence = baseEntry.Examples[index];
+
+            return new OrderPartsRepetitionTask(baseEntry.UserId, baseEntry.Id, sentence);
+        }
+
+        public YesOrNoRepetitionTask CreateYesOrNoTask(bool isForward, VocabularyEntry baseEntry, VocabularyEntry entryForOption)
+        {
+            string prompt = isForward ? baseEntry.Foreign : baseEntry.Translations[0];
+            string option;
+
+            bool isCorrect = Random.Shared.Next(2) == 0;
+            if (isCorrect)
+                option = isForward ? baseEntry.Translations[0] : baseEntry.Foreign;
+            else
+                option = isForward ? entryForOption.Translations[0] : entryForOption.Foreign;
+
+            prompt = $"{prompt} -> {option}";
+
+            return new YesOrNoRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, isCorrect);
         }
     }
 }

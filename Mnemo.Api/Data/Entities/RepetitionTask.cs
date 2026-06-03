@@ -104,7 +104,7 @@ namespace Mnemo.Data.Entities
 
         public OrderPartsRepetitionTask() { }
 
-        public OrderPartsRepetitionTask(string prompt, int userId, int entryId, string sentence) : base(prompt, userId, entryId)
+        public OrderPartsRepetitionTask(int userId, int entryId, string sentence) : base("", userId, entryId)
         {
             SentenceParts = sentence.RemoveMultispaces()
                 .Split(" ")

@@ -48,7 +48,9 @@ namespace Mnemo.Shared.Extensions
         {
             if (string.IsNullOrWhiteSpace(str)) return str;
 
-            if (!str.TrimEnd().EndsWith('.'))
+            str = str.TrimEnd();
+
+            if (!str.EndsWith('.') && !str.EndsWith('?') && !str.EndsWith('!'))
                 str = str + '.';
 
             return str;
