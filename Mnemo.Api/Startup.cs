@@ -101,6 +101,10 @@ namespace Mnemo
 
         public void Configure(WebApplication app, IWebHostEnvironment env)
         {
+            using var scope = app.Services.CreateScope();
+            scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
+
+
             if (env.IsDevelopment())
             {
                 app.UseSwagger();
