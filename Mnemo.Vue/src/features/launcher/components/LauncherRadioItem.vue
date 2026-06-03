@@ -75,7 +75,7 @@ defineEmits<{
       opacity: 0%;
 
       position: absolute;
-      top: -4px;
+      top: -3px;
       left: -3px;
 
       font-size: 26px;

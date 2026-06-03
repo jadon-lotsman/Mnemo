@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import type { RepetitionTask } from '../../types/RepetitionTask'
 import RepetitionRadioItem from './RepetitionRadioItem.vue'
+import RepetitionOrderItem from './RepetitionOrderItem.vue'
 
 const props = defineProps<{
   listNumber: number
@@ -27,26 +28,46 @@ function submitAnswer() {
     <form @submit.prevent="submitAnswer">
       <header>
         <div class="prompt">
-          <span>{{ listNumber + 1 }}. Translate </span>
-          <span class="bold">"{{ task.prompt }}"</span>
+          <div>{{ listNumber + 1 }}.</div>
+
+          <div v-if="task.taskType === 'yesorno'">
+            <span>Does</span>
+            <span class="bold">"{{ task.prompt }}"</span>
+            <span>mean</span>
+            <span class="bold">"{{ task.option }}"?</span>
+          </div>
+          <div v-else-if="task.taskType === 'parts'">
+            <span>Put the parts of the sentence in order.</span>
+          </div>
+          <div v-else>
+            <span>Translate</span>
+            <span class="bold">"{{ task.prompt }}".</span>
+          </div>
         </div>
         <!-- <div class="part-of-speech">(сущ.)</div> -->
       </header>
       <footer>
         <input
-          v-if="task.options.length === 0"
+          v-if="task.taskType === 'text'"
           class="text-input"
           type="text"
-          :placeholder="placeholder"
           v-model="userAnswer"
+          :placeholder="placeholder"
         />
-        <div v-else class="option-input">
+        <div v-else-if="task.taskType === 'option'" class="option-input">
           <RepetitionRadioItem
             v-for="option in task.options"
             :key="option"
             :value="option"
             v-model="userAnswer"
           />
+        </div>
+        <div v-else-if="task.taskType === 'parts'">
+          <RepetitionOrderItem v-model="userAnswer" :parts="task.sentenceParts" />
+        </div>
+        <div v-else-if="task.taskType === 'yesorno'" class="option-input">
+          <RepetitionRadioItem :value="'yes'" v-model="userAnswer" />
+          <RepetitionRadioItem :value="'no'" v-model="userAnswer" />
         </div>
       </footer>
       <button type="submit" class="big-button" :disabled="userAnswer === ''">Submit</button>
@@ -68,12 +89,21 @@ function submitAnswer() {
   header {
     display: flex;
     justify-content: space-between;
+    flex-direction: row;
     padding: 12px 15px;
 
     .prompt {
+      display: flex;
+      justify-content: start;
+
       color: $gray-font;
 
       font-size: 16px;
+
+      span {
+        display: inline-block;
+        margin-left: 5px;
+      }
 
       .bold {
         color: $black-font;

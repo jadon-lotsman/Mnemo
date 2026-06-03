@@ -12,7 +12,7 @@ const fetchSchedule = async function () {
   isLoading.value = true
 
   try {
-    const responseData = await apiRequest<RepetitionDay[]>('/api/schedule/')
+    const responseData = await apiRequest<RepetitionDay[]>('/api/repetition/states')
     calendar.value = fillMissingDays(responseData)
   } finally {
     isLoading.value = false
