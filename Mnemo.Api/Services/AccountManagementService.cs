@@ -1,6 +1,6 @@
 ﻿using Mnemo.Data;
 using Mnemo.Data.Entities;
-using Mnemo.Services.Queries;
+using Mnemo.Data.Queries;
 using Mnemo.Shared;
 
 namespace Mnemo.Services

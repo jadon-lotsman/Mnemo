@@ -1,10 +1,14 @@
 ﻿using System.Security.Claims;
+using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Mnemo.Contracts.Dtos.Repetition.Requests;
-using Mnemo.Services;
-using Mnemo.Services.Queries;
+using Mnemo.Contracts.Repetition;
+using Mnemo.Contracts.Repetition.Request;
+using Mnemo.Data.Entities;
+using Mnemo.Data.Queries;
+using Mnemo.Services.RepetitionService;
 using Mnemo.Shared;
 
 namespace Mnemo.Controllers
@@ -14,13 +18,18 @@ namespace Mnemo.Controllers
     [Route("api/[controller]")]
     public class RepetitionController : ControllerBase
     {
+        private readonly IMapper _mapper;
         private readonly TaskQueries _taskQueries;
         private readonly RepetitionTaskService _taskService;
+        private readonly RepetitionStateService _stateService;
 
-        public RepetitionController(TaskQueries sessionQueries, RepetitionTaskService taskService)
+
+        public RepetitionController(IMapper mapper, TaskQueries sessionQueries, RepetitionTaskService taskService,  RepetitionStateService stateService)
         {
+            _mapper = mapper;
             _taskQueries = sessionQueries;
             _taskService = taskService;
+            _stateService = stateService;
         }
 
         private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
@@ -60,7 +69,9 @@ namespace Mnemo.Controllers
                 };
             }
 
-            return Ok(result.Value);
+            var tasks = result.Value;
+            var taskDtos = _mapper.Map<List<TaskResponse>>(tasks);
+            return Ok(taskDtos);
         }
 
         [HttpDelete]
@@ -79,8 +90,37 @@ namespace Mnemo.Controllers
                 };
             }
 
-            var resultDto = Mapper.MapToDto(result.Value);
+            var resultDto = ManualMapper.MapToDto(result.Value);
             return Ok(resultDto);
+        }
+
+
+
+        [HttpGet("states/")]
+        public async Task<IActionResult> GetScheduleDays()
+        {
+            var days = await _stateService.GetScheduleAsync(UserId);
+
+            return Ok(days);
+        }
+
+        [HttpPost("states/{id:int}")]
+        public async Task<IActionResult> SelfAssessmentRepetitionState(int id, [FromQuery] double quality)
+        {
+            var result = await _stateService.RecordQualityRepetitionStateAsync(UserId, new Dictionary<int, double> { { id, quality } }, true);
+
+            if (!result.IsSuccess)
+            {
+                return result.ErrorCode switch
+                {
+                    ErrorCode.InvalidData => BadRequest(new { message = result.ErrorMessage }),
+                    ErrorCode.TaskNotFound => NotFound(new { message = result.ErrorMessage }),
+                    ErrorCode.ActionNotAllowed => BadRequest(new { message = result.ErrorMessage }),
+                    _ => StatusCode(500, new { message = result.ErrorMessage })
+                };
+            }
+
+            return NoContent();
         }
 
 
@@ -90,8 +130,9 @@ namespace Mnemo.Controllers
         {
             var tasks = await _taskQueries.GetByUserIdQuery(UserId).ToListAsync();
 
-            var tasksDto = Mapper.MapToDto(tasks);
-            return Ok(tasksDto);
+
+            var taskDtos = _mapper.Map<List<TaskResponse>>(tasks);
+            return Ok(taskDtos);
         }
 
         [HttpGet("tasks/{id:int}")]
@@ -102,12 +143,12 @@ namespace Mnemo.Controllers
             if (task == null)
                 return NotFound();
 
-            var tasksDto = Mapper.MapToDto(task);
-            return Ok(tasksDto);
+            var taskDto = _mapper.Map<TaskResponse>(task);
+            return Ok(taskDto);
         }
 
         [HttpPost("tasks/{id:int}")]
-        public async Task<IActionResult> SubmitTaskAnswer(int id, [FromBody] SubmitTaskAnswerRequest request)
+        public async Task<IActionResult> SubmitTaskAnswer(int id, [FromBody] SubmitTaskRequest request)
         {
             var result = await _taskService.SubmitRepetitionTaskAnswerAsync(UserId, id, request.UserAnswer, TimeSpan.FromMilliseconds(request.ElapsedTimeMilliseconds));
 
@@ -120,8 +161,9 @@ namespace Mnemo.Controllers
                 };
             }
 
-            var tasksDto = Mapper.MapToDto(result.Value);
-            return Ok(tasksDto);
+            var task = result.Value;
+            var taskDto = _mapper.Map<TaskResponse>(task);
+            return Ok(taskDto);
         }
     }
 }

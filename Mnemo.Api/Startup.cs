@@ -4,8 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Mnemo.Data;
+using Mnemo.Data.Queries;
 using Mnemo.Services;
-using Mnemo.Services.Queries;
+using Mnemo.Services.RepetitionService;
 
 namespace Mnemo
 {
@@ -25,6 +26,9 @@ namespace Mnemo
             // Add SQLite AppDbContext
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+
+            // Add AutoMapper
+            services.AddAutoMapper(typeof(Program));
 
             // Add Swagger
             services.AddEndpointsApiExplorer();

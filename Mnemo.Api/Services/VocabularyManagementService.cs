@@ -1,7 +1,7 @@
-﻿using Mnemo.Contracts.Dtos.Vocabulary.Requests;
+﻿using Mnemo.Contracts.Vocabulary.Requests;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
-using Mnemo.Services.Queries;
+using Mnemo.Data.Queries;
 using Mnemo.Shared;
 
 namespace Mnemo.Services
@@ -22,22 +22,22 @@ namespace Mnemo.Services
 
 
 
-        public async Task<RequestResult<VocabularyEntry>> CreateEntryAsync(int userId, CreateVocabularyEntryRequest dto)
+        public async Task<RequestResult<VocabularyEntry>> CreateEntryAsync(int userId, CreateEntryRequest dto)
         {
-            if (!Mapper.ValidDto(dto))
+            if (!ManualMapper.ValidDto(dto))
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.InvalidData);
 
             if (!await _accountQueries.ExistsByIdAsync(userId))
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.UserNotFound);
 
 
-            string foreign = Mapper.PrepareForeign(dto.Foreign!);
+            string foreign = ManualMapper.PrepareForeign(dto.Foreign!);
 
             if (await _vocabularyQueries.ExistsByForeignAsync(userId, foreign))
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.DuplicateEntry, "Entry already exists");
 
 
-            var entry = Mapper.MapToEntry(dto, userId);
+            var entry = ManualMapper.MapToEntry(dto, userId);
 
             await _context.Entries.AddAsync(entry);
             await _context.SaveChangesAsync();
@@ -45,9 +45,9 @@ namespace Mnemo.Services
             return RequestResult<VocabularyEntry>.Success(entry);
         }
 
-        public async Task<RequestResult<VocabularyEntry>> PatchEntryAsync(int userId, int entryId, PatchVocabularyEntryRequest patchDto)
+        public async Task<RequestResult<VocabularyEntry>> PatchEntryAsync(int userId, int entryId, PatchEntryRequest patchDto)
         {
-            if (!Mapper.ValidDto(patchDto))
+            if (!ManualMapper.ValidDto(patchDto))
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.InvalidData);
 
 
@@ -57,7 +57,7 @@ namespace Mnemo.Services
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.EntryNotFound);
 
 
-            Mapper.PatchFromDto(currentEntry, patchDto);
+            ManualMapper.PatchFromDto(currentEntry, patchDto);
 
             await _context.SaveChangesAsync();
 

@@ -3,10 +3,10 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using Mnemo.Contracts.Dtos.Account.Requests;
+using Mnemo.Contracts.Account.Requests;
 using Mnemo.Data.Entities;
+using Mnemo.Data.Queries;
 using Mnemo.Services;
-using Mnemo.Services.Queries;
 using Mnemo.Shared;
 
 namespace Mnemo.Controllers
@@ -30,7 +30,7 @@ namespace Mnemo.Controllers
 
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
+        public async Task<IActionResult> Login([FromBody] LoginUserRequest request)
         {
             var user = await _accountQueries.GetByUsernameAsync(request.Username);
 
@@ -42,7 +42,7 @@ namespace Mnemo.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
+        public async Task<IActionResult> Register([FromBody] RegisterUserRequest request)
         {
             var result = await _accountService.CreateAsync(request.Username);
 

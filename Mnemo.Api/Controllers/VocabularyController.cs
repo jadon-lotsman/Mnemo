@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Mnemo.Contracts.Dtos.Vocabulary.Requests;
+using Mnemo.Contracts.Vocabulary.Requests;
+using Mnemo.Data.Queries;
 using Mnemo.Services;
-using Mnemo.Services.Queries;
 using Mnemo.Shared;
 
 namespace Mnemo.Controllers
@@ -33,7 +33,7 @@ namespace Mnemo.Controllers
         {
             var entries = await _vocabularyQueries.GetByUserIdQuery(UserId).ToListAsync();
 
-            var entriesDto = Mapper.MapToDto(entries);
+            var entriesDto = ManualMapper.MapToDto(entries);
             return Ok(entriesDto);
         }
 
@@ -45,7 +45,7 @@ namespace Mnemo.Controllers
             if (entry == null)
                 return NotFound();
 
-            var entryDto = Mapper.MapToDto(entry);
+            var entryDto = ManualMapper.MapToDto(entry);
             return Ok(entryDto);
         }
 
@@ -57,7 +57,7 @@ namespace Mnemo.Controllers
             if (entry == null)
                 return NotFound();
 
-            var entryDto = Mapper.MapToDto(entry);
+            var entryDto = ManualMapper.MapToDto(entry);
             return Ok(entryDto);
         }
 
@@ -69,13 +69,13 @@ namespace Mnemo.Controllers
             if (entries == null)
                 return NotFound();
 
-            var entryDto = Mapper.MapToDto(entries);
+            var entryDto = ManualMapper.MapToDto(entries);
             return Ok(entryDto);
         }
 
 
         [HttpPost]
-        public async Task<IActionResult> CreateEntry([FromBody] CreateVocabularyEntryRequest dto)
+        public async Task<IActionResult> CreateEntry([FromBody] CreateEntryRequest dto)
         {
             var result = await _vocabularyService.CreateEntryAsync(UserId, dto);
 
@@ -90,12 +90,12 @@ namespace Mnemo.Controllers
                 };
             }
 
-            var entryDto = Mapper.MapToDto(result.Value);
+            var entryDto = ManualMapper.MapToDto(result.Value);
             return Ok(entryDto);
         }
 
         [HttpPatch("{id:int}")]
-        public async Task<IActionResult> PatchEntry(int id, [FromBody] PatchVocabularyEntryRequest dto)
+        public async Task<IActionResult> PatchEntry(int id, [FromBody] PatchEntryRequest dto)
         {
             var result = await _vocabularyService.PatchEntryAsync(UserId, id, dto);
 
@@ -109,7 +109,7 @@ namespace Mnemo.Controllers
                 };
             }
 
-            var entryDto = Mapper.MapToDto(result.Value);
+            var entryDto = ManualMapper.MapToDto(result.Value);
             return Ok(entryDto);
         }
 
