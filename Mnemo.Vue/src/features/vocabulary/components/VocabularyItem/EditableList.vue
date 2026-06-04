@@ -35,7 +35,7 @@ const resultItems = computed(() => {
 const inputValue = ref<string>('')
 
 function pushItem() {
-  const str = inputValue.value.toLowerCase()
+  const str = inputValue.value
 
   if (resultItems.value.includes(str)) {
     notify.info('Already exists')
@@ -53,8 +53,6 @@ function pushItem() {
 }
 
 function removeItem(str: string) {
-  str = str.toLowerCase()
-
   if (!resultItems.value.includes(str)) return
 
   if (itemsAdded.value.includes(str)) {

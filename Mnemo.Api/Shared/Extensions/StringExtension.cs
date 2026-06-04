@@ -44,7 +44,7 @@ namespace Mnemo.Shared.Extensions
             return str;
         }
 
-        public static string AddLastPointIfNeeded(this string str)
+        public static string AddEndPointIfNeeded(this string str)
         {
             if (string.IsNullOrWhiteSpace(str)) return str;
 

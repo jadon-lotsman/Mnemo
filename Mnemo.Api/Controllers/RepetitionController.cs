@@ -70,8 +70,8 @@ namespace Mnemo.Controllers
             }
 
             var tasks = result.Value;
-            var taskDtos = _mapper.Map<List<TaskResponse>>(tasks);
-            return Ok(taskDtos);
+            var tasksResponse = _mapper.Map<List<TaskResponse>>(tasks);
+            return Ok(tasksResponse);
         }
 
         [HttpDelete]
@@ -90,8 +90,7 @@ namespace Mnemo.Controllers
                 };
             }
 
-            var resultDto = ManualMapper.MapToDto(result.Value);
-            return Ok(resultDto);
+            return Ok(result.Value);
         }
 
 
@@ -131,8 +130,8 @@ namespace Mnemo.Controllers
             var tasks = await _taskQueries.GetByUserIdQuery(UserId).ToListAsync();
 
 
-            var taskDtos = _mapper.Map<List<TaskResponse>>(tasks);
-            return Ok(taskDtos);
+            var tasksResponse = _mapper.Map<List<TaskResponse>>(tasks);
+            return Ok(tasksResponse);
         }
 
         [HttpGet("tasks/{id:int}")]
@@ -143,8 +142,8 @@ namespace Mnemo.Controllers
             if (task == null)
                 return NotFound();
 
-            var taskDto = _mapper.Map<TaskResponse>(task);
-            return Ok(taskDto);
+            var taskResponse = _mapper.Map<TaskResponse>(task);
+            return Ok(taskResponse);
         }
 
         [HttpPost("tasks/{id:int}")]
@@ -162,8 +161,8 @@ namespace Mnemo.Controllers
             }
 
             var task = result.Value;
-            var taskDto = _mapper.Map<TaskResponse>(task);
-            return Ok(taskDto);
+            var taskResponse = _mapper.Map<TaskResponse>(task);
+            return Ok(taskResponse);
         }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System.Security.Claims;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Mnemo.Contracts.Vocabulary;
 using Mnemo.Contracts.Vocabulary.Requests;
 using Mnemo.Data.Queries;
 using Mnemo.Services;
@@ -14,12 +16,14 @@ namespace Mnemo.Controllers
     [Route("api/[controller]/entries")]
     public class VocabularyController : ControllerBase
     {
+        private readonly IMapper _mapper;
         private readonly VocabularyQueries _vocabularyQueries;
         private readonly VocabularyManagementService _vocabularyService;
 
 
-        public VocabularyController(VocabularyQueries vocabularyQueries, VocabularyManagementService vocabularyService)
+        public VocabularyController(IMapper mapper, VocabularyQueries vocabularyQueries, VocabularyManagementService vocabularyService)
         {
+            _mapper = mapper;
             _vocabularyQueries = vocabularyQueries;
             _vocabularyService = vocabularyService;
         }
@@ -33,8 +37,8 @@ namespace Mnemo.Controllers
         {
             var entries = await _vocabularyQueries.GetByUserIdQuery(UserId).ToListAsync();
 
-            var entriesDto = ManualMapper.MapToDto(entries);
-            return Ok(entriesDto);
+            var entriesDtos = _mapper.Map<List<EntryResponse>>(entries);
+            return Ok(entriesDtos);
         }
 
         [HttpGet("{id:int}")]
@@ -45,8 +49,8 @@ namespace Mnemo.Controllers
             if (entry == null)
                 return NotFound();
 
-            var entryDto = ManualMapper.MapToDto(entry);
-            return Ok(entryDto);
+            var entryRespose = _mapper.Map<EntryResponse>(entry);
+            return Ok(entryRespose);
         }
 
         [HttpGet("find")]
@@ -57,8 +61,8 @@ namespace Mnemo.Controllers
             if (entry == null)
                 return NotFound();
 
-            var entryDto = ManualMapper.MapToDto(entry);
-            return Ok(entryDto);
+            var entryRespose = _mapper.Map<EntryResponse>(entry);
+            return Ok(entryRespose);
         }
 
         [HttpGet("search")]
@@ -69,15 +73,15 @@ namespace Mnemo.Controllers
             if (entries == null)
                 return NotFound();
 
-            var entryDto = ManualMapper.MapToDto(entries);
-            return Ok(entryDto);
+            var entriesResponse = _mapper.Map<List<EntryResponse>>(entries);
+            return Ok(entriesResponse);
         }
 
 
         [HttpPost]
-        public async Task<IActionResult> CreateEntry([FromBody] CreateEntryRequest dto)
+        public async Task<IActionResult> CreateEntry([FromBody] CreateEntryRequest request)
         {
-            var result = await _vocabularyService.CreateEntryAsync(UserId, dto);
+            var result = await _vocabularyService.CreateEntryAsync(UserId, request);
 
             if (!result.IsSuccess)
             {
@@ -90,14 +94,15 @@ namespace Mnemo.Controllers
                 };
             }
 
-            var entryDto = ManualMapper.MapToDto(result.Value);
-            return Ok(entryDto);
+            var entry = result.Value;
+            var entryRespose = _mapper.Map<EntryResponse>(entry);
+            return Ok(entryRespose);
         }
 
         [HttpPatch("{id:int}")]
-        public async Task<IActionResult> PatchEntry(int id, [FromBody] PatchEntryRequest dto)
+        public async Task<IActionResult> PatchEntry(int id, [FromBody] PatchEntryRequest request)
         {
-            var result = await _vocabularyService.PatchEntryAsync(UserId, id, dto);
+            var result = await _vocabularyService.PatchEntryAsync(UserId, id, request);
 
             if (!result.IsSuccess)
             {
@@ -109,8 +114,9 @@ namespace Mnemo.Controllers
                 };
             }
 
-            var entryDto = ManualMapper.MapToDto(result.Value);
-            return Ok(entryDto);
+            var entry = result.Value;
+            var entryRespose = _mapper.Map<EntryResponse>(entry);
+            return Ok(entryRespose);
         }
 
         [HttpDelete("{id:int}")]
