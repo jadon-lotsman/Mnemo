@@ -66,8 +66,6 @@ namespace Mnemo.Services.RepetitionService
                 return RequestResult<List<RepetitionTask>>.Failure(ErrorCode.InvalidData);
 
 
-            await _stateService.CreateNonExistentRepetitionStatesAsync(userId);
-
             var tasks = await strategy.GetTasksAsync(userId);
 
             if (!tasks.Any())

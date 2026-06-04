@@ -39,23 +39,7 @@ namespace Mnemo.Services.RepetitionService
         }
 
 
-        public async Task<RequestResult<bool>> CreateNonExistentRepetitionStatesAsync(int userId)
-        {
-            var entries = await _vocabularyQueries.GetEntriesWithoutRepetitionStateAsync(userId);
-
-            if (!entries.Any())
-                return RequestResult<bool>.Success(false);
-
-
-            var states = entries.Select(e => new RepetitionState(userId, e.Id)).ToList();
-            await _context.RepetitionStates.AddRangeAsync(states);
-            await _context.SaveChangesAsync();
-
-            return RequestResult<bool>.Success(true);
-        }
-
-
-        public async Task<RequestResult<bool>> RecordQualityRepetitionStateAsync(int userId, Dictionary<int, double> entryIdToQuality, bool isSelfAssess = false)
+        public async Task<RequestResult<bool>> RecordQualityRepetitionStateAsync(int userId, Dictionary<int, double> entryIdToQuality, bool isAdjust = false)
         {
             if (entryIdToQuality == null || !entryIdToQuality.Any())
                 return RequestResult<bool>.Failure(ErrorCode.InvalidData, "Entry-quality is empty");
@@ -78,8 +62,8 @@ namespace Mnemo.Services.RepetitionService
                 if (!entryIdToQuality.TryGetValue(state.VocabularyEntryId, out double quality))
                     continue;
 
-                if (!state.TryRecordQuality(quality, isSelfAssess, today, out string? errorMessage) && errorResult == null)
-                    errorResult = RequestResult<bool>.Failure(isSelfAssess ? ErrorCode.ActionNotAllowed : ErrorCode.InvalidData, errorMessage);
+                if (!state.TryRecordQuality(quality, isAdjust, today, out string? errorMessage) && errorResult == null)
+                    errorResult = RequestResult<bool>.Failure(isAdjust ? ErrorCode.ActionNotAllowed : ErrorCode.InvalidData, errorMessage);
             }
             
             await _context.SaveChangesAsync();

@@ -9,38 +9,31 @@ namespace Mnemo.Data.Entities
         public int RepetitionCounter { get; set; }
         public int RepetitionInterval { get; set; }
         public double EasinessFactor { get; set; }
-        public bool CanSelfAssess { get; set; }
+        public bool CanAdjustToday { get; set; }
         public DateOnly LastRepetitionAt { get; set; }
         public DateOnly NextRepetitionAt { get; set; }
 
 
-        public int UserId { get; set; }
-        public User User { get; set; }
         public int VocabularyEntryId { get; set; }
         public VocabularyEntry VocabularyEntry { get; set; }
 
 
-        public RepetitionState() { }
-
-        public RepetitionState(int userId, int entryId)
+        public RepetitionState()
         {
             RepetitionCounter = 0;
             RepetitionInterval = SM2Helper.MinInterval;
             EasinessFactor = SM2Helper.InitEF;
-            CanSelfAssess = false;
+            CanAdjustToday = false;
             LastRepetitionAt = DateOnly.FromDateTime(DateTime.UtcNow);
-            NextRepetitionAt = LastRepetitionAt.AddDays(RepetitionInterval);
-
-            UserId = userId;
-            VocabularyEntryId = entryId;
+            NextRepetitionAt = DateOnly.FromDateTime(DateTime.UtcNow);
         }
 
 
-        public bool TryRecordQuality(double quality, bool isSelfAssess, DateOnly today, out string? errorMessage)
+        public bool TryRecordQuality(double quality, bool isAdjust, DateOnly today, out string? errorMessage)
         {
-            if (isSelfAssess && !CanSelfAssess)
+            if (isAdjust && !CanAdjustToday)
             {
-                errorMessage = "Self-assessment not allowed";
+                errorMessage = "Adjustment is only available today after a successful repetition";
                 return false;
             }
             else if (quality < SM2Helper.MinQuality || quality > SM2Helper.MaxQuality)
@@ -52,15 +45,15 @@ namespace Mnemo.Data.Entities
 
             if (IsDueAt(today))
             {
-                if (isSelfAssess)
+                if (isAdjust)
                 {
-                    CanSelfAssess = false;
+                    CanAdjustToday = false;
                 }
                 else
                 {
                     bool isPassing = SM2Helper.IsPassingQuality(quality);
                     RepetitionCounter = isPassing ? RepetitionCounter + 1 : 0;
-                    CanSelfAssess = isPassing;
+                    CanAdjustToday = isPassing;
                     LastRepetitionAt = today;
                 }
 

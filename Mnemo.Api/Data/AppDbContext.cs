@@ -13,14 +13,22 @@ namespace Mnemo.Data
         public DbSet<RepetitionTask> RepetitionTasks { get; set; }
 
 
-        public AppDbContext(DbContextOptions<AppDbContext> options)
-        : base(options)
-        {
-            Database.Migrate();
-        }
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<VocabularyEntry>()
+                .HasOne(e => e.RepetitionState)
+                .WithOne(s => s.VocabularyEntry)
+                .HasForeignKey<RepetitionState>(s => s.VocabularyEntryId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<VocabularyEntry>()
+                .HasOne(e => e.User)
+                .WithMany(u => u.VocabularyEntries)
+                .HasForeignKey(e => e.UserId);
+
+
             modelBuilder.Entity<RepetitionTask>()
                 .HasDiscriminator<string>("task_type")
                 .HasValue<TextRepetitionTask>("text")

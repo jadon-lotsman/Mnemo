@@ -63,10 +63,5 @@ namespace Mnemo.Data.Queries
             => await GetByUserIdQuery(userId)
             .Where(e => e.Foreign.Contains(query))
             .ToListAsync();
-
-        public async Task<List<VocabularyEntry>> GetEntriesWithoutRepetitionStateAsync(int userId)
-            => await _context.Entries.Where(e => e.User.Id == userId)
-            .Where(e => e.RepetitionState == null)
-            .ToListAsync();
     }
 }

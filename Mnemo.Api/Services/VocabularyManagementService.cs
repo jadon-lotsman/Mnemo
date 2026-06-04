@@ -35,11 +35,13 @@ namespace Mnemo.Services
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.UserNotFound);
 
             var entry = _mapper.Map<VocabularyEntry>(request);
-            entry.UserId = userId;
 
             if (await _vocabularyQueries.ExistsByForeignAsync(userId, entry.Foreign))
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.DuplicateEntry, "Entry already exists");
 
+
+            entry.UserId = userId;
+            entry.RepetitionState = new RepetitionState();
 
             await _context.Entries.AddAsync(entry);
             await _context.SaveChangesAsync();

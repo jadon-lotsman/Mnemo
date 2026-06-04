@@ -17,7 +17,9 @@ namespace Mnemo.Data.Queries
 
         // Queries
         public IQueryable<RepetitionState> GetByUserIdQuery(int userId)
-            => _context.RepetitionStates.Where(s => s.UserId == userId);
+            => _context.RepetitionStates
+            .Include(s => s.VocabularyEntry)
+            .Where(s => s.VocabularyEntry.UserId == userId);
 
 
         // Getters

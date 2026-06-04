@@ -104,7 +104,7 @@ namespace Mnemo.Controllers
         }
 
         [HttpPost("states/{id:int}")]
-        public async Task<IActionResult> SelfAssessmentRepetitionState(int id, [FromQuery] double quality)
+        public async Task<IActionResult> AdjustRepetitionState(int id, [FromQuery] double quality)
         {
             var result = await _stateService.RecordQualityRepetitionStateAsync(UserId, new Dictionary<int, double> { { id, quality } }, true);
 
