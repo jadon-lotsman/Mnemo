@@ -37,8 +37,8 @@ namespace Mnemo.Controllers
         {
             var entries = await _vocabularyQueries.GetByUserIdQuery(UserId).ToListAsync();
 
-            var entriesDtos = _mapper.Map<List<EntryResponse>>(entries);
-            return Ok(entriesDtos);
+            var entriesResponse = _mapper.Map<List<EntryResponse>>(entries);
+            return Ok(entriesResponse);
         }
 
         [HttpGet("{id:int}")]
@@ -66,9 +66,9 @@ namespace Mnemo.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<IActionResult> SearchEntriesByQuery([FromQuery] string query)
+        public async Task<IActionResult> SearchInVocabularyByQuery([FromQuery] string query)
         {
-            var entries = await _vocabularyQueries.GetLikeByForeignAndTranslationsAsync(UserId, query);
+            var entries = await _vocabularyQueries.GetByForeignAndTranslationsAsync(UserId, query);
 
             if (entries == null)
                 return NotFound();

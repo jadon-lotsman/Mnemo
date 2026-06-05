@@ -44,6 +44,8 @@ namespace Mnemo.Data.Entities
 
         protected abstract double GetSimilarity();
 
+        public abstract string GetCorrect();
+
         public double GetQuality(TimeSpan averageTime)
         {
             double similarity = GetSimilarity();
@@ -68,6 +70,8 @@ namespace Mnemo.Data.Entities
         {
             return CorrectAnswers.Max(UserAnswer.ComputeLevenshteinSimilarity);
         }
+
+        public override string GetCorrect() => CorrectAnswers.First();
     }
 
     public class OptionRepetitionTask : RepetitionTask
@@ -94,6 +98,8 @@ namespace Mnemo.Data.Entities
         {
             return CorrectOption == UserAnswer ? 1.0 : 0.0;
         }
+
+        public override string GetCorrect() => CorrectOption;
     }
 
     public class OrderPartsRepetitionTask : RepetitionTask
@@ -118,6 +124,8 @@ namespace Mnemo.Data.Entities
         {
             return UserAnswer == CorrectOrder ? 1.0 : 0.0;
         }
+
+        public override string GetCorrect() => CorrectOrder;
     }
 
     public class YesOrNoRepetitionTask : RepetitionTask
@@ -145,5 +153,7 @@ namespace Mnemo.Data.Entities
 
             return isCorrect ? 1.0 : 0.0;
         }
+
+        public override string GetCorrect() => CorrectYesOrNo ? "yes" : "no";
     }
 }

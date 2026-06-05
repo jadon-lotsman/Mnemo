@@ -57,11 +57,17 @@ namespace Mnemo.Data.Queries
         }
 
         public async Task<VocabularyEntry?> GetByForeignAsync(int userId, string foreign)
-            => await GetByUserIdQuery(userId).FirstOrDefaultAsync(e => string.Equals(e.Foreign, foreign));
+            => await GetByUserIdQuery(userId).FirstOrDefaultAsync(e => e.Foreign == foreign);
 
-        public async Task<List<VocabularyEntry>> GetLikeByForeignAndTranslationsAsync(int userId, string query)
-            => await GetByUserIdQuery(userId)
-            .Where(e => e.Foreign.Contains(query))
-            .ToListAsync();
+        public async Task<List<VocabularyEntry>> GetByForeignAndTranslationsAsync(int userId, string query, int limit=20)
+        {
+            query = query.ToLower();
+
+            return await GetByUserIdQuery(userId)
+                .Where(e => e.Foreign.Contains(query) || e.Translations.Any(t => t.Contains(query)))
+                .OrderBy(e => e.Id)
+                .Take(limit)
+                .ToListAsync();
+        }
     }
 }
