@@ -17,19 +17,22 @@
 
         public static double ComputeQuality(TimeSpan averageTime, TimeSpan actionTime, int actionCounter, double similarity)
         {
-            var changeCounter = Math.Max(0, actionCounter - 1);
-            double Stability = Math.Exp(-changeCounter);
+            if (similarity <= 0.88) return MinQuality;
+            if (similarity >= 1.0) return MaxQuality;
 
-            double Accuracy = CalcFuzzyAccuracy(similarity);
+            var changeCounter = Math.Max(0, actionCounter - 1);
+            double Stability = Math.Exp(-changeCounter * 0.5f);
+
+            double Accuracy = CalcSigmoidAccuracy(similarity);
 
             var ratio = actionTime > TimeSpan.Zero ? averageTime / actionTime : 0;
-            double Reaction = CalcSigmoidReaction(ratio);
+            double Reaction = CalcPowReaction(ratio);
 
             double Knowledge = 0.6 * Accuracy + 0.2 * Stability + 0.2 * Reaction;
 
             double Quality = Math.Clamp(Knowledge, 0, 1) * MaxQuality;
 
-            return Quality;
+            return Math.Round(Quality, 1);
         }
 
 
@@ -63,16 +66,15 @@
 
         public static bool IsPassingQuality(double quality) => quality >= 3;
 
-        private static double CalcFuzzyAccuracy(double similarity, double min = 0.75, double max = 0.9)
+        private static double CalcSigmoidAccuracy(double similarity, double center = 0.8, double steepness = 10.0)
         {
-            if (similarity <= min) return 0;
-            if (similarity >= max) return 1;
-            return (similarity - min) / (max - min);
+            return 1.0 / (1.0 + Math.Exp(-steepness * (similarity - center)));
         }
 
-        private static double CalcSigmoidReaction(double ratio, double min = 0.7, double max = 1.3, double center = 1.0, double steepness = 3.0)
+        private static double CalcPowReaction(double ratio, double min = 0.7, double max = 1.2, double center = 1.0, double steepness = 1.5)
         {
-            return min + (max - min) / (1.0 + Math.Exp(-steepness * (ratio - center)));
+            double raw = Math.Pow(ratio, steepness);
+            return Math.Clamp(raw, min, max);
         }
     }
 }
