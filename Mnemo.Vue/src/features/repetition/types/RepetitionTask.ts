@@ -3,6 +3,9 @@ interface BaseTask {
   prompt: string
   taskType: string
   userAnswer: string
+  quality?: number
+  isCorrect?: boolean
+  correctAnswer?: string
 }
 
 interface TextTask extends BaseTask {

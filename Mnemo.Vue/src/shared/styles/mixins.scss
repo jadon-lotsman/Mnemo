@@ -1,4 +1,6 @@
 @mixin iconize-text() {
+  user-select: none;
+
   line-height: 1;
   font-size: 24px;
   font-family: 'Material Symbols Rounded';

@@ -1,18 +1,23 @@
 <script lang="ts" setup>
 import router, { ROUTE_NAMES } from '@/router'
-import { apiRequest } from '@/shared/utils/ApiRequest'
+import { useRepetitionStore } from '../stores/RepetitionStore'
+import { computed } from 'vue'
 
-function deleteRepetition() {
-  apiRequest<string>('/api/repetition/', {
-    method: 'DELETE',
-  })
+const repetition = useRepetitionStore()
 
-  router.push({ name: ROUTE_NAMES.VOCABULARY })
+const buttonText = computed(() => (repetition.isFinished ? 'Goodbye!' : 'Finish'))
+
+async function onSubmit() {
+  if (repetition.isFinished) {
+    router.push({ name: ROUTE_NAMES.VOCABULARY })
+  } else {
+    repetition.finishRepetition()
+  }
 }
 </script>
 
 <template>
-  <button class="big-button" type="button" @click="deleteRepetition">Finish</button>
+  <button class="big-button" type="button" @click="onSubmit">{{ buttonText }}</button>
 </template>
 
 <style lang="scss" scoped></style>

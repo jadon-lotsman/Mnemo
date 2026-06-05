@@ -1,22 +1,14 @@
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import RepetitionItem from './RepetitionItem/RepetitionItem.vue'
 import type { RepetitionTask } from '../types/RepetitionTask.ts'
 import { apiRequest } from '@/shared/utils/ApiRequest.ts'
+import { useRepetitionStore } from '../stores/RepetitionStore.ts'
 
-const isLoading = ref<boolean>(false)
-const tasks = ref<RepetitionTask[]>([])
+const repetition = useRepetitionStore()
+
+const tasks = computed(() => repetition.tasks)
 let lastAction: number = Date.now()
-
-async function fetchRepetition() {
-  try {
-    isLoading.value = true
-    tasks.value = await apiRequest<RepetitionTask[]>('/api/repetition/tasks/')
-  } finally {
-    isLoading.value = false
-    lastAction = Date.now()
-  }
-}
 
 function onSubmitAnswer(id: number, answer: string) {
   const timeNow = Date.now()
@@ -34,7 +26,7 @@ function onSubmitAnswer(id: number, answer: string) {
 }
 
 onMounted(async () => {
-  await fetchRepetition()
+  if (repetition.tasks.length == 0) await repetition.fetchTasks()
 })
 </script>
 

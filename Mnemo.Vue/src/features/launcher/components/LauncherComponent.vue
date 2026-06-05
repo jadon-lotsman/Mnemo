@@ -5,7 +5,9 @@ import { apiRequest } from '@/shared/utils/ApiRequest'
 import router, { ROUTE_NAMES } from '@/router'
 import type { RepetitionTask } from '@/features/repetition/types/RepetitionTask'
 import { useNotify } from '@/shared/composables/useNotify'
+import { useRepetitionStore } from '@/features/repetition/stores/RepetitionStore'
 
+const repetition = useRepetitionStore()
 const notify = useNotify()
 
 const selectedMode = ref<string>('fast')
@@ -21,6 +23,7 @@ async function onSubmit() {
     await apiRequest<RepetitionTask[]>(`/api/repetition?mode=${selectedMode.value}`, {
       method: 'POST',
     })
+    repetition.tasks = []
 
     router.push({ name: ROUTE_NAMES.REPETITION })
   }
