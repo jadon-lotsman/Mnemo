@@ -30,12 +30,19 @@ namespace Mnemo.Services.RepetitionService.Factories
             return new OptionRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, options, correct);
         }
 
-        public OrderPartsRepetitionTask CreateOrderPartsTask(VocabularyEntry baseEntry)
+        public OrderPartsRepetitionTask CreateExampleOrderPartsTask(VocabularyEntry baseEntry)
         {
             int index = Random.Shared.Next(baseEntry.Examples.Count);
             var sentence = baseEntry.Examples[index];
 
             return new OrderPartsRepetitionTask(baseEntry.UserId, baseEntry.Id, sentence);
+        }
+
+        public OrderPartsRepetitionTask CreateForeignOrderPartsTask(VocabularyEntry baseEntry)
+        {
+            var foreign = baseEntry.Foreign;
+
+            return new OrderPartsRepetitionTask(baseEntry.UserId, baseEntry.Id, foreign);
         }
 
         public YesOrNoRepetitionTask CreateYesOrNoTask(VocabularyEntry baseEntry, VocabularyEntry distructors)

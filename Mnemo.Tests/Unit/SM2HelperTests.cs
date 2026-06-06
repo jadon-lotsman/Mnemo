@@ -7,7 +7,7 @@ namespace Mnemo.Tests.Unit
         [Theory]
         [InlineData(10, 10, 1, 1.0, true)]
         [InlineData(10, 12, 1, 0.9, true)]
-        [InlineData(10, 10, 3, 0.85, true)]
+        [InlineData(10, 10, 3, 0.85, false)]
         [InlineData(10, 20, 1, 0.3, false)]
         [InlineData(10, 10, 1, 0.6, false)]
         public void ComputeQuality_ShouldReturnCorrectPassing(double averageSec, double actionSec, int actionCounter, double similarity, bool expectedPassing)

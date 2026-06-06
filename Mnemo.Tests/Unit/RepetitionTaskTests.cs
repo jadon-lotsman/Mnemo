@@ -32,12 +32,15 @@ namespace Mnemo.Tests.Unit
             Assert.True(quality > 3);
         }
 
-        [Fact]
-        public void OrderPartsRepetitionTask_ShouldReturnPassingQuality()
+        [Theory]
+        [InlineData("This apple tastes very sour")]
+        [InlineData("Apple is sour.")]
+        [InlineData("Antidisestablishment")]
+        public void OrderPartsRepetitionTask_ShouldReturnPassingQuality(string sentence)
         {
-            var task = new OrderPartsRepetitionTask("Order sentence", 0, 0, "This apple tastes very sour");
+            var task = new OrderPartsRepetitionTask(0, 0, sentence);
 
-            task.SubmitAnswer("This apple tastes very sour", TimeSpan.Zero);
+            task.SubmitAnswer(sentence, TimeSpan.Zero);
             var quality = task.GetQuality(TimeSpan.Zero);
 
             Assert.True(task.SentenceParts.Count > 1);
@@ -47,7 +50,7 @@ namespace Mnemo.Tests.Unit
         [Fact]
         public void YesOrNotRepetitionTask_ShouldReturnPassingQuality()
         {
-            var task = new YesOrNoRepetitionTask("apple - апельсин", 0, 0, false);
+            var task = new YesOrNoRepetitionTask("apple", 0, 0, "апельсин", false);
 
             task.SubmitAnswer("no", TimeSpan.Zero);
             var quality = task.GetQuality(TimeSpan.Zero);

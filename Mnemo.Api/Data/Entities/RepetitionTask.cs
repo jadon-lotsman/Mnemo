@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Mnemo.Shared;
 using Mnemo.Shared.Extensions;
@@ -112,17 +113,20 @@ namespace Mnemo.Data.Entities
 
         public OrderPartsRepetitionTask(int userId, int entryId, string sentence) : base("", userId, entryId)
         {
-            SentenceParts = sentence.RemoveMultispaces()
-                .Split(" ")
+            CorrectOrder = TextNormalizer.NormalizeExample(sentence);
+
+            var parts = CorrectOrder.Split();
+            if (parts.Length <= 4)
+                parts = CorrectOrder.SplitIntoChunks(3);
+
+            SentenceParts = parts
                 .OrderBy(x => Random.Shared.Next())
                 .ToList();
-
-            CorrectOrder = sentence;
         }
 
         protected override double GetSimilarity()
         {
-            return UserAnswer == CorrectOrder ? 1.0 : 0.0;
+            return UserAnswer.AddEndPointIfNeeded().RemoveSpaces() == CorrectOrder.RemoveSpaces() ? 1.0 : 0.0;
         }
 
         public override string GetCorrect() => CorrectOrder;

@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Mnemo.Shared.Extensions
 {
@@ -28,6 +29,16 @@ namespace Mnemo.Shared.Extensions
 
             str = str.Trim();
             str = Regex.Replace(str, @"\s+", " ");
+
+            return new string(str);
+        }
+
+        public static string RemoveSpaces(this string str)
+        {
+            if (string.IsNullOrWhiteSpace(str)) return str;
+
+            str = str.Trim();
+            str = Regex.Replace(str, @"\s+", "");
 
             return new string(str);
         }
@@ -100,32 +111,60 @@ namespace Mnemo.Shared.Extensions
         }
 
 
-        public static string[] SplitIgnored(this string str, char separator, char ignore)
+        public static string[] SplitIntoChunks(this string str, int chunk)
         {
-            var parts = new List<string>();
-            var current = new StringBuilder();
-            bool isQuotes = false;
+            if (string.IsNullOrWhiteSpace(str) || chunk <= 0) return [];
 
-            foreach (char ch in str.RemoveMultispaces())
+            str = str.RemoveMultispaces();
+
+            var chunks = new List<string>();
+
+            for (int i = 0; i < str.Length; i += chunk)
             {
-                if (ch == ignore)
+                int length = Math.Min(chunk, str.Length - i);
+                chunks.Add(str.Substring(i, length).Trim());
+            }
+
+            if (chunks.Count >= 2 && chunks[^1].Length <= chunk)
+            {
+                chunks[^2] += chunks[^1];
+                chunks.RemoveAt(chunks.Count - 1);
+            }
+
+            return chunks.ToArray();
+        }
+
+
+        public static string[] SplitIgnoringBlocks(this string str, char separator, char blockChar)
+        {
+            if (string.IsNullOrWhiteSpace(str)) return [];
+
+            str = str.RemoveMultispaces();
+
+            var parts = new List<string>();
+            var currentPart = new StringBuilder();
+            bool insideBlock = false;
+
+            foreach (char ch in str)
+            {
+                if (ch == blockChar)
                 {
-                    isQuotes = !isQuotes;
+                    insideBlock = !insideBlock;
                     continue;
                 }
 
-                if (ch == separator && isQuotes == false)
+                if (ch == separator && insideBlock == false)
                 {
-                    parts.Add(current.ToString());
-                    current.Clear();
+                    parts.Add(currentPart.ToString());
+                    currentPart.Clear();
                 }
                 else
                 {
-                    current.Append(ch);
+                    currentPart.Append(ch);
                 }
             }
 
-            parts.Add(current.ToString());
+            parts.Add(currentPart.ToString());
 
             return parts.ToArray();
         }

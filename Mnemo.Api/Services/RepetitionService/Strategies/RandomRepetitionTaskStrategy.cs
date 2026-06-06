@@ -21,7 +21,7 @@ namespace Mnemo.Services.RepetitionService.Strategies
         public async Task<List<RepetitionTask>> GetTasksAsync(int userId)
         {
             var targetEntries = await _vocabularyQueries
-                .GetRandomByUserIdQuery(userId, 5)
+                .GetRandomByUserIdQuery(userId)
                 .Include(e => e.RepetitionState)
                 .NotDueEntries()
                 .ToListAsync();
@@ -47,8 +47,10 @@ namespace Mnemo.Services.RepetitionService.Strategies
 
             if (rnd < 30 && distructors.Count >= 3)
                 return _factory.CreateOptionsTask(isForward, entry, distructors);
-            if (rnd < 50 && entry.Foreign.Length > 4)
-                return _factory.CreateOrderPartsTask(entry);
+            if (rnd < 40 && entry.Foreign.Length >= 8)
+                return _factory.CreateForeignOrderPartsTask(entry);
+            if (rnd < 50 && entry.Examples.Any())
+                return _factory.CreateExampleOrderPartsTask(entry);
             if (rnd < 75 || !distructors.Any())
                 return _factory.CreateTextTask(isForward, entry);
             return _factory.CreateYesOrNoTask(entry, distructors[0]);
