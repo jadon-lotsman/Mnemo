@@ -14,13 +14,13 @@ namespace Mnemo.Services.RepetitionService.Factories
             return new TextRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, correct);
         }
 
-        public OptionRepetitionTask CreateOptionsTask(bool isForward, VocabularyEntry baseEntry, List<VocabularyEntry> entriesForOptions)
+        public OptionRepetitionTask CreateOptionsTask(bool isForward, VocabularyEntry baseEntry, List<VocabularyEntry> distructors)
         {
             string prompt = isForward ? baseEntry.Foreign : baseEntry.Translations[0];
             var correct = isForward ? baseEntry.Translations[0] : baseEntry.Foreign;
 
             var options = new List<string>();
-            foreach (var entry in entriesForOptions)
+            foreach (var entry in distructors)
             {
                 string option = isForward ? entry.Translations[0] : entry.Foreign;
                 if (!options.Contains(option) && correct != option)
@@ -38,7 +38,7 @@ namespace Mnemo.Services.RepetitionService.Factories
             return new OrderPartsRepetitionTask(baseEntry.UserId, baseEntry.Id, sentence);
         }
 
-        public YesOrNoRepetitionTask CreateYesOrNoTask(VocabularyEntry baseEntry, VocabularyEntry entryForOption)
+        public YesOrNoRepetitionTask CreateYesOrNoTask(VocabularyEntry baseEntry, VocabularyEntry distructors)
         {
             string prompt = baseEntry.Foreign;
             string option;
@@ -51,8 +51,8 @@ namespace Mnemo.Services.RepetitionService.Factories
             }
             else
             {
-                int index = Random.Shared.Next(entryForOption.Translations.Count);
-                option = entryForOption.Translations[index];
+                int index = Random.Shared.Next(distructors.Translations.Count);
+                option = distructors.Translations[index];
             }
 
             return new YesOrNoRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, option, isCorrect);

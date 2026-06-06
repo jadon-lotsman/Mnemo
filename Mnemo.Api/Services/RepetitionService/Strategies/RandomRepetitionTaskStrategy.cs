@@ -41,17 +41,17 @@ namespace Mnemo.Services.RepetitionService.Strategies
         private async Task<RepetitionTask> GetOneTaskAsync(int userId, VocabularyEntry entry, int[] excludeIds)
         {
             bool isForward = Random.Shared.Next(2) == 0;
-            var options = await new RandomOptionsProvider(_vocabularyQueries).GetOptionsAsync(userId, 3, excludeIds);
+            var distructors = await new RandomDistructorProvider(_vocabularyQueries).GetDistructorsAsync(userId, 3, excludeIds);
 
             int rnd = Random.Shared.Next(100);
 
-            if (rnd < 30 && options.Count >= 3)
-                return _factory.CreateOptionsTask(isForward, entry, options);
-            if (rnd < 50 && entry.Examples.Any())
+            if (rnd < 30 && distructors.Count >= 3)
+                return _factory.CreateOptionsTask(isForward, entry, distructors);
+            if (rnd < 50 && entry.Foreign.Length > 4)
                 return _factory.CreateOrderPartsTask(entry);
-            if (rnd < 75 || !options.Any())
+            if (rnd < 75 || !distructors.Any())
                 return _factory.CreateTextTask(isForward, entry);
-            return _factory.CreateYesOrNoTask(entry, options[0]);
+            return _factory.CreateYesOrNoTask(entry, distructors[0]);
         }
     }
 }

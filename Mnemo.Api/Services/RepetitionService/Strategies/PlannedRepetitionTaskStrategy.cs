@@ -46,12 +46,12 @@ namespace Mnemo.Services.RepetitionService.Strategies
 
             if (rnd < 30)
             {
-                var options = await new RandomOptionsProvider(_vocabularyQueries).GetOptionsAsync(userId, 3, excludeIds);
+                var distructors = await new RandomDistructorProvider(_vocabularyQueries).GetDistructorsAsync(userId, 3, excludeIds);
 
-                if (!options.Any())
+                if (!distructors.Any())
                     return _factory.CreateTextTask(isForward, entry);
 
-                return _factory.CreateOptionsTask(isForward, entry, options);
+                return _factory.CreateOptionsTask(isForward, entry, distructors);
             }
 
             return _factory.CreateTextTask(isForward, entry);
