@@ -7,6 +7,7 @@ using Mnemo.Data;
 using Mnemo.Data.Queries;
 using Mnemo.Services;
 using Mnemo.Services.RepetitionService;
+using Mnemo.Services.RepetitionService.Factories;
 
 namespace Mnemo
 {
@@ -94,6 +95,9 @@ namespace Mnemo
             services.AddScoped<RepetitionTaskService>();
             services.AddScoped<RepetitionStateService>();
             services.AddScoped<VocabularyManagementService>();
+
+            // DI Factories
+            services.AddScoped<RepetitionTaskFactory>();
 
             // Use Controllers
             services.AddControllers();

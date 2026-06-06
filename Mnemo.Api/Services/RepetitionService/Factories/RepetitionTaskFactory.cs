@@ -6,20 +6,6 @@ namespace Mnemo.Services.RepetitionService.Factories
 {
     public class RepetitionTaskFactory
     {
-        public RepetitionTask Create(VocabularyEntry baseEntry, List<VocabularyEntry> entriesForOptions)
-        {
-            bool isForward = Random.Shared.Next(2) == 0;
-            int rnd = Random.Shared.Next(100);
-
-            if (rnd < 30 && entriesForOptions.Count >= 3)
-                return CreateOptionsTask(isForward, baseEntry, entriesForOptions);
-            if (rnd < 50 && baseEntry.Examples.Any())
-                return CreateOrderPartsTask(baseEntry);
-            if (rnd < 75 || !entriesForOptions.Any())
-                return CreateTextTask(isForward, baseEntry);
-            return CreateYesOrNoTask(baseEntry, entriesForOptions[0]);
-        }
-
         public TextRepetitionTask CreateTextTask(bool isForward, VocabularyEntry baseEntry)
         {
             string prompt = isForward ? baseEntry.Foreign : baseEntry.Translations[0];
