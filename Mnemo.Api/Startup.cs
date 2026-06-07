@@ -8,6 +8,8 @@ using Mnemo.Data.Queries;
 using Mnemo.Services;
 using Mnemo.Services.RepetitionService;
 using Mnemo.Services.RepetitionService.Factories;
+using Mnemo.Services.RepetitionService.Providers.DestructorProviders;
+using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
 
 namespace Mnemo
 {
@@ -97,6 +99,8 @@ namespace Mnemo
             services.AddScoped<VocabularyManagementService>();
 
             // DI Factories
+            services.AddScoped<IDistractorProvider, RandomDistractorProvider>();
+            services.AddScoped<ITaskTypeProvider, WeightTaskTypeProvider>();
             services.AddScoped<RepetitionTaskFactory>();
 
             // Use Controllers

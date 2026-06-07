@@ -7,6 +7,8 @@ using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Services.RepetitionService.Factories;
 using Mnemo.Services.RepetitionService.Strategies;
+using Mnemo.Services.RepetitionService.Providers.DestructorProviders;
+using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
 using Mnemo.Shared;
 using Mnemo.Shared.Extensions;
 
@@ -59,8 +61,8 @@ namespace Mnemo.Services.RepetitionService
 
             IRepetitionTaskStrategy? strategy = mode switch
             {
-                "fast" => new RandomRepetitionTaskStrategy(_vocabularyQueries, new RepetitionTaskFactory()),
-                "planned" => new PlannedRepetitionTaskStrategy(_vocabularyQueries, new RepetitionTaskFactory()),
+                "fast" => new RandomRepetitionTaskStrategy(new RepetitionTaskFactory(new RandomDistractorProvider(_vocabularyQueries)), new WeightTaskTypeProvider(), _vocabularyQueries),
+                "planned" => new PlannedRepetitionTaskStrategy(new RepetitionTaskFactory(new RandomDistractorProvider(_vocabularyQueries)), new WeightTaskTypeProvider(), _vocabularyQueries),
                 _ => null
             };
 
