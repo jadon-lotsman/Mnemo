@@ -32,7 +32,8 @@ namespace Mnemo.Data
                 .HasDiscriminator<string>("task_type")
                 .HasValue<TextRepetitionTask>("text")
                 .HasValue<OptionRepetitionTask>("option")
-                .HasValue<OrderPartsRepetitionTask>("parts")
+                .HasValue<SentenceReorderRepetitionTask>("sentence")
+                .HasValue<SyllableReorderRepetitionTask>("syllable")
                 .HasValue<YesOrNoRepetitionTask>("yesorno");
         }
     }

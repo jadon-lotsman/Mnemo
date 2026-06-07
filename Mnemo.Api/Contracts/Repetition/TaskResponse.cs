@@ -4,7 +4,8 @@ namespace Mnemo.Contracts.Repetition
 {
     [JsonDerivedType(typeof(TextTaskResponse), typeDiscriminator: "text")]
     [JsonDerivedType(typeof(OptionTaskResponse), typeDiscriminator: "option")]
-    [JsonDerivedType(typeof(OrderPartsTaskResponse), typeDiscriminator: "parts")]
+    [JsonDerivedType(typeof(SentenceReorderTaskResponse), typeDiscriminator: "sentence")]
+    [JsonDerivedType(typeof(SyllableReorderTaskResponse), typeDiscriminator: "syllable")]
     [JsonDerivedType(typeof(YesOrNoTaskResponse), typeDiscriminator: "yesorno")]
     public abstract class TaskResponse
     {
@@ -24,10 +25,16 @@ namespace Mnemo.Contracts.Repetition
         public List<string> Options { get; set; }
     }
 
-    public class OrderPartsTaskResponse : TaskResponse
+    public class SentenceReorderTaskResponse : TaskResponse
     {
-        public override string TaskType => "parts";
+        public override string TaskType => "sentence";
         public List<string> SentenceParts { get; set; }
+    }
+
+    public class SyllableReorderTaskResponse : TaskResponse
+    {
+        public override string TaskType => "syllable";
+        public List<string> Syllables { get; set; }
     }
 
     public class YesOrNoTaskResponse : TaskResponse

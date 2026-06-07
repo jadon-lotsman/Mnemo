@@ -16,16 +16,19 @@ namespace Mnemo.Services.RepetitionService
 {
     public class RepetitionTaskService
     {
-        private AppDbContext _context;
-        private TaskQueries _taskQueries;
-        private AccountQueries _accountQueries;
-        private VocabularyQueries _vocabularyQueries;
+        private readonly AppDbContext _context;
+        private readonly TaskQueries _taskQueries;
 
-        private RepetitionStateService _stateService;
+        private readonly AccountQueries _accountQueries;
+        private readonly VocabularyQueries _vocabularyQueries;
+
+        private readonly RepetitionStateService _stateService;
+
+        private readonly ITaskTypeProvider _typeProvider;
+        private readonly IDistractorProvider _distractorProvider;
 
 
-
-        public RepetitionTaskService(AppDbContext context, AccountQueries accountQueries, TaskQueries taskQueries, VocabularyQueries vocabularyQueries, RepetitionStateService stateService)
+        public RepetitionTaskService(AppDbContext context, AccountQueries accountQueries, TaskQueries taskQueries, VocabularyQueries vocabularyQueries, RepetitionStateService stateService, ITaskTypeProvider typeProvider, IDistractorProvider distractorProvider)
         {
             _context = context;
 
@@ -34,6 +37,9 @@ namespace Mnemo.Services.RepetitionService
             _vocabularyQueries = vocabularyQueries;
 
             _stateService = stateService;
+
+            _typeProvider = typeProvider;
+            _distractorProvider = distractorProvider;
         }
 
 
@@ -61,8 +67,8 @@ namespace Mnemo.Services.RepetitionService
 
             IRepetitionTaskStrategy? strategy = mode switch
             {
-                "fast" => new RandomRepetitionTaskStrategy(new RepetitionTaskFactory(new RandomDistractorProvider(_vocabularyQueries)), new WeightTaskTypeProvider(), _vocabularyQueries),
-                "planned" => new PlannedRepetitionTaskStrategy(new RepetitionTaskFactory(new RandomDistractorProvider(_vocabularyQueries)), new WeightTaskTypeProvider(), _vocabularyQueries),
+                "fast" => new RandomRepetitionTaskStrategy(new RepetitionTaskFactory(_distractorProvider), _typeProvider, _vocabularyQueries),
+                "planned" => new PlannedRepetitionTaskStrategy(new RepetitionTaskFactory(_distractorProvider), _typeProvider, _vocabularyQueries),
                 _ => null
             };
 

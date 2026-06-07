@@ -4,6 +4,6 @@ namespace Mnemo.Services.RepetitionService.Providers.DestructorProviders
 {
     public interface IDistractorProvider
     {
-        Task<List<string>> GetDistructorsAsync(bool isForward, int userId, int take, params int[] excludeIds);
+        Task<List<string>> GetDistractorsAsync(bool isForward, int userId, int take, params int[] excludeIds);
     }
 }

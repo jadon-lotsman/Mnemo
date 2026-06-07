@@ -32,6 +32,7 @@ namespace Mnemo.Services.RepetitionService.Strategies
                 .ToListAsync();
 
             var tasks = new List<RepetitionTask>();
+            var index = 0;
             var excludeIds = targetEntries.Select(e => e.Id).ToArray();
 
             foreach (var entry in targetEntries)
@@ -39,7 +40,10 @@ namespace Mnemo.Services.RepetitionService.Strategies
                 double easeFactor = entry.RepetitionState?.EasinessFactor ?? SM2Helper.InitEF;
 
                 (Type taskType, bool isForward) = _typeProvider.GetType(easeFactor);
-                var task = _factory.Create(isForward, taskType, entry, excludeIds);
+                var task = await _factory.CreateByTypeAsync(isForward, taskType, entry, excludeIds);
+
+                task.OrderIndex = index;
+                index++;
 
                 tasks.Add(task);
             }

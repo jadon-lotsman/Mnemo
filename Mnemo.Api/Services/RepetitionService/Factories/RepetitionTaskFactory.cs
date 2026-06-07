@@ -14,14 +14,32 @@ namespace Mnemo.Services.RepetitionService.Factories
             _provider = provider;
         }
 
-        public RepetitionTask Create(bool isForward, Type taskType, VocabularyEntry baseEntry, params int[] excludeIds)
+        public async Task<RepetitionTask> CreateByTypeAsync(bool isForward, Type taskType, VocabularyEntry baseEntry, params int[] excludeIds)
         {
             if (taskType == typeof(OptionRepetitionTask))
-                return CreateOptionsTask(isForward, baseEntry, excludeIds);
-            if (taskType == typeof(OrderPartsRepetitionTask))
-                return CreateExampleOrderPartsTask(baseEntry);
-            if (taskType == typeof(YesOrNoRepetitionTask))
-                return CreateYesOrNoTask(isForward, baseEntry, excludeIds);
+            {
+                var distractors = await _provider.GetDistractorsAsync(isForward, baseEntry.UserId, 3, excludeIds);
+                if (!distractors.Any())
+                    return CreateTextTask(isForward, baseEntry);
+
+                return CreateOptionsTask(isForward, baseEntry, distractors);
+            }
+            else if (taskType == typeof(SentenceReorderRepetitionTask))
+            {
+                return CreateSentenceReorderTask(baseEntry);
+            }
+            else if (taskType == typeof(SyllableReorderRepetitionTask))
+            {
+                return CreateSyllableReorderTask(baseEntry);
+            }
+            else if (taskType == typeof(YesOrNoRepetitionTask))
+            {
+                var distractor = await _provider.GetDistractorsAsync(isForward, baseEntry.UserId, 1, excludeIds);
+                if (!distractor.Any())
+                    return CreateTextTask(isForward, baseEntry);
+
+                return CreateYesOrNoTask(isForward, baseEntry, distractor[0]);
+            }
 
             return CreateTextTask(isForward, baseEntry);
         }
@@ -34,32 +52,30 @@ namespace Mnemo.Services.RepetitionService.Factories
             return new TextRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, correct);
         }
 
-        public OptionRepetitionTask CreateOptionsTask(bool isForward, VocabularyEntry baseEntry, params int[] excludeIds)
+        public OptionRepetitionTask CreateOptionsTask(bool isForward, VocabularyEntry baseEntry, List<string> distractors)
         {
             string prompt = isForward ? baseEntry.Foreign : baseEntry.Translations[0];
             var correct = isForward ? baseEntry.Translations[0] : baseEntry.Foreign;
 
-            var options = _provider.GetDistructorsAsync(isForward, baseEntry.UserId, 3, excludeIds).Result;
-
-            return new OptionRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, options, correct);
+            return new OptionRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, distractors, correct);
         }
 
-        public OrderPartsRepetitionTask CreateExampleOrderPartsTask(VocabularyEntry baseEntry)
+        public SentenceReorderRepetitionTask CreateSentenceReorderTask(VocabularyEntry baseEntry)
         {
             int index = Random.Shared.Next(baseEntry.Examples.Count);
             var sentence = baseEntry.Examples[index];
 
-            return new OrderPartsRepetitionTask(baseEntry.UserId, baseEntry.Id, sentence);
+            return new SentenceReorderRepetitionTask(baseEntry.UserId, baseEntry.Id, sentence);
         }
 
-        public OrderPartsRepetitionTask CreateForeignOrderPartsTask(VocabularyEntry baseEntry)
+        public SyllableReorderRepetitionTask CreateSyllableReorderTask(VocabularyEntry baseEntry)
         {
             var foreign = baseEntry.Foreign;
 
-            return new OrderPartsRepetitionTask(baseEntry.UserId, baseEntry.Id, foreign);
+            return new SyllableReorderRepetitionTask(baseEntry.UserId, baseEntry.Id, foreign);
         }
 
-        public YesOrNoRepetitionTask CreateYesOrNoTask(bool isForward, VocabularyEntry baseEntry, params int[] excludeIds)
+        public YesOrNoRepetitionTask CreateYesOrNoTask(bool isForward, VocabularyEntry baseEntry, string distractor)
         {
             string prompt = baseEntry.Foreign;
             string option;
@@ -72,7 +88,7 @@ namespace Mnemo.Services.RepetitionService.Factories
             }
             else
             {
-                option = _provider.GetDistructorsAsync(isForward, baseEntry.UserId, 1, excludeIds).Result.First();
+                option = distractor;
             }
 
             return new YesOrNoRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, option, isCorrect);

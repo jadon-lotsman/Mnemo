@@ -17,7 +17,7 @@ namespace Mnemo.Data.Queries
 
         // Queries
         public IQueryable<RepetitionTask> GetByUserIdQuery(int userId)
-            => _context.RepetitionTasks.Where(s => s.UserId == userId);
+            => _context.RepetitionTasks.Where(s => s.UserId == userId).OrderBy(s => s.OrderIndex);
 
 
         // Getters

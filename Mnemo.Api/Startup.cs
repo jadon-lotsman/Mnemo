@@ -98,9 +98,10 @@ namespace Mnemo
             services.AddScoped<RepetitionStateService>();
             services.AddScoped<VocabularyManagementService>();
 
-            // DI Factories
-            services.AddScoped<IDistractorProvider, RandomDistractorProvider>();
+            // DI Other
             services.AddScoped<ITaskTypeProvider, WeightTaskTypeProvider>();
+            services.AddScoped<IDistractorProvider, RandomDistractorProvider>();
+
             services.AddScoped<RepetitionTaskFactory>();
 
             // Use Controllers

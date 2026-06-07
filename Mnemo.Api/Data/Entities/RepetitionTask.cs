@@ -13,6 +13,7 @@ namespace Mnemo.Data.Entities
 
         public string Prompt { get; set; }
         public string UserAnswer { get; set; }
+        public int OrderIndex { get; set; }
         public int ActionCounter { get; set; }
         public TimeSpan ElapsedTime { get; set; }
 
@@ -103,23 +104,49 @@ namespace Mnemo.Data.Entities
         public override string GetCorrect() => CorrectOption;
     }
 
-    public class OrderPartsRepetitionTask : RepetitionTask
+    public class SentenceReorderRepetitionTask : RepetitionTask
     {
         public List<string> SentenceParts { get; set; }
         public string CorrectOrder { get; set; }
 
 
-        public OrderPartsRepetitionTask() { }
+        public SentenceReorderRepetitionTask() { }
 
-        public OrderPartsRepetitionTask(int userId, int entryId, string sentence) : base("", userId, entryId)
+        public SentenceReorderRepetitionTask(int userId, int entryId, string sentence) : base("", userId, entryId)
         {
             CorrectOrder = TextNormalizer.NormalizeExample(sentence);
 
             var parts = CorrectOrder.Split();
-            if (parts.Length <= 4)
+            if (parts.Length <= 3)
                 parts = CorrectOrder.SplitIntoChunks(3);
 
             SentenceParts = parts
+                .OrderBy(x => Random.Shared.Next())
+                .ToList();
+        }
+
+        protected override double GetSimilarity()
+        {
+            return UserAnswer.AddEndPointIfNeeded().RemoveSpaces() == CorrectOrder.RemoveSpaces() ? 1.0 : 0.0;
+        }
+
+        public override string GetCorrect() => CorrectOrder;
+    }
+
+    public class SyllableReorderRepetitionTask : RepetitionTask
+    {
+        public List<string> Syllables { get; set; }
+        public string CorrectOrder { get; set; }
+
+
+        public SyllableReorderRepetitionTask() { }
+
+        public SyllableReorderRepetitionTask(int userId, int entryId, string word) : base("", userId, entryId)
+        {
+            CorrectOrder = TextNormalizer.NormalizeExample(word);
+
+            Syllables = CorrectOrder
+                .SplitIntoChunks(3)
                 .OrderBy(x => Random.Shared.Next())
                 .ToList();
         }

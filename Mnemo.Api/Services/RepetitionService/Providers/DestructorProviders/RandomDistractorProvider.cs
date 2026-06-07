@@ -14,11 +14,14 @@ namespace Mnemo.Services.RepetitionService.Providers.DestructorProviders
             _vocabularyQueries = vocabularyQueries;
         }
 
-        public async Task<List<string>> GetDistructorsAsync(bool isForward, int userId,  int take, params int[] excludeIds)
-        { 
+        public async Task<List<string>> GetDistractorsAsync(bool isForward, int userId, int take, params int[] excludeIds)
+        {
             var entries = await _vocabularyQueries
                     .GetRandomByUserIdQuery(userId, take, excludeIds)
                     .ToListAsync();
+
+            if (entries.Count < take)
+                return [];
 
             var result = new List<string>();
             foreach (var entry in entries)

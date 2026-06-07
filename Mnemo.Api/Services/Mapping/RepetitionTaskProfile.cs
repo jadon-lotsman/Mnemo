@@ -12,12 +12,14 @@ namespace Mnemo.Services.Mapping
             CreateMap<RepetitionTask, TaskResponse>()
                 .Include<TextRepetitionTask, TextTaskResponse>()
                 .Include<OptionRepetitionTask, OptionTaskResponse>()
-                .Include<OrderPartsRepetitionTask, OrderPartsTaskResponse>()
+                .Include<SentenceReorderRepetitionTask, SentenceReorderTaskResponse>()
+                .Include<SyllableReorderRepetitionTask, SyllableReorderTaskResponse>()
                 .Include<YesOrNoRepetitionTask, YesOrNoTaskResponse>();
 
             CreateMap<TextRepetitionTask, TextTaskResponse>();
             CreateMap<OptionRepetitionTask, OptionTaskResponse>();
-            CreateMap<OrderPartsRepetitionTask, OrderPartsTaskResponse>();
+            CreateMap<SentenceReorderRepetitionTask, SentenceReorderTaskResponse>();
+            CreateMap<SyllableReorderRepetitionTask, SyllableReorderTaskResponse>();
             CreateMap<YesOrNoRepetitionTask, YesOrNoTaskResponse>();
         }
     }
