@@ -26,9 +26,12 @@ namespace Mnemo.Services.RepetitionService.Strategies
         public async Task<List<RepetitionTask>> GetTasksAsync(int userId)
         {
             var targetEntries = await _vocabularyQueries
-                .GetRandomByUserIdQuery(userId, 10)
+                .GetByUserIdQuery(userId)
                 .Include(e => e.RepetitionState)
                 .DueEntries()
+                .OrderBy(e => e.Id)
+                .Take(10)
+                .OrderBy(e => EF.Functions.Random())
                 .ToListAsync();
 
             var tasks = new List<RepetitionTask>();
