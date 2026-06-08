@@ -1,37 +1,30 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import RadioItem from '@/features/launcher/components/LauncherRadioItem.vue'
-import { apiRequest } from '@/shared/utils/ApiRequest'
 import router, { ROUTE_NAMES } from '@/router'
-import type { RepetitionTask } from '@/features/repetition/types/RepetitionTask'
-import { useNotify } from '@/shared/composables/useNotify'
 import { useRepetitionStore } from '@/features/repetition/stores/RepetitionStore'
 
 const repetition = useRepetitionStore()
-const notify = useNotify()
 
 const selectedMode = ref<string>('fast')
 
-async function onSubmit() {
-  const result = await apiRequest<{ inProcess: string }>('/api/repetition/')
+async function onStart() {
+  const exists = await repetition.isExists()
 
-  if (result.inProcess) {
-    notify.success('Repetition already exists. Redirecting...')
-
+  if (exists) {
     router.push({ name: ROUTE_NAMES.REPETITION })
   } else {
-    await apiRequest<RepetitionTask[]>(`/api/repetition?mode=${selectedMode.value}`, {
-      method: 'POST',
-    })
-    repetition.tasks = []
+    const success = await repetition.createTasks(selectedMode.value)
 
-    router.push({ name: ROUTE_NAMES.REPETITION })
+    if (success) {
+      router.push({ name: ROUTE_NAMES.REPETITION })
+    }
   }
 }
 </script>
 
 <template>
-  <form @submit.prevent="onSubmit">
+  <form @submit.prevent="onStart">
     <div class="mode-grid">
       <RadioItem
         v-model="selectedMode"

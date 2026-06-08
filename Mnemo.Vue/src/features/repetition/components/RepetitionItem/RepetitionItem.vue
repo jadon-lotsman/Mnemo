@@ -1,15 +1,14 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import type { RepetitionTask } from '../../types/RepetitionTask'
-import RepetitionRadioItem from './RepetitionRadioItem.vue'
-import RepetitionOrderItem from './RepetitionOrderItem.vue'
-import { useRepetitionStore } from '../../stores/RepetitionStore.ts'
-
-const repetition = useRepetitionStore()
+import OptionInput from './OptionInput.vue'
+import SentenceInput from './SentenceInput.vue'
+import TextInput from './TextInput.vue'
 
 const props = defineProps<{
   listNumber: number
   task: RepetitionTask
+  disabled?: boolean
 }>()
 
 const emits = defineEmits<{
@@ -29,14 +28,10 @@ function submitAnswer() {
 <template>
   <article class="task">
     <div>
-      <form
-        class="body"
-        :class="{ unclickable: repetition.isFinished }"
-        @submit.prevent="submitAnswer"
-      >
+      <form class="body" @submit.prevent="submitAnswer">
         <header>
           <div class="prompt">
-            <div>{{ listNumber + 1 }}.</div>
+            <div>{{ listNumber }}.</div>
 
             <div v-if="task.taskType === 'yesorno'">
               <span>Does</span>
@@ -44,8 +39,11 @@ function submitAnswer() {
               <span>mean</span>
               <span class="bold">"{{ task.option }}"?</span>
             </div>
-            <div v-else-if="task.taskType === 'parts'">
+            <div v-else-if="task.taskType === 'sentence'">
               <span>Put the parts of the sentence in order.</span>
+            </div>
+            <div v-else-if="task.taskType === 'syllable'">
+              <span>Put the syllables in order.</span>
             </div>
             <div v-else>
               <span>Translate</span>
@@ -53,44 +51,51 @@ function submitAnswer() {
             </div>
           </div>
 
-          <span class="icon" v-if="repetition.isFinished">{{
-            task.isCorrect ? 'check_circle' : 'cancel'
-          }}</span>
+          <span class="icon" v-if="disabled">{{ task.isCorrect ? 'check_circle' : 'cancel' }}</span>
         </header>
         <footer>
-          <input
-            v-if="task.taskType === 'text'"
-            class="text-input"
-            type="text"
-            v-model="userAnswer"
-            :placeholder="placeholder"
-          />
+          <div v-if="task.taskType === 'text'">
+            <TextInput v-model="userAnswer" :placeholder="placeholder" :disabled="disabled" />
+          </div>
           <div v-else-if="task.taskType === 'option'" class="option-input">
-            <RepetitionRadioItem
+            <OptionInput
               v-for="option in task.options"
+              v-model="userAnswer"
+              :placeholder="placeholder"
               :key="option"
               :value="option"
-              v-model="userAnswer"
+              :disabled="disabled"
             />
           </div>
-          <div v-else-if="task.taskType === 'parts'">
-            <RepetitionOrderItem v-model="userAnswer" :parts="task.sentenceParts" />
+          <div v-else-if="task.taskType === 'sentence'">
+            <SentenceInput v-model="userAnswer" :parts="task.sentenceParts" :disabled="disabled" />
+          </div>
+          <div v-else-if="task.taskType === 'syllable'">
+            <SentenceInput v-model="userAnswer" :parts="task.syllables" :disabled="disabled" />
           </div>
           <div v-else-if="task.taskType === 'yesorno'" class="option-input">
-            <RepetitionRadioItem :value="'yes'" v-model="userAnswer" />
-            <RepetitionRadioItem :value="'no'" v-model="userAnswer" />
+            <OptionInput
+              v-model="userAnswer"
+              :placeholder="placeholder"
+              :value="'yes'"
+              :disabled="disabled"
+            />
+            <OptionInput
+              v-model="userAnswer"
+              :placeholder="placeholder"
+              :value="'no'"
+              :disabled="disabled"
+            />
           </div>
         </footer>
-        <button
-          type="submit"
-          class="big-button"
-          :disabled="userAnswer === '' || repetition.isFinished"
-        >
+        <button type="submit" class="big-button" :disabled="userAnswer === '' || disabled">
           Submit
         </button>
       </form>
     </div>
-    <span class="correct" v-if="task.isCorrect === false"> Correct: {{ task.correctAnswer }} </span>
+    <span class="correct" v-if="task.quality != null && task.quality != 5">
+      Correct: {{ task.correctAnswer }}
+    </span>
   </article>
 </template>
 
@@ -99,10 +104,6 @@ function submitAnswer() {
   max-width: 470px;
   min-width: 370px;
   margin-bottom: 20px;
-
-  .unclickable {
-    pointer-events: none;
-  }
 
   .body {
     background-color: $plane-white;
@@ -141,18 +142,6 @@ function submitAnswer() {
     footer {
       padding: 0px 15px;
       margin-bottom: 18px;
-
-      .text-input {
-        background-color: $plane-gray;
-        color: $black-font;
-
-        border-radius: 8px;
-        padding: 7px 10px;
-
-        width: 100%;
-
-        font-size: 15px;
-      }
 
       .option-input {
         display: flex;

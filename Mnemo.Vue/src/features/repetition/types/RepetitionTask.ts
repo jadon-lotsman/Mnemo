@@ -17,9 +17,14 @@ interface OptionTask extends BaseTask {
   options: string[]
 }
 
-interface OrderPartsTask extends BaseTask {
-  taskType: 'parts'
+interface SentenceReorderTask extends BaseTask {
+  taskType: 'sentence'
   sentenceParts: string[]
+}
+
+interface SyllableReorderTask extends BaseTask {
+  taskType: 'syllable'
+  syllables: string[]
 }
 
 interface YesOrNoTask extends BaseTask {
@@ -27,4 +32,9 @@ interface YesOrNoTask extends BaseTask {
   option: string
 }
 
-export type RepetitionTask = TextTask | OptionTask | OrderPartsTask | YesOrNoTask
+export type RepetitionTask =
+  | TextTask
+  | OptionTask
+  | SentenceReorderTask
+  | SyllableReorderTask
+  | YesOrNoTask

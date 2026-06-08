@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-const props = defineProps<{
-  modelValue: string
-  parts: string[]
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: string
+    parts: string[]
+    disabled?: boolean
+  }>(),
+  {
+    disabled: false,
+  },
+)
 
 const emit = defineEmits<{
   (e: 'update:modelValue', order: string): void
@@ -45,7 +51,7 @@ function emitChanges() {
         v-for="(part, index) in resultParts"
         :key="index"
         v-text="part"
-        @click="removePart(part, index)"
+        @click="!disabled && removePart(part, index)"
       />
     </header>
     <div class="splitter"></div>
@@ -55,7 +61,7 @@ function emitChanges() {
         v-for="(part, index) in allowParts"
         :key="index"
         v-text="part"
-        @click="pushPart(part, index)"
+        @click="!disabled && pushPart(part, index)"
       />
     </footer>
   </div>
@@ -92,7 +98,6 @@ function emitChanges() {
     min-height: 10px;
 
     .part {
-      cursor: pointer;
       user-select: none;
 
       display: flex;

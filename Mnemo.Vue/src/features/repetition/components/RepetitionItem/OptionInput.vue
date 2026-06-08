@@ -1,21 +1,29 @@
 <script setup lang="ts">
-defineProps<{
-  modelValue: string
-  value: string
-}>()
+withDefaults(
+  defineProps<{
+    modelValue: string
+    placeholder: string
+    value: string
+    disabled?: boolean
+  }>(),
+  {
+    disabled: false,
+  },
+)
 
 defineEmits<{
-  (e: 'update:modelValue', query: string): void
+  (e: 'update:modelValue', value: string): void
 }>()
 </script>
 
 <template>
-  <label class="answer-radio">
+  <label class="option" :class="{ 'has-placeholder': modelValue === '' && placeholder === value }">
     <input
       type="radio"
       name="option"
       :value="value"
       :checked="modelValue === value"
+      :disabled="disabled"
       @change="$emit('update:modelValue', value)"
     />
     <div>{{ value }}</div>
@@ -23,7 +31,7 @@ defineEmits<{
 </template>
 
 <style lang="scss" scoped>
-.answer-radio {
+.option {
   input {
     display: none;
   }
@@ -64,6 +72,12 @@ defineEmits<{
 
   input:checked + div::after {
     opacity: 100%;
+  }
+}
+
+.has-placeholder {
+  input:not(:checked) + div::after {
+    opacity: 65%;
   }
 }
 </style>
