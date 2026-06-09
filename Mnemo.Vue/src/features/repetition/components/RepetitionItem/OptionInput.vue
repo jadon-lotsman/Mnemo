@@ -17,7 +17,10 @@ defineEmits<{
 </script>
 
 <template>
-  <label class="option" :class="{ 'has-placeholder': modelValue === '' && placeholder === value }">
+  <label
+    class="option"
+    :class="{ 'has-placeholder': modelValue === '' && placeholder === value, disabled: disabled }"
+  >
     <input
       type="radio"
       name="option"
@@ -31,7 +34,13 @@ defineEmits<{
 </template>
 
 <style lang="scss" scoped>
+.disabled {
+  cursor: default !important;
+}
+
 .option {
+  cursor: pointer;
+
   input {
     display: none;
   }

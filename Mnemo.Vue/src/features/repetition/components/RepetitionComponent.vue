@@ -3,7 +3,9 @@ import { computed, onMounted } from 'vue'
 import RepetitionItem from './RepetitionItem/RepetitionItem.vue'
 import { useRepetitionStore } from '../stores/RepetitionStore.ts'
 import router, { ROUTE_NAMES } from '@/router/index.ts'
+import { useCalendarStore } from '@/features/calendar/stores/CalendarStore.ts'
 
+const calendar = useCalendarStore()
 const repetition = useRepetitionStore()
 
 const tasks = computed(() => repetition.tasks)
@@ -18,11 +20,12 @@ function onSubmitAnswer(id: number, answer: string) {
   lastAction = timeNow
 }
 
-function onFinish() {
+async function onFinish() {
   if (repetition.isFinished) {
     router.push({ name: ROUTE_NAMES.VOCABULARY })
   } else {
-    repetition.finishTasks()
+    await repetition.finishTasks()
+    await calendar.fetchDays()
   }
 }
 

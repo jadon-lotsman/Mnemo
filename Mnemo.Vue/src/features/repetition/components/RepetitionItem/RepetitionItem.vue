@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import type { RepetitionTask } from '../../types/RepetitionTask'
 import OptionInput from './OptionInput.vue'
 import SentenceInput from './SentenceInput.vue'
@@ -23,6 +23,13 @@ function submitAnswer() {
   placeholder.value = userAnswer.value
   userAnswer.value = ''
 }
+
+watch(
+  () => props.disabled,
+  () => {
+    userAnswer.value = ''
+  },
+)
 </script>
 
 <template>

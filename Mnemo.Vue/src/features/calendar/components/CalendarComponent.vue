@@ -1,32 +1,20 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import CalendarItem from './CalendarItem.vue'
-import type { RepetitionDay } from '../types/RepetitionDay.ts'
-import { apiRequest } from '@/shared/utils/ApiRequest.ts'
-import { fillMissingDays } from '../utils/FillMissingDays.ts'
+import { useCalendarStore } from '../stores/CalendarStore.ts'
 
-const isLoading = ref<boolean>(false)
-const calendar = ref<RepetitionDay[]>([])
+const calendar = useCalendarStore()
 
-const fetchSchedule = async function () {
-  isLoading.value = true
+const days = computed(() => calendar.days)
 
-  try {
-    const responseData = await apiRequest<RepetitionDay[]>('/api/repetition/states')
-    calendar.value = fillMissingDays(responseData)
-  } finally {
-    isLoading.value = false
-  }
-}
-
-onMounted(() => {
-  fetchSchedule()
+onMounted(async () => {
+  if (calendar.days.length === 0) await calendar.fetchDays()
 })
 </script>
 
 <template>
   <div class="calendar">
-    <CalendarItem v-for="day in calendar" :key="day.date" :data="day" />
+    <CalendarItem v-for="day in days" :key="day.date" :data="day" />
   </div>
 </template>
 

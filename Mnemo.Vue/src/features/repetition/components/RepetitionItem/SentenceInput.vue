@@ -44,7 +44,7 @@ function emitChanges() {
 </script>
 
 <template>
-  <div class="order-input">
+  <div class="sentence-input" :class="{ disabled: disabled }">
     <header>
       <span
         class="part"
@@ -68,7 +68,13 @@ function emitChanges() {
 </template>
 
 <style lang="scss" scoped>
-.order-input {
+.disabled {
+  .part {
+    cursor: default !important;
+  }
+}
+
+.sentence-input {
   display: flex;
   justify-content: start;
   flex-direction: column;
@@ -98,6 +104,8 @@ function emitChanges() {
     min-height: 10px;
 
     .part {
+      cursor: pointer;
+
       user-select: none;
 
       display: flex;
