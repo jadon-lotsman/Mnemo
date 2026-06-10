@@ -4,6 +4,7 @@ import type { RepetitionTask } from '../../types/RepetitionTask'
 import OptionInput from './OptionInput.vue'
 import SentenceInput from './SentenceInput.vue'
 import TextInput from './TextInput.vue'
+import { capitalize } from '@/shared/utils/StringExtension.ts'
 
 const props = defineProps<{
   listNumber: number
@@ -101,7 +102,7 @@ watch(
       </form>
     </div>
     <span class="correct" v-if="task.quality != null && task.quality != 5">
-      Correct: {{ task.correctAnswer }}
+      Correct is "{{ capitalize(task.correctAnswer ?? '') }}"
     </span>
   </article>
 </template>
@@ -163,14 +164,30 @@ watch(
   }
 
   .correct {
+    position: relative;
     display: block;
 
     color: $gray-font;
 
-    margin-top: 10px;
-    margin-left: 10px;
+    margin-top: 15px;
+    padding: 2px 10px;
 
     font-size: 16px;
+
+    &::before {
+      content: '';
+
+      position: absolute;
+      background-color: $plane-gray;
+
+      left: 0;
+      top: 0;
+
+      width: 3px;
+      height: 100%;
+      opacity: 50%;
+      border-radius: 8px;
+    }
   }
 
   .icon {
