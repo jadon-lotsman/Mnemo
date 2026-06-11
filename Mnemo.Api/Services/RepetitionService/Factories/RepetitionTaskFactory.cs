@@ -28,7 +28,7 @@ namespace Mnemo.Services.RepetitionService.Factories
             {
                 return CreateSentenceReorderTask(baseEntry);
             }
-            else if (taskType == typeof(SyllableReorderRepetitionTask))
+            else if (taskType == typeof(SyllableReorderRepetitionTask) && baseEntry.Foreign.Length >= 8)
             {
                 return CreateSyllableReorderTask(baseEntry);
             }
