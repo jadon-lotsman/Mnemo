@@ -32,12 +32,17 @@ async function onCreateButton() {
     templateEntry.value === undefined
       ? {
           id: -Date.now(),
+          partOfSpeech: 'unknown',
           foreign: '',
           transcription: '',
+          transcriptionAudioUrl: '',
           translations: [],
           examples: [],
+          synonyms: [],
+          antonyms: [],
         }
       : undefined
+
   templateEntry.value = toggleValue
 }
 

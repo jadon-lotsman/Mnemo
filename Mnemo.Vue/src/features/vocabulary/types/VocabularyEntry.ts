@@ -1,9 +1,13 @@
 export interface VocabularyEntry {
   id: number
+  partOfSpeech: string
   foreign: string
   transcription: string
+  transcriptionAudioUrl: string
   examples: string[]
   translations: string[]
+  synonyms: string[]
+  antonyms: string[]
 }
 
 export interface VocabularyCreateRequest {

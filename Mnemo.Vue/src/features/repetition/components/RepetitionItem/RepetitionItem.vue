@@ -194,14 +194,11 @@ watch(
     @include iconize-text;
 
     display: block;
-    position: absolute;
-
-    top: 10px;
-    right: 15px;
 
     color: $shadow;
 
     font-size: 24px;
+    line-height: 0.8;
   }
 }
 </style>

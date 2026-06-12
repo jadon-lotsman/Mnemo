@@ -7,6 +7,7 @@ import type {
 } from '../../types/VocabularyEntry'
 import EditableField from './EditableField.vue'
 import EditableList from './EditableList.vue'
+import EditableSelect from './EditableSelect.vue'
 
 const props = defineProps<{
   entry: VocabularyEntry
@@ -18,11 +19,23 @@ const emits = defineEmits<{
   (e: 'patch', id: number, bodyRequest: VocabularyPatchRequest): void
 }>()
 
+const speechOptions = ref<string[]>([
+  'noun',
+  'verb',
+  'adjective',
+  'pronoun',
+  'adverb',
+  'preposition',
+  'conjunction',
+  'interjection',
+])
+
 const isTemplateMode: boolean = props.entry.id < 0
 const isEditorMode = ref<boolean>(isTemplateMode)
 const isChanged = computed(
   () =>
     isTemplateMode ||
+    partOfSpeechInput.value !== '' ||
     (foreignInput.value !== '' && foreignInput.value !== props.entry.foreign) ||
     (transcriptionInput.value !== '' && transcriptionInput.value !== props.entry.transcription) ||
     addTranslations.value.length > 0 ||
@@ -31,6 +44,7 @@ const isChanged = computed(
     removeExamples.value.length > 0,
 )
 
+const partOfSpeechInput = ref<string>(props.entry.partOfSpeech)
 const foreignInput = ref<string>('')
 const transcriptionInput = ref<string>('')
 
@@ -59,6 +73,12 @@ function switchEditing() {
   if (!isEditorMode.value && isChanged.value) {
     saveChanges()
   }
+}
+
+function playAudio(url: string) {
+  if (!url) return
+  const speechAudio = new Audio(url)
+  speechAudio.play()
 }
 
 function emitDelete() {
@@ -105,13 +125,24 @@ function saveChanges() {
         :is-editor-mode="isEditorMode"
       />
 
-      <EditableField
-        class="transcription"
-        v-model="transcriptionInput"
-        placeholder="[transcription]"
-        :prev-value="entry.transcription"
-        :is-editor-mode="isEditorMode"
-      />
+      <div class="transcription">
+        <span class="speech-container">
+          <EditableField
+            v-model="transcriptionInput"
+            placeholder="[transcription]"
+            :prev-value="entry.transcription"
+            :is-editor-mode="isEditorMode"
+          />
+          <button
+            v-if="entry.transcriptionAudioUrl && !isEditorMode"
+            type="button"
+            class="audio-button"
+            @click.stop="playAudio(entry.transcriptionAudioUrl)"
+          >
+            volume_down
+          </button>
+        </span>
+      </div>
 
       <EditableList
         class="translations"
@@ -119,6 +150,14 @@ function saveChanges() {
         :exist-items="entry.translations"
         :is-editor-mode="isEditorMode"
         @update="handleTranslationsUpdate"
+      />
+
+      <EditableSelect
+        class="part-of-speech"
+        v-model="partOfSpeechInput"
+        :prev-value="entry.partOfSpeech"
+        :options="speechOptions"
+        :is-editor-mode="isEditorMode"
       />
     </header>
 
@@ -165,7 +204,7 @@ function saveChanges() {
 
   header {
     display: grid;
-    grid-template-columns: 30% 30% 40%;
+    grid-template-columns: 28% 28% auto auto;
     background-color: $plane-white;
 
     padding: 10px 15px;
@@ -178,6 +217,31 @@ function saveChanges() {
 
     .transcription {
       grid-column: 2;
+
+      .speech-container {
+        display: inline-flex;
+        justify-content: start;
+        align-items: start;
+        flex-wrap: nowrap;
+
+        margin-right: 4px;
+
+        .audio-button {
+          @include iconize-text;
+
+          color: $shadow;
+          background-color: inherit;
+
+          box-shadow: none;
+
+          padding: 0px;
+
+          opacity: 65%;
+
+          line-height: 0.88;
+          font-size: 24px;
+        }
+      }
     }
 
     .translations {
@@ -194,10 +258,14 @@ function saveChanges() {
         justify-content: space-between;
       }
     }
+
+    .part-of-speech {
+      grid-column: 4;
+    }
   }
 
   &.editor-mode header {
-    grid-template-columns: 50% 50%;
+    grid-template-columns: 40% auto auto;
 
     .foreign {
       grid-column: 1;
@@ -211,11 +279,22 @@ function saveChanges() {
       margin: 0px;
       margin-top: 28px;
       margin-bottom: 5px;
+
+      .speech-container {
+        flex-direction: row-reverse;
+      }
     }
 
     .translations {
       grid-column: 2;
       grid-row: 1/3;
+    }
+
+    .part-of-speech {
+      grid-column: 3;
+      grid-row: 1;
+
+      justify-self: end;
     }
   }
 

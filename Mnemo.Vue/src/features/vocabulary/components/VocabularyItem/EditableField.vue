@@ -9,7 +9,7 @@ const props = defineProps<{
 }>()
 
 const emits = defineEmits<{
-  (e: 'update:modelValue', query: string): void
+  (e: 'update:modelValue', value: string): void
 }>()
 
 watch(
@@ -21,7 +21,7 @@ watch(
 </script>
 
 <template>
-  <div>
+  <div class="editable-wrapper">
     <input
       v-if="isEditorMode"
       type="text"
@@ -35,13 +35,20 @@ watch(
 </template>
 
 <style lang="scss" scoped>
-input {
-  color: $black-font;
-  background-color: transparent;
+.editable-wrapper {
+  word-break: break-all;
+  text-wrap-mode: wrap;
+  text-wrap-style: stable;
 
-  height: 20px;
-  width: 80%;
+  input {
+    color: $black-font;
+    background-color: transparent;
 
-  font-size: 16px;
+    height: 20px;
+    width: 100%;
+
+    font-size: 16px;
+    line-height: 1;
+  }
 }
 </style>
