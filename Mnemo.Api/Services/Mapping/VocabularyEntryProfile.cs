@@ -10,7 +10,8 @@ namespace Mnemo.Services.Mapping
     {
         public VocabularyEntryProfile()
         {
-            CreateMap<VocabularyEntry, EntryResponse>();
+            CreateMap<VocabularyEntry, EntryResponse>()
+                .ForMember(dest => dest.PartOfSpeech, opt => opt.MapFrom(src => src.PartOfSpeech.ToString().ToLower()));
 
             CreateMap<CreateEntryRequest, VocabularyEntry>()
                 .ForMember(dest => dest.Foreign, opt => opt.MapFrom(src => TextNormalizer.NormalizeForeign(src.Foreign)))
