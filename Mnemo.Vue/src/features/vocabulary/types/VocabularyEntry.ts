@@ -11,6 +11,7 @@ export interface VocabularyEntry {
 }
 
 export interface VocabularyCreateRequest {
+  partOfSpeech?: string
   foreign: string
   transcription?: string
   examples?: string[]
@@ -18,10 +19,15 @@ export interface VocabularyCreateRequest {
 }
 
 export interface VocabularyPatchRequest {
+  partOfSpeech?: string
   foreign?: string
   transcription?: string
   examplesAdd?: string[]
   examplesRemove?: string[]
   translationsAdd?: string[]
   translationsRemove?: string[]
+  synonymsAdd?: string[]
+  synonymsRemove?: string[]
+  antonymsAdd?: string[]
+  antonymsRemove?: string[]
 }

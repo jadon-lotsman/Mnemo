@@ -1,18 +1,24 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue'
 
-const props = defineProps<{
-  modelValue: string
-  prevValue: string
-  options: string[]
-  isEditorMode: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: string
+    prevValue: string
+    options: string[]
+    isEditorMode: boolean
+    initialOpen?: boolean
+  }>(),
+  {
+    initialOpen: false,
+  },
+)
 
 const emits = defineEmits<{
   (e: 'update:modelValue', value: string): void
 }>()
 
-const isOpen = ref<boolean>(false)
+const isOpen = ref<boolean>(props.initialOpen)
 
 const displayValue = computed(() => {
   const raw = props.modelValue || props.prevValue
@@ -36,6 +42,13 @@ function selectOption(option: string) {
 }
 
 watch(
+  () => props.initialOpen,
+  (newVal) => {
+    isOpen.value = newVal
+  },
+)
+
+watch(
   () => props.prevValue || props.isEditorMode,
   () => {
     isOpen.value = false
@@ -46,7 +59,7 @@ watch(
 <template>
   <div class="editable-wrapper">
     <div v-if="!isEditorMode" class="part-of-speech">
-      <span v-if="modelValue !== 'unknown' || prevValue !== 'unknown'"> ({{ displayValue }}) </span>
+      <span v-if="modelValue !== '' || prevValue !== 'unknown'"> ({{ displayValue }}) </span>
     </div>
     <div v-else class="select" :class="{ 'select--open': isOpen }">
       <div class="select-input" @click.stop="toggleOpen()">
@@ -97,27 +110,28 @@ watch(
 
     background-color: $plane-gray;
 
-    border-radius: 8px;
+    border-radius: 12px;
 
-    width: 70px;
+    width: 65px;
 
     .select-input {
-      padding: 2px 10px;
+      padding: 3px 10px;
     }
 
     .options {
       position: absolute;
 
-      width: 70px;
+      border-radius: 0px 0px 12px 12px;
+
+      width: 65px;
 
       background-color: $plane-gray;
 
-      border-radius: 0px 0px 8px 8px;
       padding: 2px 10px;
     }
 
     &--open {
-      border-radius: 8px 8px 0px 0px;
+      border-radius: 12px 12px 0px 0px;
     }
   }
 }

@@ -5,7 +5,7 @@ import Launcher from '@/features/launcher/components/LauncherComponent.vue'
 import Vocabulary from '@/features/vocabulary/components/VocabularyComponent.vue'
 import { useVocabularyStore } from '@/features/vocabulary/stores/VocabularyStore'
 import { useRouter } from 'vue-router'
-import { ROUTE_NAMES } from '@/router'
+import { ROUTE_NAMES } from '@/shared/constants/RouteConst'
 
 const router = useRouter()
 const vocabulary = useVocabularyStore()

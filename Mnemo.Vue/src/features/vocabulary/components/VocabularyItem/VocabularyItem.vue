@@ -8,6 +8,10 @@ import type {
 import EditableField from './EditableField.vue'
 import EditableList from './EditableList.vue'
 import EditableSelect from './EditableSelect.vue'
+import { PART_OF_SPEECH_OPTIONS } from '@/shared/constants/PartOfSpeech.ts'
+import { useAudioStore } from '../../stores/AudioStore.ts'
+
+const audio = useAudioStore()
 
 const props = defineProps<{
   entry: VocabularyEntry
@@ -18,17 +22,6 @@ const emits = defineEmits<{
   (e: 'delete', id: number): void
   (e: 'patch', id: number, bodyRequest: VocabularyPatchRequest): void
 }>()
-
-const speechOptions = ref<string[]>([
-  'noun',
-  'verb',
-  'adjective',
-  'pronoun',
-  'adverb',
-  'preposition',
-  'conjunction',
-  'interjection',
-])
 
 const isTemplateMode: boolean = props.entry.id < 0
 const isEditorMode = ref<boolean>(isTemplateMode)
@@ -44,7 +37,7 @@ const isChanged = computed(
     removeExamples.value.length > 0,
 )
 
-const partOfSpeechInput = ref<string>(props.entry.partOfSpeech)
+const partOfSpeechInput = ref<string>('')
 const foreignInput = ref<string>('')
 const transcriptionInput = ref<string>('')
 
@@ -75,10 +68,10 @@ function switchEditing() {
   }
 }
 
-function playAudio(url: string) {
+function toggleAudio(url: string) {
   if (!url) return
-  const speechAudio = new Audio(url)
-  speechAudio.play()
+  if (audio.isPlayingThis(url)) audio.stop()
+  else audio.play(url)
 }
 
 function emitDelete() {
@@ -91,6 +84,7 @@ function saveChanges() {
 
   if (isTemplateMode) {
     emits('create', {
+      partOfSpeech: partOfSpeechInput.value,
       foreign: foreignInput.value,
       transcription: transcriptionInput.value,
       examples: addExamples.value,
@@ -98,6 +92,7 @@ function saveChanges() {
     })
   } else {
     emits('patch', props.entry.id, {
+      partOfSpeech: partOfSpeechInput.value,
       foreign: foreignInput.value,
       transcription: transcriptionInput.value,
       examplesAdd: addExamples.value,
@@ -137,9 +132,9 @@ function saveChanges() {
             v-if="entry.transcriptionAudioUrl && !isEditorMode"
             type="button"
             class="audio-button"
-            @click.stop="playAudio(entry.transcriptionAudioUrl)"
+            @click.stop="toggleAudio(entry.transcriptionAudioUrl)"
           >
-            volume_down
+            {{ audio.isPlayingThis(entry.transcriptionAudioUrl) ? 'volume_up' : 'volume_down' }}
           </button>
         </span>
       </div>
@@ -156,7 +151,7 @@ function saveChanges() {
         class="part-of-speech"
         v-model="partOfSpeechInput"
         :prev-value="entry.partOfSpeech"
-        :options="speechOptions"
+        :options="PART_OF_SPEECH_OPTIONS"
         :is-editor-mode="isEditorMode"
       />
     </header>
@@ -204,7 +199,7 @@ function saveChanges() {
 
   header {
     display: grid;
-    grid-template-columns: 28% 28% auto auto;
+    grid-template-columns: 28% 29% auto auto;
     background-color: $plane-white;
 
     padding: 10px 15px;
@@ -225,6 +220,7 @@ function saveChanges() {
         flex-wrap: nowrap;
 
         margin-right: 4px;
+        gap: 2px;
 
         .audio-button {
           @include iconize-text;
@@ -238,7 +234,7 @@ function saveChanges() {
 
           opacity: 65%;
 
-          line-height: 0.88;
+          line-height: 0.8;
           font-size: 24px;
         }
       }
@@ -265,7 +261,7 @@ function saveChanges() {
   }
 
   &.editor-mode header {
-    grid-template-columns: 40% auto auto;
+    grid-template-columns: auto 40% auto;
 
     .foreign {
       grid-column: 1;

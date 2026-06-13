@@ -2,9 +2,9 @@
 import { onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useNotify } from '@/shared/composables/useNotify'
-import { ROUTE_NAMES } from '@/router'
 import { apiRequest } from '@/shared/utils/ApiRequest'
 import CollapsibleSection from '@/shared/components/CollapsibleSection.vue'
+import { ROUTE_NAMES } from '@/shared/constants/RouteConst'
 
 const route = useRoute()
 const router = useRouter()
