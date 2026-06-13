@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
+using Mnemo.Shared;
 
 namespace Mnemo.Data.Queries
 {
@@ -40,8 +41,8 @@ namespace Mnemo.Data.Queries
         public async Task<bool> ExistsByIdAsync(int userId, int id)
             => await GetByUserIdQuery(userId).AnyAsync(e => e.Id == id);
 
-        public async Task<bool> ExistsByForeignAsync(int userId, string foreign)
-            => await GetByUserIdQuery(userId).AnyAsync(e => e.Foreign == foreign);
+        public async Task<bool> ExistsByForeignAndPartOfSpeechAsync(int userId, string foreign, PartOfSpeech partOfSpeech)
+            => await GetByUserIdQuery(userId).AnyAsync(e => e.Foreign == foreign && e.PartOfSpeech == partOfSpeech);
 
 
         public async Task<VocabularyEntry?> GetByIdAsync(int userId, int id)
@@ -56,10 +57,10 @@ namespace Mnemo.Data.Queries
             return list.ToDictionary(e => e.Id);
         }
 
-        public async Task<VocabularyEntry?> GetByForeignAsync(int userId, string foreign)
-            => await GetByUserIdQuery(userId).FirstOrDefaultAsync(e => e.Foreign == foreign);
+        public async Task<List<VocabularyEntry>> GetByForeignAsync(int userId, string foreign)
+            => await GetByUserIdQuery(userId).Where(e => e.Foreign == foreign).ToListAsync();
 
-        public async Task<List<VocabularyEntry>> GetByForeignAndTranslationsAsync(int userId, string query, int limit=20)
+        public async Task<List<VocabularyEntry>> GetByQueryAsync(int userId, string query, int limit=20)
         {
             query = query.ToLower();
 

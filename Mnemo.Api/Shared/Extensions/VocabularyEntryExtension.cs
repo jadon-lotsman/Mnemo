@@ -7,6 +7,16 @@ namespace Mnemo.Shared.Extensions
     {
         public static RequestResult<bool> Patch(this VocabularyEntry entry, PatchEntryRequest patch)
         {
+            if (!string.IsNullOrWhiteSpace(patch.PartOfSpeech))
+            {
+                PartOfSpeech partOfSpeech;
+
+                if (!Enum.TryParse<PartOfSpeech>(patch.PartOfSpeech, true, out partOfSpeech))
+                    return RequestResult<bool>.Failure(ErrorCode.InvalidData, $"PartOfSpeech '{patch.PartOfSpeech}' is invalid");
+
+                entry.PartOfSpeech = partOfSpeech;
+            }
+
             if (!string.IsNullOrWhiteSpace(patch.Foreign))
             {
                 string normalized = TextNormalizer.NormalizeForeign(patch.Foreign);
@@ -49,6 +59,30 @@ namespace Mnemo.Shared.Extensions
             {
                 var toRemoveNormalized = TextNormalizer.NormalizeEnumerable(patch.TranslationsRemove, TextNormalizer.NormalizeTranslation);
                 entry.Translations.RemoveAll(toRemoveNormalized.Contains);
+            }
+
+
+            if (patch.SynonymsAdd != null)
+            {
+                var toAddNormalized = TextNormalizer.NormalizeEnumerable(patch.SynonymsAdd, TextNormalizer.NormalizeForeign);
+                entry.Synonyms.AddRange(toAddNormalized);
+            }
+            if (patch.SynonymsRemove != null)
+            {
+                var toRemoveNormalized = TextNormalizer.NormalizeEnumerable(patch.SynonymsRemove, TextNormalizer.NormalizeForeign);
+                entry.Synonyms.RemoveAll(toRemoveNormalized.Contains);
+            }
+
+
+            if (patch.AntonymsAdd != null)
+            {
+                var toAddNormalized = TextNormalizer.NormalizeEnumerable(patch.AntonymsAdd, TextNormalizer.NormalizeForeign);
+                entry.Antonyms.AddRange(toAddNormalized);
+            }
+            if (patch.AntonymsRemove != null)
+            {
+                var toRemoveNormalized = TextNormalizer.NormalizeEnumerable(patch.AntonymsRemove, TextNormalizer.NormalizeForeign);
+                entry.Antonyms.RemoveAll(toRemoveNormalized.Contains);
             }
 
             return RequestResult<bool>.Success(true);

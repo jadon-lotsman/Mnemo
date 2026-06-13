@@ -34,9 +34,10 @@ namespace Mnemo.Services
             if (!await _accountQueries.ExistsByIdAsync(userId))
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.UserNotFound);
 
+
             var entry = _mapper.Map<VocabularyEntry>(request);
 
-            if (await _vocabularyQueries.ExistsByForeignAsync(userId, entry.Foreign))
+            if (await _vocabularyQueries.ExistsByForeignAndPartOfSpeechAsync(userId, entry.Foreign, entry.PartOfSpeech))
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.DuplicateEntry, "Entry already exists");
 
 
@@ -58,6 +59,41 @@ namespace Mnemo.Services
 
             if (currentEntry == null)
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.EntryNotFound);
+
+
+            string? newForeign = null;
+            if (!string.IsNullOrWhiteSpace(request.Foreign))
+            {
+                string normalized = TextNormalizer.NormalizeForeign(request.Foreign);
+
+                if (string.IsNullOrWhiteSpace(normalized) || !normalized.Any(char.IsLetter))
+                    return RequestResult<VocabularyEntry>.Failure(ErrorCode.InvalidData, $"Foreign '{request.Foreign}' is invalid");
+
+                newForeign = normalized;
+            }
+
+            PartOfSpeech? newPartOfSpeech = null;
+            if (!string.IsNullOrWhiteSpace(request.PartOfSpeech))
+            {
+                PartOfSpeech partOfSpeech;
+
+                if (!Enum.TryParse<PartOfSpeech>(request.PartOfSpeech, true, out partOfSpeech))
+                    return RequestResult<VocabularyEntry>.Failure(ErrorCode.InvalidData, $"PartOfSpeech '{request.PartOfSpeech}' is invalid");
+
+                newPartOfSpeech = partOfSpeech;
+            }
+
+            bool needDuplicateCheck = (newForeign != null && newForeign != currentEntry.Foreign) ||
+                     (newPartOfSpeech != null && newPartOfSpeech.Value != currentEntry.PartOfSpeech);
+
+            if (needDuplicateCheck)
+            {
+                string checkForeign = newForeign ?? currentEntry.Foreign;
+                PartOfSpeech checkPartOfSpeech = newPartOfSpeech ?? currentEntry.PartOfSpeech;
+
+                if (await _vocabularyQueries.ExistsByForeignAndPartOfSpeechAsync(userId, checkForeign, checkPartOfSpeech))
+                    return RequestResult<VocabularyEntry>.Failure(ErrorCode.DuplicateEntry, "Entry already exists");
+            }
 
 
             var result = currentEntry.Patch(request);
