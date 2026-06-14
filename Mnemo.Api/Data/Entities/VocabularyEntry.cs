@@ -6,9 +6,9 @@ namespace Mnemo.Data.Entities
     {
         public int Id { get; set; }
 
-        public PartOfSpeech PartOfSpeech { get; set; }
+        public PartOfSpeech? PartOfSpeech { get; set; }
         public string Foreign { get; set; }
-        public string Transcription { get; set; }
+        public string? Transcription { get; set; }
         public string? TranscriptionAudioUrl { get; set; }
         public List<string> Examples { get; set; }
         public List<string> Translations { get; set; }
@@ -24,7 +24,6 @@ namespace Mnemo.Data.Entities
 
         public VocabularyEntry()
         {
-            PartOfSpeech = PartOfSpeech.Unknown;
             Examples = new List<string>();
             Translations = new List<string>();
             Synonyms = new List<string>();

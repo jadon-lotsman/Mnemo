@@ -41,7 +41,7 @@ namespace Mnemo.Data.Queries
         public async Task<bool> ExistsByIdAsync(int userId, int id)
             => await GetByUserIdQuery(userId).AnyAsync(e => e.Id == id);
 
-        public async Task<bool> ExistsByForeignAndPartOfSpeechAsync(int userId, string foreign, PartOfSpeech partOfSpeech)
+        public async Task<bool> ExistsByKeysAsync(int userId, string foreign, PartOfSpeech? partOfSpeech)
             => await GetByUserIdQuery(userId).AnyAsync(e => e.Foreign == foreign && e.PartOfSpeech == partOfSpeech);
 
 
