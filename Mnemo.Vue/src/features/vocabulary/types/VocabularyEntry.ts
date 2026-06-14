@@ -1,16 +1,16 @@
 export interface VocabularyEntry {
   id: number
-  partOfSpeech: string
+  partOfSpeech?: string
   foreign: string
-  transcription: string
-  transcriptionAudioUrl: string
+  transcription?: string
+  transcriptionAudioUrl?: string
   examples: string[]
   translations: string[]
   synonyms: string[]
   antonyms: string[]
 }
 
-export interface VocabularyCreateRequest {
+export interface CreateEntryRequest {
   partOfSpeech?: string
   foreign: string
   transcription?: string
@@ -18,7 +18,7 @@ export interface VocabularyCreateRequest {
   translations: string[]
 }
 
-export interface VocabularyPatchRequest {
+export interface PatchEntryRequest {
   partOfSpeech?: string
   foreign?: string
   transcription?: string

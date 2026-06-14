@@ -4,7 +4,7 @@ import { computed, ref, watch } from 'vue'
 const props = withDefaults(
   defineProps<{
     modelValue: string
-    prevValue: string
+    prevValue?: string
     options: string[]
     isEditorMode: boolean
     initialOpen?: boolean
@@ -22,7 +22,7 @@ const isOpen = ref<boolean>(props.initialOpen)
 
 const displayValue = computed(() => {
   const raw = props.modelValue || props.prevValue
-  return raw ? raw.slice(0, 3) + '.' : ''
+  return raw ? raw.slice(0, 3) + '.' : '---'
 })
 
 const displayOptions = computed(() =>
@@ -59,7 +59,7 @@ watch(
 <template>
   <div class="editable-wrapper">
     <div v-if="!isEditorMode" class="part-of-speech">
-      <span v-if="modelValue !== '' || prevValue !== 'unknown'"> ({{ displayValue }}) </span>
+      <span v-if="modelValue !== '' || prevValue !== null"> ({{ displayValue }}) </span>
     </div>
     <div v-else class="select" :class="{ 'select--open': isOpen }">
       <div class="select-input" @click.stop="toggleOpen()">

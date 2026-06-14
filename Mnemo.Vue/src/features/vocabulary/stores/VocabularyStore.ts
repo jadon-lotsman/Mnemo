@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type {
-  VocabularyCreateRequest,
+  CreateEntryRequest,
   VocabularyEntry,
-  VocabularyPatchRequest,
+  PatchEntryRequest,
 } from '../types/VocabularyEntry'
 import { apiRequest } from '@/shared/utils/ApiRequest'
 
@@ -34,7 +34,7 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
     }
   }
 
-  async function addEntry(body: VocabularyCreateRequest) {
+  async function addEntry(body: CreateEntryRequest) {
     const result = await apiRequest<VocabularyEntry>('/api/vocabulary/entries/', {
       method: 'POST',
       body: JSON.stringify(body),
@@ -43,7 +43,7 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
     entries.value.push(result)
   }
 
-  async function patchEntry(id: number, body: VocabularyPatchRequest) {
+  async function patchEntry(id: number, body: PatchEntryRequest) {
     const result = await apiRequest<VocabularyEntry>(`/api/vocabulary/entries/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(body),

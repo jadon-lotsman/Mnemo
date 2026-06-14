@@ -2,8 +2,8 @@
 import { computed, ref } from 'vue'
 import type {
   VocabularyEntry,
-  VocabularyCreateRequest,
-  VocabularyPatchRequest,
+  CreateEntryRequest,
+  PatchEntryRequest,
 } from '../../types/VocabularyEntry'
 import EditableField from './EditableField.vue'
 import EditableList from './EditableList.vue'
@@ -18,34 +18,34 @@ const props = defineProps<{
 }>()
 
 const emits = defineEmits<{
-  (e: 'create', bodyRequest: VocabularyCreateRequest): void
+  (e: 'create', bodyRequest: CreateEntryRequest): void
   (e: 'delete', id: number): void
-  (e: 'patch', id: number, bodyRequest: VocabularyPatchRequest): void
+  (e: 'patch', id: number, bodyRequest: PatchEntryRequest): void
 }>()
 
 const isTemplateMode: boolean = props.entry.id < 0
 const isEditorMode = ref<boolean>(isTemplateMode)
+
+const inputPartOfSpeech = ref<string>('')
+const inputForeign = ref<string>('')
+const inputTranscription = ref<string>('')
+
+const addTranslations = ref<string[]>([])
+const removeTranslations = ref<string[]>([])
+const addExamples = ref<string[]>([])
+const removeExamples = ref<string[]>([])
+
 const isChanged = computed(
   () =>
     isTemplateMode ||
-    partOfSpeechInput.value !== '' ||
-    (foreignInput.value !== '' && foreignInput.value !== props.entry.foreign) ||
-    (transcriptionInput.value !== '' && transcriptionInput.value !== props.entry.transcription) ||
+    (inputPartOfSpeech.value !== '' && inputPartOfSpeech.value != props.entry.partOfSpeech) ||
+    (inputForeign.value !== '' && inputForeign.value !== props.entry.foreign) ||
+    (inputTranscription.value !== '' && inputTranscription.value !== props.entry.transcription) ||
     addTranslations.value.length > 0 ||
     removeTranslations.value.length > 0 ||
     addExamples.value.length > 0 ||
     removeExamples.value.length > 0,
 )
-
-const partOfSpeechInput = ref<string>('')
-const foreignInput = ref<string>('')
-const transcriptionInput = ref<string>('')
-
-const addTranslations = ref<string[]>([])
-const removeTranslations = ref<string[]>([])
-
-const addExamples = ref<string[]>([])
-const removeExamples = ref<string[]>([])
 
 function handleExamplesUpdate(added: string[], removed: string[]) {
   addExamples.value = added
@@ -59,7 +59,7 @@ function handleTranslationsUpdate(added: string[], removed: string[]) {
 
 function switchEditing() {
   const canSwitch =
-    !isTemplateMode || (foreignInput.value.length > 0 && addTranslations.value.length > 0)
+    !isTemplateMode || (inputForeign.value.length > 0 && addTranslations.value.length > 0)
 
   if (canSwitch) isEditorMode.value = !isEditorMode.value
 
@@ -79,28 +79,48 @@ function emitDelete() {
 }
 
 function saveChanges() {
-  foreignInput.value = foreignInput.value.trim()
-  transcriptionInput.value = transcriptionInput.value.trim()
+  const finalForeign = inputForeign.value.trim()
+  const finalTranscription = inputTranscription.value.trim()
+  const finalPartOfSpeech = inputPartOfSpeech.value.trim()
 
   if (isTemplateMode) {
     emits('create', {
-      partOfSpeech: partOfSpeechInput.value,
-      foreign: foreignInput.value,
-      transcription: transcriptionInput.value,
+      partOfSpeech: finalPartOfSpeech || undefined,
+      foreign: finalForeign,
+      transcription: finalTranscription || undefined,
       examples: addExamples.value,
       translations: addTranslations.value,
     })
-  } else {
-    emits('patch', props.entry.id, {
-      partOfSpeech: partOfSpeechInput.value,
-      foreign: foreignInput.value,
-      transcription: transcriptionInput.value,
-      examplesAdd: addExamples.value,
-      examplesRemove: removeExamples.value,
-      translationsAdd: addTranslations.value,
-      translationsRemove: removeTranslations.value,
-    })
+    return
   }
+
+  const patchRequest: PatchEntryRequest = {}
+
+  if (finalPartOfSpeech !== '' && finalPartOfSpeech !== props.entry.partOfSpeech) {
+    patchRequest.partOfSpeech = finalPartOfSpeech
+  }
+  if (finalForeign !== '' && finalForeign !== props.entry.foreign) {
+    patchRequest.foreign = finalForeign
+  }
+  if (finalTranscription != '' && finalTranscription !== props.entry.transcription) {
+    patchRequest.transcription = finalTranscription
+  }
+  if (addExamples.value.length > 0) {
+    patchRequest.examplesAdd = addExamples.value
+  }
+  if (removeExamples.value.length > 0) {
+    patchRequest.examplesRemove = removeExamples.value
+  }
+  if (addTranslations.value.length > 0) {
+    patchRequest.translationsAdd = addTranslations.value
+  }
+  if (removeTranslations.value.length > 0) {
+    patchRequest.translationsRemove = removeTranslations.value
+  }
+
+  if (Object.keys(patchRequest).length === 0) return
+
+  emits('patch', props.entry.id, patchRequest)
 }
 </script>
 
@@ -114,7 +134,7 @@ function saveChanges() {
     <header>
       <EditableField
         class="foreign"
-        v-model="foreignInput"
+        v-model="inputForeign"
         placeholder="foreign"
         :prev-value="entry.foreign"
         :is-editor-mode="isEditorMode"
@@ -123,7 +143,7 @@ function saveChanges() {
       <div class="transcription">
         <span class="speech-container">
           <EditableField
-            v-model="transcriptionInput"
+            v-model="inputTranscription"
             placeholder="[transcription]"
             :prev-value="entry.transcription"
             :is-editor-mode="isEditorMode"
@@ -149,7 +169,7 @@ function saveChanges() {
 
       <EditableSelect
         class="part-of-speech"
-        v-model="partOfSpeechInput"
+        v-model="inputPartOfSpeech"
         :prev-value="entry.partOfSpeech"
         :options="PART_OF_SPEECH_OPTIONS"
         :is-editor-mode="isEditorMode"

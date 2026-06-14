@@ -3,7 +3,7 @@ import { watch } from 'vue'
 
 const props = defineProps<{
   modelValue: string
-  prevValue: string
+  prevValue?: string
   placeholder: string
   isEditorMode: boolean
 }>()
