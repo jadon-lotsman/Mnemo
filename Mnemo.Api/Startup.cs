@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -29,6 +30,9 @@ namespace Mnemo
             // Add SQLite AppDbContext
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+
+            // Add Validators
+            services.AddValidatorsFromAssemblyContaining<Program>();
 
             // Add AutoMapper
             services.AddAutoMapper(typeof(Program));

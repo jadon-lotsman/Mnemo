@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Mnemo.Contracts.Repetition;
-using Mnemo.Contracts.Repetition.Request;
+using Mnemo.Contracts.Repetition.Requests;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Services.RepetitionService;

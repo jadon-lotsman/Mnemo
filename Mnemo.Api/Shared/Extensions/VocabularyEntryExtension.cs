@@ -5,87 +5,99 @@ namespace Mnemo.Shared.Extensions
 {
     public static class VocabularyEntryExtension
     {
-        public static RequestResult<bool> Patch(this VocabularyEntry entry, PatchEntryRequest patch)
+        public static bool TryPatch(this VocabularyEntry entry, PatchEntryRequest patch)
         {
-            if (!string.IsNullOrWhiteSpace(patch.PartOfSpeech))
+            PartOfSpeech? _partOfSpeech = null;
+            if (patch.PartOfSpeech != null)
             {
-                PartOfSpeech partOfSpeech;
+                if (!Enum.TryParse<PartOfSpeech>(patch.PartOfSpeech, true, out var parsedPartOfSpeech))
+                    return false;
 
-                if (!Enum.TryParse<PartOfSpeech>(patch.PartOfSpeech, true, out partOfSpeech))
-                    return RequestResult<bool>.Failure(ErrorCode.InvalidData, $"PartOfSpeech '{patch.PartOfSpeech}' is invalid");
-
-                entry.PartOfSpeech = partOfSpeech;
+                _partOfSpeech = parsedPartOfSpeech;
             }
 
-            if (!string.IsNullOrWhiteSpace(patch.Foreign))
+            string? _foreign = null;
+            if (patch.Foreign != null)
             {
                 string normalized = TextNormalizer.NormalizeForeign(patch.Foreign);
+                if (string.IsNullOrWhiteSpace(normalized))
+                    return false;
 
-                if (string.IsNullOrWhiteSpace(normalized) || !normalized.Any(char.IsLetter))
-                    return RequestResult<bool>.Failure(ErrorCode.InvalidData, $"Foreign '{patch.Foreign}' is invalid");
-
-                entry.Foreign = normalized;
+                _foreign = normalized;
             }
 
-            if (!string.IsNullOrWhiteSpace(patch.Transcription))
+            string? _transcription = null;
+            if (patch.Transcription != null)
             {
                 string normalized = TextNormalizer.NormalizeTranscription(patch.Transcription);
-
                 if (string.IsNullOrWhiteSpace(normalized))
-                    return RequestResult<bool>.Failure(ErrorCode.InvalidData, $"Transcription '{patch.Transcription}' is invalid");
+                    return false;
 
-                entry.Transcription = normalized;
+                _transcription = normalized;
             }
 
 
+            List<string>? _examplesToAdd = null;
             if (patch.ExamplesAdd != null)
-            {
-                var toAddNormalized = TextNormalizer.NormalizeEnumerable(patch.ExamplesAdd, TextNormalizer.NormalizeExample);
-                entry.Examples.AddRange(toAddNormalized);
-            }
+                _examplesToAdd = TextNormalizer.NormalizeEnumerable(patch.ExamplesAdd, TextNormalizer.NormalizeExample);
+
+            List<string>? _examplesToRemove = null;
             if (patch.ExamplesRemove != null)
-            {
-                var toRemoveNormalized = TextNormalizer.NormalizeEnumerable(patch.ExamplesRemove, TextNormalizer.NormalizeExample);
-                entry.Examples.RemoveAll(toRemoveNormalized.Contains);
-            }
+                _examplesToRemove = TextNormalizer.NormalizeEnumerable(patch.ExamplesRemove, TextNormalizer.NormalizeExample);
 
-
+            List<string>? _translationsToAdd = null;
             if (patch.TranslationsAdd != null)
-            {
-                var toAddNormalized = TextNormalizer.NormalizeEnumerable(patch.TranslationsAdd, TextNormalizer.NormalizeTranslation);
-                entry.Translations.AddRange(toAddNormalized);
-            }
+                _translationsToAdd = TextNormalizer.NormalizeEnumerable(patch.TranslationsAdd, TextNormalizer.NormalizeTranslation);
+
+            List<string>? _translationsToRemove = null;
             if (patch.TranslationsRemove != null)
-            {
-                var toRemoveNormalized = TextNormalizer.NormalizeEnumerable(patch.TranslationsRemove, TextNormalizer.NormalizeTranslation);
-                entry.Translations.RemoveAll(toRemoveNormalized.Contains);
-            }
+                _translationsToRemove = TextNormalizer.NormalizeEnumerable(patch.TranslationsRemove, TextNormalizer.NormalizeTranslation);
 
-
+            List<string>? _synonymsToAdd = null;
             if (patch.SynonymsAdd != null)
-            {
-                var toAddNormalized = TextNormalizer.NormalizeEnumerable(patch.SynonymsAdd, TextNormalizer.NormalizeForeign);
-                entry.Synonyms.AddRange(toAddNormalized);
-            }
+                _synonymsToAdd = TextNormalizer.NormalizeEnumerable(patch.SynonymsAdd, TextNormalizer.NormalizeForeign);
+
+            List<string>? _synonymsToRemove = null;
             if (patch.SynonymsRemove != null)
-            {
-                var toRemoveNormalized = TextNormalizer.NormalizeEnumerable(patch.SynonymsRemove, TextNormalizer.NormalizeForeign);
-                entry.Synonyms.RemoveAll(toRemoveNormalized.Contains);
-            }
+                _synonymsToRemove = TextNormalizer.NormalizeEnumerable(patch.SynonymsRemove, TextNormalizer.NormalizeForeign);
 
-
+            List<string>? _antonymsToAdd = null;
             if (patch.AntonymsAdd != null)
-            {
-                var toAddNormalized = TextNormalizer.NormalizeEnumerable(patch.AntonymsAdd, TextNormalizer.NormalizeForeign);
-                entry.Antonyms.AddRange(toAddNormalized);
-            }
-            if (patch.AntonymsRemove != null)
-            {
-                var toRemoveNormalized = TextNormalizer.NormalizeEnumerable(patch.AntonymsRemove, TextNormalizer.NormalizeForeign);
-                entry.Antonyms.RemoveAll(toRemoveNormalized.Contains);
-            }
+                _antonymsToAdd = TextNormalizer.NormalizeEnumerable(patch.AntonymsAdd, TextNormalizer.NormalizeForeign);
 
-            return RequestResult<bool>.Success(true);
+            List<string>? _antonymsToRemove = null;
+            if (patch.AntonymsRemove != null)
+                _antonymsToRemove = TextNormalizer.NormalizeEnumerable(patch.AntonymsRemove, TextNormalizer.NormalizeForeign);
+
+
+            if (_partOfSpeech != null)
+                entry.PartOfSpeech = _partOfSpeech.Value;
+            if (_foreign != null)
+                entry.Foreign = _foreign;
+            if (_transcription != null)
+                entry.Transcription = _transcription;
+
+            if (_examplesToAdd != null)
+                entry.Examples.AddRange(_examplesToAdd);
+            if (_examplesToRemove != null)
+                entry.Examples.RemoveAll(_examplesToRemove.Contains);
+
+            if (_translationsToAdd != null)
+                entry.Translations.AddRange(_translationsToAdd);
+            if (_translationsToRemove != null)
+                entry.Translations.RemoveAll(_translationsToRemove.Contains);
+
+            if (_synonymsToAdd != null)
+                entry.Synonyms.AddRange(_synonymsToAdd);
+            if (_synonymsToRemove != null)
+                entry.Synonyms.RemoveAll(_synonymsToRemove.Contains);
+
+            if (_antonymsToAdd != null)
+                entry.Antonyms.AddRange(_antonymsToAdd);
+            if (_antonymsToRemove != null)
+                entry.Antonyms.RemoveAll(_antonymsToRemove.Contains);
+
+            return true;
         }
     }
 }

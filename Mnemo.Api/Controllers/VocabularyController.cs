@@ -110,6 +110,7 @@ namespace Mnemo.Controllers
                 {
                     ErrorCode.InvalidData => BadRequest(new { message = result.ErrorMessage }),
                     ErrorCode.EntryNotFound => NotFound(new { message = result.ErrorMessage }),
+                    ErrorCode.DuplicateEntry => Conflict(new { message = result.ErrorMessage }),
                     _ => StatusCode(500, new { message = result.ErrorMessage })
                 };
             }
