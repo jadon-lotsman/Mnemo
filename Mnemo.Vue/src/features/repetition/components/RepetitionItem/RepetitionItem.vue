@@ -170,38 +170,20 @@ watch(
     color: $gray-font;
 
     margin-top: 15px;
-    padding: 2px 10px;
+    padding: 2px 8px;
 
     font-size: 16px;
-
-    &::before {
-      content: '';
-
-      position: absolute;
-      background-color: $plane-gray;
-
-      left: 0;
-      top: 0;
-
-      width: 3px;
-      height: 100%;
-      opacity: 50%;
-      border-radius: 8px;
-    }
   }
 
   .icon {
     @include iconize-text;
 
     display: block;
-    position: absolute;
-
-    top: 10px;
-    right: 15px;
 
     color: $shadow;
 
     font-size: 24px;
+    line-height: 0.8;
   }
 }
 </style>

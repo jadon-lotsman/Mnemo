@@ -51,7 +51,7 @@ function close() {
     color: $plane-gray;
 
     margin-right: 10px;
-    margin-top: 4px;
+    margin-top: 5px;
 
     font-size: 30px;
   }

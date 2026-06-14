@@ -1,6 +1,6 @@
 import router from '@/router'
-import { ROUTE_NAMES } from '@/router'
 import { useNotify } from '../composables/useNotify'
+import { ROUTE_NAMES } from '../constants/RouteConst'
 
 export async function apiRequest<T = unknown>(url: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('token')

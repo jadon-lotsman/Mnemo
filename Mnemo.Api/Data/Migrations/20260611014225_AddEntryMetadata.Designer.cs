@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Mnemo.Data;
 
@@ -10,9 +11,11 @@ using Mnemo.Data;
 namespace Mnemo.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260611014225_AddEntryMetadata")]
+    partial class AddEntryMetadata
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.8");
@@ -141,7 +144,7 @@ namespace Mnemo.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("PartOfSpeech")
+                    b.Property<int>("PartOfSpeech")
                         .HasColumnType("INTEGER");
 
                     b.PrimitiveCollection<string>("Synonyms")
@@ -149,6 +152,7 @@ namespace Mnemo.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Transcription")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("TranscriptionAudioUrl")

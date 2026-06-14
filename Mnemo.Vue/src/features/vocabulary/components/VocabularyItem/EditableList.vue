@@ -73,6 +73,7 @@ watch(
   () => {
     itemsAdded.value = []
     itemsRemoved.value = []
+    emitChanges()
   },
 )
 </script>
@@ -102,6 +103,12 @@ watch(
   display: flex;
   justify-content: start;
   align-items: center;
+
+  li {
+    word-break: break-all;
+    text-wrap-mode: wrap;
+    text-wrap-style: stable;
+  }
 
   button {
     @include iconize-text;

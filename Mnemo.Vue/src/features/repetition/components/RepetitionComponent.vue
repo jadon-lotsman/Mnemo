@@ -2,8 +2,9 @@
 import { computed, onMounted } from 'vue'
 import RepetitionItem from './RepetitionItem/RepetitionItem.vue'
 import { useRepetitionStore } from '../stores/RepetitionStore.ts'
-import router, { ROUTE_NAMES } from '@/router/index.ts'
+import router from '@/router/index.ts'
 import { useCalendarStore } from '@/features/calendar/stores/CalendarStore.ts'
+import { ROUTE_NAMES } from '@/shared/constants/RouteConst.ts'
 
 const calendar = useCalendarStore()
 const repetition = useRepetitionStore()

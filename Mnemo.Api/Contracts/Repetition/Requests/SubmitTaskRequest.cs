@@ -1,4 +1,4 @@
-﻿namespace Mnemo.Contracts.Repetition.Request
+﻿namespace Mnemo.Contracts.Repetition.Requests
 {
     public class SubmitTaskRequest
     {

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import RadioItem from '@/features/launcher/components/LauncherRadioItem.vue'
-import router, { ROUTE_NAMES } from '@/router'
+import router from '@/router'
 import { useRepetitionStore } from '@/features/repetition/stores/RepetitionStore'
+import { ROUTE_NAMES } from '@/shared/constants/RouteConst'
 
 const repetition = useRepetitionStore()
 

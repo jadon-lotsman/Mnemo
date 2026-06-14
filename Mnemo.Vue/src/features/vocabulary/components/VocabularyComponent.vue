@@ -5,9 +5,9 @@ import { useVocabularyStore } from '../stores/VocabularyStore.ts'
 import VocabularyItem from './VocabularyItem/VocabularyItem.vue'
 import VocabularyToolbar from './VocabularyToolbar.vue'
 import type {
-  VocabularyCreateRequest,
+  CreateEntryRequest,
   VocabularyEntry,
-  VocabularyPatchRequest,
+  PatchEntryRequest,
 } from '../types/VocabularyEntry.ts'
 import ItemSkeleton from './VocabularyItem/ItemSkeleton.vue'
 
@@ -32,22 +32,27 @@ async function onCreateButton() {
     templateEntry.value === undefined
       ? {
           id: -Date.now(),
+          partOfSpeech: undefined,
           foreign: '',
-          transcription: '',
+          transcription: undefined,
+          transcriptionAudioUrl: undefined,
           translations: [],
           examples: [],
+          synonyms: [],
+          antonyms: [],
         }
       : undefined
+
   templateEntry.value = toggleValue
 }
 
-async function onEntryCreate(bodyRequest: VocabularyCreateRequest) {
+async function onEntryCreate(bodyRequest: CreateEntryRequest) {
   templateEntry.value = undefined
 
   await vocabulary.addEntry(bodyRequest)
 }
 
-async function onEntryPatch(id: number, bodyRequest: VocabularyPatchRequest) {
+async function onEntryPatch(id: number, bodyRequest: PatchEntryRequest) {
   await vocabulary.patchEntry(id, bodyRequest)
 }
 

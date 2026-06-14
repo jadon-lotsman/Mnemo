@@ -56,19 +56,19 @@ namespace Mnemo.Controllers
         [HttpGet("find")]
         public async Task<IActionResult> GetEntryByKey([FromQuery] string foreign)
         {
-            var entry = await _vocabularyQueries.GetByForeignAsync(UserId, foreign);
+            var entries = await _vocabularyQueries.GetByForeignAsync(UserId, foreign);
 
-            if (entry == null)
+            if (entries == null)
                 return NotFound();
 
-            var entryRespose = _mapper.Map<EntryResponse>(entry);
-            return Ok(entryRespose);
+            var entriesRespose = _mapper.Map<List<EntryResponse>>(entries);
+            return Ok(entriesRespose);
         }
 
         [HttpGet("search")]
         public async Task<IActionResult> SearchInVocabularyByQuery([FromQuery] string query)
         {
-            var entries = await _vocabularyQueries.GetByForeignAndTranslationsAsync(UserId, query);
+            var entries = await _vocabularyQueries.GetByQueryAsync(UserId, query);
 
             if (entries == null)
                 return NotFound();
@@ -110,6 +110,7 @@ namespace Mnemo.Controllers
                 {
                     ErrorCode.InvalidData => BadRequest(new { message = result.ErrorMessage }),
                     ErrorCode.EntryNotFound => NotFound(new { message = result.ErrorMessage }),
+                    ErrorCode.DuplicateEntry => Conflict(new { message = result.ErrorMessage }),
                     _ => StatusCode(500, new { message = result.ErrorMessage })
                 };
             }

@@ -2,18 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import VocabularyView from '@/views/VocabularyView.vue'
 import RepetitionView from '@/views/RepetitionView.vue'
-
-export const ROUTE_PATHS = {
-  LOGIN: '/login',
-  VOCABULARY: '/vocabulary',
-  REPETITION: '/repetition',
-}
-
-export const ROUTE_NAMES = {
-  LOGIN: 'login',
-  VOCABULARY: 'vocabulary',
-  REPETITION: 'repetition',
-}
+import { ROUTE_NAMES, ROUTE_PATHS } from '@/shared/constants/RouteConst.ts'
 
 const routes = [
   {
