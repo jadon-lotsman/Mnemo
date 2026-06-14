@@ -21,7 +21,7 @@ namespace Mnemo.Controllers.Validation
             RuleFor(x => x.Transcription)
                 .Must(VocabularyValidatorRules.IsValidTranscription)
                 .When(x => x.Transcription != null)
-                .WithMessage("Transcription format is invalid.");
+                .WithMessage("Transcription format is invalid");
 
             RuleFor(x => x.Translations)
                 .NotEmpty().WithMessage("At least one translation is required")
