@@ -24,7 +24,7 @@ namespace Mnemo.Services.RepetitionService.Factories
 
                 return CreateOptionsTask(isForward, baseEntry, distractors);
             }
-            else if (taskType == typeof(SentenceReorderRepetitionTask))
+            else if (taskType == typeof(SentenceReorderRepetitionTask) && baseEntry.Examples.Any())
             {
                 return CreateSentenceReorderTask(baseEntry);
             }

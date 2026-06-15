@@ -48,9 +48,9 @@ namespace Mnemo.Shared.Extensions
             if (string.IsNullOrWhiteSpace(str)) return str;
 
             if (!str.StartsWith("[") && !str.StartsWith("/"))
-                str = "[" + str;
+                str = "/" + str;
             if (!str.EndsWith("]") && !str.EndsWith("/"))
-                str = str + "]";
+                str = str + "/";
 
             return str;
         }

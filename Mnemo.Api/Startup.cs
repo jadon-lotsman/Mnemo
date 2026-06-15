@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using Mnemo.Data;
 using Mnemo.Data.Queries;
 using Mnemo.Services;
+using Mnemo.Services.EnrichmentService.Dictionaries;
 using Mnemo.Services.RepetitionService;
 using Mnemo.Services.RepetitionService.Factories;
 using Mnemo.Services.RepetitionService.Providers.DestructorProviders;
@@ -27,6 +28,12 @@ namespace Mnemo
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // Add HttpClient
+            services.AddHttpClient();
+
+            // Add MemoryCache
+            services.AddMemoryCache();
+
             // Add SQLite AppDbContext
             services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
@@ -101,6 +108,8 @@ namespace Mnemo
             services.AddScoped<RepetitionTaskService>();
             services.AddScoped<RepetitionStateService>();
             services.AddScoped<VocabularyManagementService>();
+
+            services.AddScoped<IExternalDictionary, FreeDictionaryApiService>();
 
             // DI Other
             services.AddScoped<ITaskTypeProvider, WeightTaskTypeProvider>();

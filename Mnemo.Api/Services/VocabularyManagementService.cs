@@ -4,6 +4,7 @@ using Mnemo.Contracts.Vocabulary.Requests;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
+using Mnemo.Services.EnrichmentService.Dictionaries;
 using Mnemo.Shared;
 using Mnemo.Shared.Extensions;
 
@@ -18,6 +19,7 @@ namespace Mnemo.Services
         private readonly AppDbContext _context;
         private readonly AccountQueries _accountQueries;
         private readonly VocabularyQueries _vocabularyQueries;
+        private readonly FreeDictionaryApiService _freeDictionaryApi;
 
 
         public VocabularyManagementService(
@@ -27,7 +29,8 @@ namespace Mnemo.Services
             IMapper mapper,
             AppDbContext context,
             AccountQueries accountQueries,
-            VocabularyQueries vocabularyQueries)
+            VocabularyQueries vocabularyQueries,
+            FreeDictionaryApiService freeDictionaryApi)
         {
             _logger = logger;
             _createValidator = createValidator;
@@ -36,6 +39,7 @@ namespace Mnemo.Services
             _context = context;
             _accountQueries = accountQueries;
             _vocabularyQueries = vocabularyQueries;
+            _freeDictionaryApi = freeDictionaryApi;
         }
 
 
@@ -71,6 +75,28 @@ namespace Mnemo.Services
 
             entry.UserId = userId;
             entry.RepetitionState = new RepetitionState();
+
+            if (entry.PartOfSpeech != null)
+            {
+                var result = await _freeDictionaryApi.GetEnrichAsync(entry.Foreign, entry.PartOfSpeech.Value);
+
+                if (result.IsSuccess)
+                {
+                    var enrichResponse = result.Value;
+
+                    if (entry.Transcription == null && enrichResponse?.Transcription != null)
+                        entry.Transcription = enrichResponse.Transcription;
+
+                    if ((entry.TranscriptionAudioUrl == null || entry.Transcription == enrichResponse?.Transcription) && enrichResponse?.TranscriptionAudioUrl != null)
+                        entry.TranscriptionAudioUrl = enrichResponse.TranscriptionAudioUrl;
+
+                    if (enrichResponse?.Synonyms != null)
+                        entry.Synonyms = enrichResponse.Synonyms.ToList();
+
+                    if (enrichResponse?.Antonyms != null)
+                        entry.Antonyms = enrichResponse.Antonyms.ToList();
+                }
+            }
 
             await _context.Entries.AddAsync(entry);
             await _context.SaveChangesAsync();
