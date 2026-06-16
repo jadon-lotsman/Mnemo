@@ -4,7 +4,7 @@ using Mnemo.Contracts.Vocabulary.Requests;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
-using Mnemo.Services.EnrichmentService.Dictionaries;
+using Mnemo.Services.EnrichmentService.ExternalDictionaries;
 using Mnemo.Shared;
 using Mnemo.Shared.Extensions;
 
@@ -19,7 +19,7 @@ namespace Mnemo.Services
         private readonly AppDbContext _context;
         private readonly AccountQueries _accountQueries;
         private readonly VocabularyQueries _vocabularyQueries;
-        private readonly FreeDictionaryApiService _freeDictionaryApi;
+        private readonly IExternalDictionary _externalDictionary;
 
 
         public VocabularyManagementService(
@@ -30,7 +30,7 @@ namespace Mnemo.Services
             AppDbContext context,
             AccountQueries accountQueries,
             VocabularyQueries vocabularyQueries,
-            FreeDictionaryApiService freeDictionaryApi)
+            IExternalDictionary freeDictionaryApi)
         {
             _logger = logger;
             _createValidator = createValidator;
@@ -39,7 +39,7 @@ namespace Mnemo.Services
             _context = context;
             _accountQueries = accountQueries;
             _vocabularyQueries = vocabularyQueries;
-            _freeDictionaryApi = freeDictionaryApi;
+            _externalDictionary = freeDictionaryApi;
         }
 
 
@@ -78,7 +78,7 @@ namespace Mnemo.Services
 
             if (entry.PartOfSpeech != null)
             {
-                var result = await _freeDictionaryApi.GetEnrichAsync(entry.Foreign, entry.PartOfSpeech.Value);
+                var result = await _externalDictionary.GetEnrichAsync(entry.Foreign, entry.PartOfSpeech.Value);
 
                 if (result.IsSuccess)
                 {
@@ -148,7 +148,7 @@ namespace Mnemo.Services
 
             if (!isPatched)
             {
-                _logger.LogError("TryPatch failed for entry (EntryId:{EntryId}): Ivalid Data", entryId);
+                _logger.LogError("TryPatch failed for entry (EntryId:{EntryId}): Invalid Data", entryId);
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.InvalidData, "Failed to apply patch");
             }
 

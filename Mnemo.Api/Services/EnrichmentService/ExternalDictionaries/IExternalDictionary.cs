@@ -1,7 +1,7 @@
 ﻿using Mnemo.Contracts.Vocabulary;
 using Mnemo.Shared;
 
-namespace Mnemo.Services.EnrichmentService.Dictionaries
+namespace Mnemo.Services.EnrichmentService.ExternalDictionaries
 {
     public interface IExternalDictionary
     {

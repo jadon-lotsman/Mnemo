@@ -21,6 +21,7 @@
         DuplicateEntry,
 
         // 422 UnprocessableEntity
-        TaskGenerationFailed
+        TaskGenerationFailed,
+        ExternalDictionaryError,
     }
 }
