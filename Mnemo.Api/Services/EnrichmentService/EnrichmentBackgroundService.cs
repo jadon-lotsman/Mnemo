@@ -23,6 +23,7 @@ namespace Mnemo.Services.EnrichmentService
 
         private static readonly int _batchSize = 5;
         private static readonly TimeSpan _batchDelay = TimeSpan.FromMinutes(2.5);
+        private static readonly TimeSpan _requestDelay = TimeSpan.FromMilliseconds(800);
 
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -52,6 +53,10 @@ namespace Mnemo.Services.EnrichmentService
         {
             List<long>? capturedIds = null;
             string? idsForCapture = null;
+
+            int completedCount = 0;
+            int failedCount = 0;
+            int notFoundCount = 0;
 
             const int processing = (int) EnrichmentStatus.Processing;
             const int pending = (int) EnrichmentStatus.Pending;
@@ -114,6 +119,8 @@ namespace Mnemo.Services.EnrichmentService
                     if (!result.IsSuccess)
                     {
                         entry.EnrichmentStatus = EnrichmentStatus.Failed;
+
+                        failedCount++;
                         continue;
                     }
 
@@ -132,19 +139,27 @@ namespace Mnemo.Services.EnrichmentService
 
                         if (enrichResponse.Antonyms != null)
                             entry.Antonyms = enrichResponse.Antonyms.ToList();
+
+                        completedCount++;
+                    }
+                    else
+                    {
+                        notFoundCount++;
                     }
 
                     entry.EnrichmentStatus = EnrichmentStatus.Completed;
+
+
+                    if (entries.IndexOf(entry) < entries.Count - 1)
+                        await Task.Delay(_requestDelay, stoppingToken);
                 }
 
 
-                var completedCount = entries.Count(e => e.EnrichmentStatus == EnrichmentStatus.Completed);
-                var failedCount = entries.Count(e => e.EnrichmentStatus == EnrichmentStatus.Failed);
-                _logger.LogInformation("Batch is ending (Completed:{Completed}, Failed:{Failed}). Saving changes...", completedCount, failedCount);
+                _logger.LogInformation("Batch is ending (Completed:{Completed}, Failed:{Failed}, NotFound:{NotFound}). Saving changes...", completedCount, failedCount, notFoundCount);
 
                 await context.SaveChangesAsync(stoppingToken);
 
-                _logger.LogInformation("Successfully processed batch (Count:{Count})", entries.Count);
+                _logger.LogInformation("Successfully processed batch (BatchSize:{Count})", entries.Count);
             }
             catch (Exception ex)
             {
