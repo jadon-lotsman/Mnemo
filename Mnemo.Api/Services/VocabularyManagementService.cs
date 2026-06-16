@@ -19,7 +19,6 @@ namespace Mnemo.Services
         private readonly AppDbContext _context;
         private readonly AccountQueries _accountQueries;
         private readonly VocabularyQueries _vocabularyQueries;
-        private readonly IExternalDictionary _externalDictionary;
 
 
         public VocabularyManagementService(
@@ -29,8 +28,7 @@ namespace Mnemo.Services
             IMapper mapper,
             AppDbContext context,
             AccountQueries accountQueries,
-            VocabularyQueries vocabularyQueries,
-            IExternalDictionary freeDictionaryApi)
+            VocabularyQueries vocabularyQueries)
         {
             _logger = logger;
             _createValidator = createValidator;
@@ -39,7 +37,6 @@ namespace Mnemo.Services
             _context = context;
             _accountQueries = accountQueries;
             _vocabularyQueries = vocabularyQueries;
-            _externalDictionary = freeDictionaryApi;
         }
 
 
@@ -74,29 +71,8 @@ namespace Mnemo.Services
 
 
             entry.UserId = userId;
+            entry.EnrichmentStatus = EnrichmentStatus.Pending;
             entry.RepetitionState = new RepetitionState();
-
-            if (entry.PartOfSpeech != null)
-            {
-                var result = await _externalDictionary.GetEnrichAsync(entry.Foreign, entry.PartOfSpeech.Value);
-
-                if (result.IsSuccess)
-                {
-                    var enrichResponse = result.Value;
-
-                    if (entry.Transcription == null && enrichResponse?.Transcription != null)
-                        entry.Transcription = enrichResponse.Transcription;
-
-                    if ((entry.TranscriptionAudioUrl == null || entry.Transcription == enrichResponse?.Transcription) && enrichResponse?.TranscriptionAudioUrl != null)
-                        entry.TranscriptionAudioUrl = enrichResponse.TranscriptionAudioUrl;
-
-                    if (enrichResponse?.Synonyms != null)
-                        entry.Synonyms = enrichResponse.Synonyms.ToList();
-
-                    if (enrichResponse?.Antonyms != null)
-                        entry.Antonyms = enrichResponse.Antonyms.ToList();
-                }
-            }
 
             await _context.Entries.AddAsync(entry);
             await _context.SaveChangesAsync();
@@ -119,7 +95,6 @@ namespace Mnemo.Services
 
 
             var currentEntry = await _vocabularyQueries.GetByIdAsync(userId, entryId);
-
             if (currentEntry == null)
             {
                 _logger.LogWarning("Entry (EntryId:{EntryId}) not found for user (UserId:{UserId})", entryId, userId);
@@ -135,12 +110,20 @@ namespace Mnemo.Services
             if (request.Foreign != null)
                 newForeign = TextNormalizer.NormalizeForeign(request.Foreign);
 
-            var checkResult = await CheckPatchDuplicateAsync(currentEntry, newForeign, newPartOfSpeech);
+            bool needDuplicateCheck = (newForeign != null && newForeign != currentEntry.Foreign) ||
+                (newPartOfSpeech != null && newPartOfSpeech.Value != currentEntry.PartOfSpeech);
 
-            if (!checkResult.IsSuccess)
+
+            if (needDuplicateCheck)
             {
-                _logger.LogWarning("Duplicate check failed for entry (EntryId:{EntryId}): {Error}", entryId, checkResult.ErrorMessage);
-                return RequestResult<VocabularyEntry>.Failure(checkResult.ErrorCode!.Value, checkResult.ErrorMessage);
+                var checkForeign = newForeign ?? currentEntry.Foreign;
+                var checkPartOfSpeech = newPartOfSpeech ?? currentEntry.PartOfSpeech;
+
+                if (await _vocabularyQueries.ExistsByKeysAsync(currentEntry.UserId, checkForeign, checkPartOfSpeech))
+                {
+                    _logger.LogWarning("Duplicate check failed for entry (EntryId:{EntryId})", entryId);
+                    return RequestResult<VocabularyEntry>.Failure(ErrorCode.DuplicateEntry, "Entry already exists");
+                }
             }
 
 
@@ -151,31 +134,20 @@ namespace Mnemo.Services
                 _logger.LogError("TryPatch failed for entry (EntryId:{EntryId}): Invalid Data", entryId);
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.InvalidData, "Failed to apply patch");
             }
+            else if (needDuplicateCheck)
+            {
+                currentEntry.TranscriptionAudioUrl = null;
+                currentEntry.Synonyms.Clear();
+                currentEntry.Antonyms.Clear();
+                currentEntry.EnrichmentStatus = EnrichmentStatus.Pending;
+                _logger.LogInformation("Metadata reset and set as pending: (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
+            }
 
 
             await _context.SaveChangesAsync();
             _logger.LogInformation("Successfully patched entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
 
             return RequestResult<VocabularyEntry>.Success(currentEntry);
-        }
-
-        public async Task<RequestResult<bool>> CheckPatchDuplicateAsync(VocabularyEntry currentEntry, string? newForeign, PartOfSpeech? newPartOfSpeech)
-        {
-            bool needDuplicateCheck = (newForeign != null && newForeign != currentEntry.Foreign) ||
-                     (newPartOfSpeech != null && newPartOfSpeech.Value != currentEntry.PartOfSpeech);
-
-            if (!needDuplicateCheck)
-                return RequestResult<bool>.Success(true);
-
-
-            var checkForeign = newForeign ?? currentEntry.Foreign;
-            var checkPartOfSpeech = newPartOfSpeech ?? currentEntry.PartOfSpeech;
-
-            if (await _vocabularyQueries.ExistsByKeysAsync(currentEntry.UserId, checkForeign, checkPartOfSpeech))
-                return RequestResult<bool>.Failure(ErrorCode.DuplicateEntry, "Entry already exists");
-
-
-            return RequestResult<bool>.Success(true);
         }
 
         public async Task<RequestResult<bool>> RemoveEntryByIdAsync(int userId, int entryId)

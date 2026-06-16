@@ -14,6 +14,8 @@ namespace Mnemo.Data.Entities
         public List<string> Translations { get; set; }
         public List<string> Synonyms { get; set; }
         public List<string> Antonyms { get; set; }
+        public EnrichmentStatus EnrichmentStatus { get; set; }
+        public DateTime LastEnrichmentAt { get; set; }
         public DateTime CreatedAt { get; set; }
 
 

@@ -36,6 +36,12 @@ namespace Mnemo.Shared.Extensions
                 _transcription = normalized;
             }
 
+            string? _transcriptionAudioUrl = null;
+            if (patch.TranscriptionAudioUrl != null)
+            {
+                _transcriptionAudioUrl = patch.TranscriptionAudioUrl;
+            }
+
 
             List<string>? _examplesToAdd = null;
             if (patch.ExamplesAdd != null)
@@ -76,6 +82,8 @@ namespace Mnemo.Shared.Extensions
                 entry.Foreign = _foreign;
             if (_transcription != null)
                 entry.Transcription = _transcription;
+            if (_transcriptionAudioUrl != null)
+                entry.TranscriptionAudioUrl = _transcriptionAudioUrl;
 
             if (_examplesToAdd != null)
                 entry.Examples.AddRange(_examplesToAdd);
