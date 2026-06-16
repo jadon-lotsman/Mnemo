@@ -9,12 +9,12 @@ namespace Mnemo.Services.EnrichmentService.ExternalDictionaries
 {
     public class FreeDictionaryApi : IExternalDictionary
     {
-        private readonly ILogger<FreeDictionaryApi> _logger;
+        private readonly ILogger<IExternalDictionary> _logger;
         private readonly HttpClient _httpClient;
         private readonly IMemoryCache _cache;
 
 
-        public FreeDictionaryApi(ILogger<FreeDictionaryApi> logger, HttpClient httpClient, IMemoryCache cache)
+        public FreeDictionaryApi(ILogger<IExternalDictionary> logger, HttpClient httpClient, IMemoryCache cache)
         {
             _logger = logger;
             _httpClient = httpClient;
@@ -22,23 +22,23 @@ namespace Mnemo.Services.EnrichmentService.ExternalDictionaries
         }
 
 
-        private static TimeSpan _cacheLifetime = TimeSpan.FromHours(12);
+        private static readonly TimeSpan _cacheLifetime = TimeSpan.FromHours(12);
 
-        public async Task<RequestResult<EnrichResponse?>> GetEnrichAsync(string foreign, PartOfSpeech partOfSpeech)
+        public async Task<RequestResult<EnrichResponse?>> GetEnrichAsync(string foreign, PartOfSpeech? partOfSpeech)
         {
-            _logger.LogInformation("Attempting to get EnrichResponse (Foreign:{Foreign}, PartOfSpeech:{PartOfSpeech})", foreign, partOfSpeech);
+            _logger.LogInformation("Attempting to get EnrichResponse (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech})", foreign, partOfSpeech);
 
-            if (string.IsNullOrWhiteSpace(foreign))
+            if (string.IsNullOrWhiteSpace(foreign) || !partOfSpeech.HasValue)
             {
                 _logger.LogWarning("Foreign word is required");
                 return RequestResult<EnrichResponse?>.Failure(ErrorCode.InvalidData);
             }
 
             // Try get from cache
-            var cacheKey = $"{foreign.ToLowerInvariant()} as {partOfSpeech.ToString().ToLowerInvariant()}";
+            var cacheKey = $"{foreign.ToLowerInvariant()} - {partOfSpeech.Value.ToString().ToLowerInvariant()}";
             if (_cache.TryGetValue(cacheKey, out EnrichResponse? cached))
             {
-                _logger.LogInformation("Return EnrichResponse (isNull:{isNull}) from cache (Foreign:{Foreign}, PartOfSpeech:{PartOfSpeech})", cached == null, foreign, partOfSpeech);
+                _logger.LogInformation("Return EnrichResponse (isNull:{isNull}) from cache (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech})", cached == null, foreign, partOfSpeech);
                 return RequestResult<EnrichResponse?>.Success(cached);
             }
 
@@ -49,13 +49,13 @@ namespace Mnemo.Services.EnrichmentService.ExternalDictionaries
 
                 if (!result.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("API returned StatusCode:{StatusCode} (Foreign:{Foreign}, PartOfSpeech:{PartOfSpeech})", result.StatusCode, foreign, partOfSpeech);
+                    _logger.LogWarning("API returned StatusCode:{StatusCode} (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech})", result.StatusCode, foreign, partOfSpeech);
 
                     // Cache status 404 as null
                     if (result.StatusCode == System.Net.HttpStatusCode.NotFound)
                         _cache.Set(cacheKey, (EnrichResponse?) null, _cacheLifetime);
 
-                    return RequestResult<EnrichResponse?>.Failure(ErrorCode.ExternalDictionaryError);
+                    return RequestResult<EnrichResponse?>.Success(null);
                 }
 
 
@@ -68,7 +68,7 @@ namespace Mnemo.Services.EnrichmentService.ExternalDictionaries
                 var entry = entries[0];
 
                 Phonetic? phonetic = SelectBestPhonetic(entry.Phonetics);
-                Meaning? meaning = SelectMeaning(entry.Meanings, partOfSpeech);
+                Meaning? meaning = SelectMeaning(entry.Meanings, partOfSpeech.Value);
 
                 var enrichResponse = new EnrichResponse()
                 {
@@ -79,24 +79,24 @@ namespace Mnemo.Services.EnrichmentService.ExternalDictionaries
                 };
 
                 _cache.Set(cacheKey, enrichResponse, _cacheLifetime);
-                _logger.LogInformation("Successfully extracted EnrichResponse (Foreign:{Foreign}, PartOfSpeech:{PartOfSpeech})", foreign, partOfSpeech);
+                _logger.LogInformation("Successfully extracted EnrichResponse (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech})", foreign, partOfSpeech);
 
                 return RequestResult<EnrichResponse?>.Success(enrichResponse);
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError("Network error (Foreign:{Foreign}, PartOfSpeech:{PartOfSpeech}): {Message}", foreign, partOfSpeech, ex.Message);
-                return RequestResult<EnrichResponse?>.Failure(ErrorCode.ExternalDictionaryError, ex.Message);
+                _logger.LogError("Network error (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech}): {Message}", foreign, partOfSpeech, ex);
+                return RequestResult<EnrichResponse?>.Failure(ErrorCode.ExternalDictionaryError, ex.ToString());
             }
             catch (JsonException ex)
             {
-                _logger.LogError("JSON parsing error (Foreign:{Foreign}, PartOfSpeech:{PartOfSpeech}): {Message}", foreign, partOfSpeech, ex.Message);
-                return RequestResult<EnrichResponse?>.Failure(ErrorCode.ExternalDictionaryError, ex.Message);
+                _logger.LogError("JSON parsing error (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech}): {Message}", foreign, partOfSpeech, ex);
+                return RequestResult<EnrichResponse?>.Failure(ErrorCode.ExternalDictionaryError, ex.ToString());
             }
             catch (Exception ex)
             {
-                _logger.LogError("Unexpected error (Foreign:{Foreign}, PartOfSpeech:{PartOfSpeech}): {Message}", foreign, partOfSpeech, ex.Message);
-                return RequestResult<EnrichResponse?>.Failure(ErrorCode.ExternalDictionaryError, ex.Message);
+                _logger.LogError("Unexpected error (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech}): {Message}", foreign, partOfSpeech, ex);
+                return RequestResult<EnrichResponse?>.Failure(ErrorCode.ExternalDictionaryError, ex.ToString());
             }
         }
 

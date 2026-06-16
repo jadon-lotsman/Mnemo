@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using Mnemo.Data;
 using Mnemo.Data.Queries;
 using Mnemo.Services;
+using Mnemo.Services.EnrichmentService;
 using Mnemo.Services.EnrichmentService.ExternalDictionaries;
 using Mnemo.Services.RepetitionService;
 using Mnemo.Services.RepetitionService.Factories;
@@ -28,9 +29,6 @@ namespace Mnemo
 
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add HttpClient
-            services.AddHttpClient();
-
             // Add MemoryCache
             services.AddMemoryCache();
 
@@ -109,12 +107,13 @@ namespace Mnemo
             services.AddScoped<RepetitionStateService>();
             services.AddScoped<VocabularyManagementService>();
 
-            services.AddScoped<IExternalDictionary, FreeDictionaryApi>();
+            // DI Enrichment
+            services.AddHttpClient<IExternalDictionary, FreeDictionaryApi>();
+            services.AddHostedService<EnrichmentBackgroundService>();
 
-            // DI Other
+            // DI TaskFactory
             services.AddScoped<ITaskTypeProvider, WeightTaskTypeProvider>();
             services.AddScoped<IDistractorProvider, RandomDistractorProvider>();
-
             services.AddScoped<RepetitionTaskFactory>();
 
             // Use Controllers
