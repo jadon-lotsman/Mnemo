@@ -1,4 +1,5 @@
-﻿using Mnemo.Shared;
+﻿using Mnemo.Contracts.Vocabulary;
+using Mnemo.Shared;
 
 namespace Mnemo.Data.Entities
 {
@@ -30,7 +31,61 @@ namespace Mnemo.Data.Entities
             Translations = new List<string>();
             Synonyms = new List<string>();
             Antonyms = new List<string>();
+            EnrichmentStatus = EnrichmentStatus.Pending;
+            LastEnrichmentAt = DateTime.UtcNow;
             CreatedAt = DateTime.UtcNow;
+        }
+
+
+        public bool EnrichMeta(EnrichResponse enrich)
+        {
+            if (enrich == null)
+                return false;
+
+            bool isEnriched = false;
+
+            if (Transcription == null && enrich.Transcription != null)
+            {
+                Transcription = enrich.Transcription;
+
+                if (TranscriptionAudioUrl == null && enrich.TranscriptionAudioUrl != null)
+                    TranscriptionAudioUrl = enrich.TranscriptionAudioUrl;
+
+                isEnriched = true;
+            }
+
+            if (enrich.Synonyms?.Any() == true)
+            {
+                Synonyms = enrich.Synonyms.ToList();
+                isEnriched = true;
+
+            }
+
+            if (enrich.Antonyms?.Any() == true)
+            {
+                Antonyms = enrich.Antonyms.ToList();
+                isEnriched = true;
+            }
+
+            return isEnriched;
+        }
+
+
+        public void ResetMeta(bool resetTranscription = true)
+        {
+            if (resetTranscription)
+                Transcription = null;
+
+            TranscriptionAudioUrl = null;
+            Synonyms.Clear();
+            Antonyms.Clear();
+            EnrichmentStatus = EnrichmentStatus.Pending;
+        }
+
+        public void ResetAudio()
+        {
+            TranscriptionAudioUrl = null;
+            EnrichmentStatus = EnrichmentStatus.Pending;
         }
     }
 }

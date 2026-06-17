@@ -71,7 +71,6 @@ namespace Mnemo.Services
 
 
             entry.UserId = userId;
-            entry.EnrichmentStatus = EnrichmentStatus.Pending;
             entry.RepetitionState = new RepetitionState();
 
             await _context.Entries.AddAsync(entry);
@@ -110,8 +109,15 @@ namespace Mnemo.Services
             if (request.Foreign != null)
                 newForeign = TextNormalizer.NormalizeForeign(request.Foreign);
 
-            bool needDuplicateCheck = (newForeign != null && newForeign != currentEntry.Foreign) ||
-                (newPartOfSpeech != null && newPartOfSpeech.Value != currentEntry.PartOfSpeech);
+            string? newTranscription = null;
+            if (request.Transcription != null)
+                newTranscription = TextNormalizer.NormalizeTranscription(request.Transcription);
+
+            bool foreignUpdated = (newForeign != null && newForeign != currentEntry.Foreign);
+            bool partOfSpeechUpdated = (newPartOfSpeech != null && newPartOfSpeech.Value != currentEntry.PartOfSpeech);
+            bool transcriptionUpdated = (newTranscription != null && newTranscription != currentEntry.Transcription);
+
+            bool needDuplicateCheck = foreignUpdated || partOfSpeechUpdated;
 
 
             if (needDuplicateCheck)
@@ -134,13 +140,18 @@ namespace Mnemo.Services
                 _logger.LogError("TryPatch failed for entry (EntryId:{EntryId}): Invalid Data", entryId);
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.InvalidData, "Failed to apply patch");
             }
-            else if (needDuplicateCheck)
+            else
             {
-                currentEntry.TranscriptionAudioUrl = null;
-                currentEntry.Synonyms.Clear();
-                currentEntry.Antonyms.Clear();
-                currentEntry.EnrichmentStatus = EnrichmentStatus.Pending;
-                _logger.LogInformation("Metadata reset and set as pending: (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
+                if (foreignUpdated || partOfSpeechUpdated)
+                {
+                    currentEntry.ResetMeta(!transcriptionUpdated);
+                    _logger.LogInformation("All metadata reset{WithoutTranscription} and set as {Status}: (EntryId:{EntryId}) for user (UserId:{UserId})", transcriptionUpdated ? " (without transcription)" : " ", currentEntry.EnrichmentStatus, entryId, userId);
+                }
+                else if (transcriptionUpdated)
+                {
+                    currentEntry.ResetAudio();
+                    _logger.LogInformation("Audio reset and set as {Status}: (EntryId:{EntryId}) for user (UserId:{UserId})", currentEntry.EnrichmentStatus, entryId, userId);
+                }
             }
 
 
