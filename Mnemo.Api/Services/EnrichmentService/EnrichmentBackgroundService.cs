@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Threading;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Mnemo.Data;
 using Mnemo.Services.EnrichmentService.ExternalDictionaries;
 using Mnemo.Shared;
@@ -9,33 +10,40 @@ namespace Mnemo.Services.EnrichmentService
 {
     public class EnrichmentBackgroundService : BackgroundService
     {
+        private readonly IOptions<EnrichmentOptions> _options;
         private readonly ILogger<EnrichmentBackgroundService> _logger;
         private readonly IServiceScopeFactory _scopeFactory;
 
         public EnrichmentBackgroundService(
+            IOptions<EnrichmentOptions> options,
             ILogger<EnrichmentBackgroundService> logger,
             IServiceScopeFactory scopeFactory)
         {
+            _options = options;
             _logger = logger;
             _scopeFactory = scopeFactory;
         }
 
 
-        private static readonly int _batchSize = 5;
-        private static readonly TimeSpan _batchDelay = TimeSpan.FromMinutes(2.5);
-        private static readonly TimeSpan _requestDelay = TimeSpan.FromMilliseconds(800);
-
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Enrichment service started: delay {Delay} sec", _batchDelay.TotalSeconds);
+            if (!_options.Value.IsEnabled)
+            {
+                _logger.LogWarning("Enrichment service is disabled by configuration");
+                return;
+            }
+
+            var batchDelay = TimeSpan.FromSeconds(_options.Value.BatchDelaySeconds);
+            _logger.LogInformation("Enrichment service started. Batch delay is {Delay} sec", batchDelay.TotalSeconds);
 
             try
             {
                 while (!stoppingToken.IsCancellationRequested)
                 {
+                    await ResetStuckProcessingAsync(stoppingToken);
                     await ProcessBatchAsync(stoppingToken);
-                    await Task.Delay(_batchDelay, stoppingToken);
+                    await Task.Delay(batchDelay, stoppingToken);
                 }
             }
             catch (OperationCanceledException)
@@ -46,6 +54,38 @@ namespace Mnemo.Services.EnrichmentService
             {
                 _logger.LogError("Fatal error in enrichment service: {Message}", ex);
                 throw;
+            }
+        }
+
+        private async Task ResetStuckProcessingAsync(CancellationToken stoppingToken)
+        {
+            const int pending = (int) EnrichmentStatus.Pending;
+            const int processing = (int) EnrichmentStatus.Processing;
+            const int failed = (int) EnrichmentStatus.Failed;
+
+            using var scope = _scopeFactory.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var stuckTimeout = _options.Value.StuckProcessingTimeoutMinutes;
+
+            try
+            {
+                DateTime threshold = DateTime.UtcNow.AddMinutes(-stuckTimeout);
+
+                int processingResetCount = await context.Database.ExecuteSqlRawAsync(
+                    $"UPDATE \"Entries\" SET \"EnrichmentStatus\" = {pending} " +
+                    $"WHERE \"EnrichmentStatus\" = {processing} AND \"LastEnrichmentAt\" < {{0}}", threshold);
+
+                int failedResetCount = await context.Database.ExecuteSqlRawAsync(
+                    $"UPDATE \"Entries\" SET \"EnrichmentStatus\" = {pending} " +
+                    $"WHERE \"EnrichmentStatus\" = {failed}");
+
+                if (processingResetCount > 0 || failedResetCount > 0)
+                    _logger.LogWarning("Reset stuck entries (Processing:{Processing}, Failed:{Failed})", processingResetCount, failedResetCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Failed to reset stuck entries: {Message}", ex);
             }
         }
 
@@ -65,11 +105,8 @@ namespace Mnemo.Services.EnrichmentService
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var externalDictionary = scope.ServiceProvider.GetRequiredService<IExternalDictionary>();
 
-            // Reset
-            //await context.Database
-            //    .ExecuteSqlRawAsync(
-            //    $"UPDATE \"Entries\" SET \"EnrichmentStatus\" = {pending}",
-            //    stoppingToken);
+            var batchSize = _options.Value.BatchSize;
+            var requestDelay = TimeSpan.FromMilliseconds(_options.Value.RequestDelayMilliseconds);
 
             try
             {
@@ -77,19 +114,21 @@ namespace Mnemo.Services.EnrichmentService
                     .Where(e => e.EnrichmentStatus == EnrichmentStatus.Pending)
                     .OrderBy(e => e.Id)
                     .Select(e => e.Id)
-                    .Take(_batchSize)
+                    .Take(batchSize)
                     .ToListAsync(stoppingToken);
 
                 if (!pendingIds.Any())
                     return;
 
 
+                DateTime now = DateTime.UtcNow;
+
                 idsForCapture = string.Join(",", pendingIds);
                 capturedIds = await context.Database
                     .SqlQueryRaw<long>(
-                        $"UPDATE \"Entries\" SET \"EnrichmentStatus\" = {processing} " +
+                        $"UPDATE \"Entries\" SET \"EnrichmentStatus\" = {processing}, \"LastEnrichmentAt\" = {{0}} " +
                         $"WHERE \"Id\" IN ({idsForCapture}) AND \"EnrichmentStatus\" = {pending} " +
-                        $"RETURNING \"Id\"")
+                        $"RETURNING \"Id\"", now)
                     .ToListAsync(stoppingToken);
 
                 if (capturedIds.Count < pendingIds.Count)
@@ -137,10 +176,8 @@ namespace Mnemo.Services.EnrichmentService
                     }
 
 
-                    entry.LastEnrichmentAt = DateTime.UtcNow;
-
                     if (entries.IndexOf(entry) < entries.Count - 1)
-                        await Task.Delay(_requestDelay, stoppingToken);
+                        await Task.Delay(requestDelay, stoppingToken);
                 }
 
                 _logger.LogInformation("Batch is ending (Completed:{Completed}, Failed:{Failed}, NotFound:{NotFound}). Saving changes...", completedCount, failedCount, notFoundCount);
@@ -152,17 +189,6 @@ namespace Mnemo.Services.EnrichmentService
             catch (Exception ex)
             {
                 _logger.LogError("Fatal error in batch processing: {Message}", ex);
-
-                if (capturedIds != null && capturedIds.Any())
-                {
-                    int updated = await context.Database
-                        .ExecuteSqlRawAsync(
-                        $"UPDATE \"Entries\" SET \"EnrichmentStatus\" = {pending} " +
-                        $"WHERE \"Id\" IN ({idsForCapture}) AND \"EnrichmentStatus\" = {processing}",
-                        stoppingToken);
-
-                    _logger.LogInformation("Reset stuck entries (Count:{Count}) from Processing to Pending", updated);
-                }
             }
         }
     }

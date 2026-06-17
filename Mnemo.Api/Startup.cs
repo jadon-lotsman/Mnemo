@@ -29,6 +29,9 @@ namespace Mnemo
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // Configurations
+            services.Configure<EnrichmentOptions>(Configuration.GetSection("Enrichment"));
+
             // Add MemoryCache
             services.AddMemoryCache();
 
