@@ -114,46 +114,34 @@ namespace Mnemo.Services.EnrichmentService
 
                     _logger.LogInformation("External call for entry (EntryId:{EntryId}) took {ElapsedMs} ms", entry.Id, stopwatch.ElapsedMilliseconds);
 
-                    entry.LastEnrichmentAt = DateTime.UtcNow;
-
                     if (!result.IsSuccess)
                     {
-                        entry.EnrichmentStatus = EnrichmentStatus.Failed;
-
                         failedCount++;
-                        continue;
-                    }
-
-                    var enrichResponse = result.Value;
-
-                    if (enrichResponse != null)
-                    {
-                        if (entry.Transcription == null && enrichResponse.Transcription != null)
-                            entry.Transcription = enrichResponse.Transcription;
-
-                        if ((entry.TranscriptionAudioUrl == null || entry.Transcription == enrichResponse.Transcription) && enrichResponse.TranscriptionAudioUrl != null)
-                            entry.TranscriptionAudioUrl = enrichResponse.TranscriptionAudioUrl;
-
-                        if (enrichResponse.Synonyms != null)
-                            entry.Synonyms = enrichResponse.Synonyms.ToList();
-
-                        if (enrichResponse.Antonyms != null)
-                            entry.Antonyms = enrichResponse.Antonyms.ToList();
-
-                        completedCount++;
+                        entry.EnrichmentStatus = EnrichmentStatus.Failed;
                     }
                     else
                     {
-                        notFoundCount++;
+                        var enrichResponse = result.Value;
+
+                        if (enrichResponse == null)
+                        {
+                            notFoundCount++;
+                        }
+                        else
+                        {
+                            entry.EnrichMeta(enrichResponse);
+                            completedCount++;
+                        }
+
+                        entry.EnrichmentStatus = EnrichmentStatus.Completed;
                     }
 
-                    entry.EnrichmentStatus = EnrichmentStatus.Completed;
 
+                    entry.LastEnrichmentAt = DateTime.UtcNow;
 
                     if (entries.IndexOf(entry) < entries.Count - 1)
                         await Task.Delay(_requestDelay, stoppingToken);
                 }
-
 
                 _logger.LogInformation("Batch is ending (Completed:{Completed}, Failed:{Failed}, NotFound:{NotFound}). Saving changes...", completedCount, failedCount, notFoundCount);
 
