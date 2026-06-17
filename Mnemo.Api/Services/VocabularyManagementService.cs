@@ -133,25 +133,24 @@ namespace Mnemo.Services
             }
 
 
+            if (foreignUpdated || partOfSpeechUpdated)
+            {
+                currentEntry.ResetAllMeta();
+                _logger.LogInformation("All metadata reset and set as {Status}: (EntryId:{EntryId}) for user (UserId:{UserId})", currentEntry.EnrichmentStatus, entryId, userId);
+            }
+            else if (transcriptionUpdated)
+            {
+                currentEntry.ResetAudio();
+                _logger.LogInformation("Audio reset and set as {Status}: (EntryId:{EntryId}) for user (UserId:{UserId})", currentEntry.EnrichmentStatus, entryId, userId);
+            }
+
+
             var isPatched = currentEntry.TryPatch(request);
 
             if (!isPatched)
             {
                 _logger.LogError("TryPatch failed for entry (EntryId:{EntryId}): Invalid Data", entryId);
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.InvalidData, "Failed to apply patch");
-            }
-            else
-            {
-                if (foreignUpdated || partOfSpeechUpdated)
-                {
-                    currentEntry.ResetMeta(!transcriptionUpdated);
-                    _logger.LogInformation("All metadata reset{WithoutTranscription} and set as {Status}: (EntryId:{EntryId}) for user (UserId:{UserId})", transcriptionUpdated ? " (without transcription)" : " ", currentEntry.EnrichmentStatus, entryId, userId);
-                }
-                else if (transcriptionUpdated)
-                {
-                    currentEntry.ResetAudio();
-                    _logger.LogInformation("Audio reset and set as {Status}: (EntryId:{EntryId}) for user (UserId:{UserId})", currentEntry.EnrichmentStatus, entryId, userId);
-                }
             }
 
 

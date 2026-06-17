@@ -70,12 +70,9 @@ namespace Mnemo.Data.Entities
             return isEnriched;
         }
 
-
-        public void ResetMeta(bool resetTranscription = true)
+        public void ResetAllMeta()
         {
-            if (resetTranscription)
-                Transcription = null;
-
+            Transcription = null;
             TranscriptionAudioUrl = null;
             Synonyms.Clear();
             Antonyms.Clear();
