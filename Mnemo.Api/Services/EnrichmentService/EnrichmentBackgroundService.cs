@@ -52,7 +52,7 @@ namespace Mnemo.Services.EnrichmentService
             }
             catch (Exception ex)
             {
-                _logger.LogError("Fatal error in enrichment service: {Message}", ex);
+                _logger.LogError(ex, "Fatal error in enrichment service");
                 throw;
             }
         }
@@ -81,11 +81,11 @@ namespace Mnemo.Services.EnrichmentService
                     $"WHERE \"EnrichmentStatus\" = {failed}");
 
                 if (processingResetCount > 0 || failedResetCount > 0)
-                    _logger.LogWarning("Reset stuck entries (Processing:{Processing}, Failed:{Failed})", processingResetCount, failedResetCount);
+                    _logger.LogInformation("Reset stuck entries (Processing:{Processing}, Failed:{Failed})", processingResetCount, failedResetCount);
             }
             catch (Exception ex)
             {
-                _logger.LogError("Failed to reset stuck entries: {Message}", ex);
+                _logger.LogError(ex, "Failed to reset stuck entries");
             }
         }
 
@@ -188,7 +188,7 @@ namespace Mnemo.Services.EnrichmentService
             }
             catch (Exception ex)
             {
-                _logger.LogError("Fatal error in batch processing: {Message}", ex);
+                _logger.LogError(ex, "Fatal error in batch processing");
             }
         }
     }

@@ -49,7 +49,7 @@ namespace Mnemo.Services.EnrichmentService.ExternalDictionaries
 
                 if (!result.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("API returned StatusCode:{StatusCode} (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech})", result.StatusCode, foreign, partOfSpeech);
+                    _logger.LogInformation("API returned StatusCode:{StatusCode} (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech})", result.StatusCode, foreign, partOfSpeech);
 
                     // Cache status 404 as null
                     if (result.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -83,20 +83,25 @@ namespace Mnemo.Services.EnrichmentService.ExternalDictionaries
 
                 return RequestResult<EnrichResponse?>.Success(enrichResponse);
             }
+            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+            {
+                _logger.LogWarning("Timeout fetching (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech}): {Message}", foreign, partOfSpeech, ex.Message);
+                return RequestResult<EnrichResponse?>.Failure(ErrorCode.ExternalDictionaryError, ex.Message);
+            }
             catch (HttpRequestException ex)
             {
-                _logger.LogError("Network error (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech}): {Message}", foreign, partOfSpeech, ex);
-                return RequestResult<EnrichResponse?>.Failure(ErrorCode.ExternalDictionaryError, ex.ToString());
+                _logger.LogError("Network error (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech}): {Message}", foreign, partOfSpeech, ex.Message);
+                return RequestResult<EnrichResponse?>.Failure(ErrorCode.ExternalDictionaryError, ex.Message);
             }
             catch (JsonException ex)
             {
-                _logger.LogError("JSON parsing error (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech}): {Message}", foreign, partOfSpeech, ex);
-                return RequestResult<EnrichResponse?>.Failure(ErrorCode.ExternalDictionaryError, ex.ToString());
+                _logger.LogError(ex, "JSON parsing error (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech})", foreign, partOfSpeech);
+                return RequestResult<EnrichResponse?>.Failure(ErrorCode.ExternalDictionaryError, ex.Message);
             }
             catch (Exception ex)
             {
-                _logger.LogError("Unexpected error (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech}): {Message}", foreign, partOfSpeech, ex);
-                return RequestResult<EnrichResponse?>.Failure(ErrorCode.ExternalDictionaryError, ex.ToString());
+                _logger.LogError(ex, "Unexpected error (Foreign:{Foreign} - PartOfSpeech:{PartOfSpeech})", foreign, partOfSpeech);
+                return RequestResult<EnrichResponse?>.Failure(ErrorCode.ExternalDictionaryError, ex.Message);
             }
         }
 
