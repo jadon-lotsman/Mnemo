@@ -3,9 +3,9 @@
 Mnemo is a web-based personal dictionary built on spaced repetition. It enriches entries with external metadata (transcription, audio, synonyms and antonyms) and provides multiple task types.
 
 <div align="center">
-  <img src="preview.gif" alt="Mnemo entry editor in action" width="400px"/>
+  <img src="preview.gif" alt="Mnemo entry editor in action" width="450px"/>
   <br/>
-  <em>Isn't that charming?</em>
+  <em>(Isn't that charming?)</em>
 </div>
 
 ### Features
@@ -31,6 +31,28 @@ Successful architectural solutions, in my opinion:
 - **Polymorphic Task Factory:** Different task types are generated via factory pattern. Each type have own class.
 - **Eliminated the `RepetitionSession` Entity:** It was just a container with no business logic - users never needed more than one session.
 - **Atomic Background Enrichment:** Batch enrichment with entries capture and fixed N+1 `SaveChanges()`.
+
+## Getting Started
+
+**Prerequisites:** .NET 8 SDK, Node.js, and dotnet-ef (optional, for migrations).
+
+### Start Backend
+
+```bash
+cd Mnemo.Api
+cp appsettings.Example.json appsettings.json   # _or copy on Windows_
+dotnet tool install --global dotnet-ef
+dotnet ef database update
+dotnet run
+```
+
+### Start Frontend
+
+```bash
+cd Mnemo.Vue
+npm install
+npm run dev
+```
 
 ## Attribution & License
 
