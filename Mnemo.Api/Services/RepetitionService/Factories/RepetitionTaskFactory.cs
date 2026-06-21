@@ -34,11 +34,11 @@ namespace Mnemo.Services.RepetitionService.Factories
             }
             else if (taskType == typeof(YesOrNoRepetitionTask))
             {
-                var distractor = await _provider.GetDistractorsAsync(isForward, baseEntry.UserId, 1, excludeIds);
-                if (!distractor.Any())
+                var distractors = await _provider.GetDistractorsAsync(true, baseEntry.UserId, 1, excludeIds);
+                if (!distractors.Any())
                     return CreateTextTask(isForward, baseEntry);
 
-                return CreateYesOrNoTask(isForward, baseEntry, distractor[0]);
+                return CreateYesOrNoTask(baseEntry, distractors[0]);
             }
 
             return CreateTextTask(isForward, baseEntry);
@@ -75,7 +75,7 @@ namespace Mnemo.Services.RepetitionService.Factories
             return new SyllableReorderRepetitionTask(baseEntry.UserId, baseEntry.Id, foreign);
         }
 
-        public YesOrNoRepetitionTask CreateYesOrNoTask(bool isForward, VocabularyEntry baseEntry, string distractor)
+        public YesOrNoRepetitionTask CreateYesOrNoTask(VocabularyEntry baseEntry, string distractor)
         {
             string prompt = baseEntry.Foreign;
             string option;
