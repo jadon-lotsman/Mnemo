@@ -19,6 +19,9 @@ defineEmits<{
   <input
     type="text"
     class="text-input"
+    autocorrect="off"
+    autocomplete="off"
+    spellcheck="false"
     :value="modelValue"
     :placeholder="placeholder"
     :disabled="disabled"

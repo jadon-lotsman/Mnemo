@@ -24,6 +24,7 @@ function onSubmitAnswer(id: number, answer: string) {
 async function onFinish() {
   if (repetition.isFinished) {
     router.push({ name: ROUTE_NAMES.VOCABULARY })
+    window.scrollTo(0, 0)
   } else {
     await repetition.finishTasks()
     await calendar.fetchDays()
