@@ -23,6 +23,11 @@ const emits = defineEmits<{
   (e: 'patch', id: number, bodyRequest: PatchEntryRequest): void
 }>()
 
+const audioTitle = computed(() => {
+  const parts = props.entry.transcriptionAudioUrl?.split('/')
+  return parts != null ? parts[parts.length - 1] : null
+})
+
 const isTemplateMode: boolean = props.entry.id < 0
 const isEditorMode = ref<boolean>(isTemplateMode)
 
@@ -152,6 +157,7 @@ function saveChanges() {
             v-if="entry.transcriptionAudioUrl && !isEditorMode"
             type="button"
             class="audio-button"
+            :title="audioTitle ?? ''"
             @click.stop="toggleAudio(entry.transcriptionAudioUrl)"
           >
             {{ audio.isPlayingThis(entry.transcriptionAudioUrl) ? 'volume_up' : 'volume_down' }}
@@ -219,7 +225,7 @@ function saveChanges() {
 
   header {
     display: grid;
-    grid-template-columns: 28% 29% auto auto;
+    grid-template-columns: 30% 30% auto auto;
     background-color: $plane-white;
 
     padding: 10px 15px;
