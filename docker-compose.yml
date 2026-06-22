@@ -1,0 +1,28 @@
+services:
+  api:
+    build:
+      context: ./Mnemo.Api
+      dockerfile: Dockerfile
+    container_name: mnemo-api
+    ports:
+      - "5000:8080"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION}
+      - Jwt_Key=${JWT_KEY}
+      - Jwt_Issuer=${JWT_ISSUER}
+      - Jwt_Audience=${JWT_AUDIENCE}
+    restart: unless-stopped
+
+  vue:
+    build:
+      context: ./Mnemo.Vue
+      dockerfile: Dockerfile
+    container_name: mnemo-vue
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+    restart: unless-stopped
