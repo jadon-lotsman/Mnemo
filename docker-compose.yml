@@ -11,9 +11,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION}
-      - Jwt_Key=${JWT_KEY}
-      - Jwt_Issuer=${JWT_ISSUER}
-      - Jwt_Audience=${JWT_AUDIENCE}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
     restart: unless-stopped
 
   vue:
