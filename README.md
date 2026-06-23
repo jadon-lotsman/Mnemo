@@ -34,19 +34,35 @@ Successful architectural solutions, in my opinion:
 
 ## Getting Started
 
+### > Docker (Recommended)
+
+**Prerequisite:** Docker and Docker Compose must be installed on your system.
+
+```bash
+git clone https://github.com/jadon-lotsman/Mnemo
+cd Mnemo
+cp .env.example .env
+nano .env   # Edit .env to set your own JWT_KEY
+docker compose up --build
+```
+
+Database file is stored in `./data/dev.db` (default).
+
+### > Local Development
+
 **Prerequisites:** .NET 8 SDK, Node.js, and dotnet-ef (optional, for migrations).
 
-### Start Backend
+Start Backend:
 
 ```bash
 cd Mnemo.Api
-cp appsettings.Example.json appsettings.json   # _or copy on Windows_
-dotnet tool install --global dotnet-ef
+cp appsettings.Example.json appsettings.json   # Linux/Mac
+# copy appsettings.Example.json appsettings.json   # Windows
 dotnet ef database update
 dotnet run
 ```
 
-### Start Frontend
+Start Frontend:
 
 ```bash
 cd Mnemo.Vue
