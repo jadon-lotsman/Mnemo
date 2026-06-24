@@ -1,12 +1,15 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import type { Notification } from '../types/Notification'
 
 export const useNotificationStore = defineStore('notification', () => {
   const notifications = ref<Notification[]>([])
 
-  function addNotification(type: string, message: string) {
-    if (notifications.value.length >= 5) return
+  async function addNotification(type: string, message: string) {
+    if (notifications.value.length >= 5) {
+      notifications.value.shift()
+      await nextTick()
+    }
 
     const id = Date.now() + Math.random()
 
