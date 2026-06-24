@@ -7,6 +7,8 @@ import { useVocabularyStore } from '@/features/vocabulary/stores/VocabularyStore
 import { useRouter } from 'vue-router'
 import { ROUTE_NAMES } from '@/shared/constants/RouteConst'
 
+window.scrollTo(0, 0)
+
 const router = useRouter()
 const vocabulary = useVocabularyStore()
 
