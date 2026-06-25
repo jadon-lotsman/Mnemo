@@ -7,7 +7,7 @@ export async function apiRequest<T = unknown>(url: string, options: RequestInit 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` }),
-    ...options.headers, // пользовательские заголовки (могут переопределить)
+    ...options.headers, // Пользовательские заголовки
   }
 
   const notify = useNotify()

@@ -4,6 +4,7 @@
   line-height: 1;
   font-size: 24px;
   font-family: 'Material Symbols Rounded';
+  font-style: normal;
 }
 
 @mixin lift($distance: -2px, $shadow-offset: 2px) {

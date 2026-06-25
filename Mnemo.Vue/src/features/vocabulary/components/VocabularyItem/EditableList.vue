@@ -37,6 +37,8 @@ const inputValue = ref<string>('')
 function pushItem() {
   const str = inputValue.value
 
+  if (str == '') return
+
   if (resultItems.value.includes(str)) {
     notify.info('Already exists')
     return

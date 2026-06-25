@@ -10,8 +10,16 @@ import type {
   PatchEntryRequest,
 } from '../types/VocabularyEntry.ts'
 import ItemSkeleton from './VocabularyItem/ItemSkeleton.vue'
+import { useNotify } from '@/shared/composables/useNotify.ts'
+import { useContextMenu } from '@/shared/composables/useContextMenu.ts'
+import ContextMenu from '@/features/contextMenu/components/ContextMenu.vue'
+import type { ContextMenuItem } from '@/features/contextMenu/types/ContextMenuItem.ts'
+import { format } from 'date-fns'
 
+const notify = useNotify()
 const vocabulary = useVocabularyStore()
+
+const contextMenu = useContextMenu()
 
 const templateEntry = ref<VocabularyEntry>()
 const searched = ref<VocabularyEntry[]>([])
@@ -25,6 +33,8 @@ async function onSearchSubmit(query: string) {
   }
 
   searched.value = await vocabulary.searchVocabulary(trimmed)
+
+  if (searched.value.length == 0) notify.info(`No matches for '${query}'`)
 }
 
 async function onCreateButton() {
@@ -40,6 +50,7 @@ async function onCreateButton() {
           examples: [],
           synonyms: [],
           antonyms: [],
+          createdAt: '',
         }
       : undefined
 
@@ -58,6 +69,33 @@ async function onEntryPatch(id: number, bodyRequest: PatchEntryRequest) {
 
 async function onEntryDelete(id: number) {
   await vocabulary.deleteEntry(id)
+}
+
+async function openContextMenu(event: MouseEvent, entry: VocabularyEntry) {
+  if (entry.id < 0) return
+
+  const menuItems: ContextMenuItem[] = [
+    // {
+    //   label: 'Pin',
+    //   icon: 'keep',
+    //   action: () => console.log('pinned'),
+    // },
+    // {
+    //   label: 'Refresh meta',
+    //   icon: 'replay',
+    //   action: () => console.log('reset'),
+    // },
+    {
+      label: 'Delete',
+      icon: 'close',
+      action: () => onEntryDelete(entry.id),
+    },
+  ]
+
+  const creatingDate = format(new Date(entry.createdAt), 'dd.mm.yy')
+  const menuDescriptions: string[] = [`Created at ${creatingDate}`]
+
+  contextMenu.open(event, menuItems, menuDescriptions)
 }
 
 onMounted(async () => {
@@ -85,9 +123,18 @@ onMounted(async () => {
       :entry="entry"
       @create="onEntryCreate"
       @patch="onEntryPatch"
-      @delete="onEntryDelete"
+      @contextmenu.capture="(e: MouseEvent) => openContextMenu(e, entry)"
     />
   </div>
+
+  <ContextMenu
+    :is-open="contextMenu.isOpen.value"
+    :x="contextMenu.x.value"
+    :y="contextMenu.y.value"
+    :items="contextMenu.items.value"
+    :descriptions="contextMenu.descriptions.value"
+    @close="contextMenu.close"
+  />
 </template>
 
 <style lang="scss" scoped></style>

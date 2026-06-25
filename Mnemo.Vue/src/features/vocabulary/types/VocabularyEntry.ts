@@ -8,6 +8,7 @@ export interface VocabularyEntry {
   translations: string[]
   synonyms: string[]
   antonyms: string[]
+  createdAt: string
 }
 
 export interface CreateEntryRequest {

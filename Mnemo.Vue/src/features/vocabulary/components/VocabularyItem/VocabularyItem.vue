@@ -10,8 +10,11 @@ import EditableList from './EditableList.vue'
 import EditableSelect from './EditableSelect.vue'
 import { PART_OF_SPEECH_OPTIONS } from '@/shared/constants/PartOfSpeech.ts'
 import { useAudioStore } from '../../stores/AudioStore.ts'
+import { useSelection } from '@/shared/composables/useSelection.ts'
 
 const audio = useAudioStore()
+
+const selectionChecker = useSelection()
 
 const props = defineProps<{
   entry: VocabularyEntry
@@ -19,7 +22,6 @@ const props = defineProps<{
 
 const emits = defineEmits<{
   (e: 'create', bodyRequest: CreateEntryRequest): void
-  (e: 'delete', id: number): void
   (e: 'patch', id: number, bodyRequest: PatchEntryRequest): void
 }>()
 
@@ -63,6 +65,8 @@ function handleTranslationsUpdate(added: string[], removed: string[]) {
 }
 
 function switchEditing() {
+  if (selectionChecker.hasSelection.value) return
+
   const canSwitch =
     !isTemplateMode || (inputForeign.value.length > 0 && addTranslations.value.length > 0)
 
@@ -77,10 +81,6 @@ function toggleAudio(url: string) {
   if (!url) return
   if (audio.isPlayingThis(url)) audio.stop()
   else audio.play(url)
-}
-
-function emitDelete() {
-  emits('delete', props.entry.id)
 }
 
 function saveChanges() {
@@ -130,12 +130,7 @@ function saveChanges() {
 </script>
 
 <template>
-  <article
-    class="entry"
-    :class="{ 'editor-mode': isEditorMode }"
-    @click.left="switchEditing"
-    @click.right.prevent="emitDelete"
-  >
+  <article class="entry" :class="{ 'editor-mode': isEditorMode }" @click="switchEditing">
     <header>
       <EditableField
         class="foreign"

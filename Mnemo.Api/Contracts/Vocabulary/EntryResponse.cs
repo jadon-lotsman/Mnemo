@@ -11,5 +11,6 @@
         public string[]? Translations { get; set; }
         public string[]? Synonyms { get; set; }
         public string[]? Antonyms { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }
