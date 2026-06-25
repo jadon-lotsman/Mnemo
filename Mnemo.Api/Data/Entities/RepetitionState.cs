@@ -9,7 +9,6 @@ namespace Mnemo.Data.Entities
         public int RepetitionCounter { get; set; }
         public int RepetitionInterval { get; set; }
         public double EasinessFactor { get; set; }
-        public bool CanAdjustToday { get; set; }
         public DateOnly LastRepetitionAt { get; set; }
         public DateOnly NextRepetitionAt { get; set; }
 
@@ -23,39 +22,26 @@ namespace Mnemo.Data.Entities
             RepetitionCounter = 0;
             RepetitionInterval = SM2Helper.MinInterval;
             EasinessFactor = SM2Helper.InitEF;
-            CanAdjustToday = false;
-            LastRepetitionAt = DateOnly.FromDateTime(DateTime.UtcNow);
+            LastRepetitionAt = DateOnly.MinValue;
             NextRepetitionAt = DateOnly.FromDateTime(DateTime.UtcNow);
         }
 
 
-        public bool TryRecordQuality(double quality, bool isAdjust, DateOnly today, out string? errorMessage)
+        public bool TryRecordQuality(double quality, DateOnly today, out string? errorMessage)
         {
-            if (isAdjust && !CanAdjustToday)
-            {
-                errorMessage = "Adjustment is only available today after a successful repetition";
-                return false;
-            }
-            else if (quality < SM2Helper.MinQuality || quality > SM2Helper.MaxQuality)
+            if (quality < SM2Helper.MinQuality || quality > SM2Helper.MaxQuality)
             {
                 errorMessage = $"Quality {Math.Round(quality, 1)} out of range {SM2Helper.MinQuality}...{SM2Helper.MaxQuality}";
                 return false;
             }
 
 
+            bool isPassing = SM2Helper.IsPassingQuality(quality);
+
             if (IsDueAt(today))
             {
-                if (isAdjust)
-                {
-                    CanAdjustToday = false;
-                }
-                else
-                {
-                    bool isPassing = SM2Helper.IsPassingQuality(quality);
-                    RepetitionCounter = isPassing ? RepetitionCounter + 1 : 0;
-                    CanAdjustToday = isPassing;
-                    LastRepetitionAt = today;
-                }
+                RepetitionCounter = isPassing ? RepetitionCounter + 1 : 0;
+                LastRepetitionAt = today;
 
 
                 (int interval, double easinessFactor)
@@ -67,6 +53,9 @@ namespace Mnemo.Data.Entities
             }
             else
             {
+                if (isPassing)
+                    EasinessFactor = EasinessFactor + SM2Helper.OvertimeBonusEF;
+
                 LastRepetitionAt = today;
             }
 

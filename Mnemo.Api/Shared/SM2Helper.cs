@@ -4,6 +4,7 @@
     {
         public const double MinEF = 1.3;
         public const double InitEF = 2.5;
+        public const double OvertimeBonusEF = 0.05;
 
         public const int MinInterval = 1;
         public const int MaxInterval = 365;

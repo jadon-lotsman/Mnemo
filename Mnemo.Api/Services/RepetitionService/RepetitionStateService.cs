@@ -39,7 +39,7 @@ namespace Mnemo.Services.RepetitionService
         }
 
 
-        public async Task<RequestResult<bool>> RecordQualityRepetitionStateAsync(int userId, Dictionary<int, double> entryIdToQuality, bool isAdjust = false)
+        public async Task<RequestResult<bool>> RecordQualityRepetitionStateAsync(int userId, Dictionary<int, double> entryIdToQuality)
         {
             if (entryIdToQuality == null || !entryIdToQuality.Any())
                 return RequestResult<bool>.Failure(ErrorCode.InvalidData, "Entry-quality is empty");
@@ -62,10 +62,10 @@ namespace Mnemo.Services.RepetitionService
                 if (!entryIdToQuality.TryGetValue(state.VocabularyEntryId, out double quality))
                     continue;
 
-                if (!state.TryRecordQuality(quality, isAdjust, today, out string? errorMessage) && errorResult == null)
-                    errorResult = RequestResult<bool>.Failure(isAdjust ? ErrorCode.ActionNotAllowed : ErrorCode.InvalidData, errorMessage);
+                if (!state.TryRecordQuality(quality, today, out string? errorMessage) && errorResult == null)
+                    errorResult = RequestResult<bool>.Failure( ErrorCode.InvalidData, errorMessage);
             }
-            
+
             await _context.SaveChangesAsync();
 
             return errorResult ?? RequestResult<bool>.Success(true);

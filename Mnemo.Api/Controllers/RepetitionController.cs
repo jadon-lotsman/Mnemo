@@ -103,25 +103,6 @@ namespace Mnemo.Controllers
             return Ok(days);
         }
 
-        [HttpPost("states/{id:int}")]
-        public async Task<IActionResult> AdjustRepetitionState(int id, [FromQuery] double quality)
-        {
-            var result = await _stateService.RecordQualityRepetitionStateAsync(UserId, new Dictionary<int, double> { { id, quality } }, true);
-
-            if (!result.IsSuccess)
-            {
-                return result.ErrorCode switch
-                {
-                    ErrorCode.InvalidData => BadRequest(new { message = result.ErrorMessage }),
-                    ErrorCode.TaskNotFound => NotFound(new { message = result.ErrorMessage }),
-                    ErrorCode.ActionNotAllowed => BadRequest(new { message = result.ErrorMessage }),
-                    _ => StatusCode(500, new { message = result.ErrorMessage })
-                };
-            }
-
-            return NoContent();
-        }
-
 
 
         [HttpGet("tasks")]
