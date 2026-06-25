@@ -29,19 +29,59 @@ function close() {
 
 <style lang="scss" scoped>
 .notification {
+  position: relative;
+
   display: flex;
   align-items: start;
 
   pointer-events: all;
 
-  border-radius: 12px;
+  box-shadow: 5px 5px 0px $shadow;
+  border-radius: 0px 12px 12px 12px;
 
+  margin-left: 32px;
+  margin-right: 20px;
+
+  max-width: $layoutWidth;
+  width: fit-content;
   max-width: 400px;
+  min-width: 250px;
   padding: 10px 15px;
-
-  opacity: 98%;
+  padding-right: 30px;
 
   background-color: $clear-white;
+
+  &::after {
+    content: '';
+
+    position: absolute;
+
+    width: 8px;
+    height: 8px;
+
+    top: 0px;
+    left: -22px;
+
+    border-radius: 50%;
+
+    background-color: inherit;
+  }
+
+  &::before {
+    content: '';
+
+    position: absolute;
+
+    width: 18px;
+    height: 18px;
+
+    top: 0px;
+    left: -9px;
+
+    border-radius: 50%;
+
+    background-color: inherit;
+  }
 
   .icon {
     @include iconize-text;
@@ -50,10 +90,10 @@ function close() {
 
     color: $plane-gray;
 
-    margin-right: 10px;
+    margin-right: 12px;
     margin-top: 5px;
 
-    font-size: 30px;
+    font-size: 32px;
   }
 
   .title {
@@ -67,9 +107,9 @@ function close() {
 
     color: $gray-font;
 
-    margin-top: 2px;
+    margin-top: 3px;
 
-    font-size: 16px;
+    font-size: 15px;
   }
 }
 </style>

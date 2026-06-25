@@ -26,6 +26,8 @@ const store = useNotificationStore()
   pointer-events: none;
 
   width: 100%;
+
+  z-index: 9998;
 }
 
 .notifications-list {
@@ -33,15 +35,15 @@ const store = useNotificationStore()
   justify-content: end;
   flex-direction: column;
 
-  gap: 8px;
+  gap: 10px;
 
-  width: $layoutWidth;
+  max-width: $layoutWidth;
   margin: 0px auto;
 }
 
 .notification-enter-active,
 .notification-leave-active {
-  transition: all 0.3s ease;
+  transition: all 0.18s ease;
 }
 .notification-enter-from {
   opacity: 0%;
