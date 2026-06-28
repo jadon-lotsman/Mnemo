@@ -21,5 +21,14 @@ namespace Mnemo.Shared.Extensions
             .Where(e => e.RepetitionState != null
                      && e.RepetitionState.NextRepetitionAt > today);
         }
+
+        public static IQueryable<VocabularyEntry> NotRepeatedTodayEntries(this IQueryable<VocabularyEntry> source)
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            return source
+            .Where(e => e.RepetitionState != null
+                     && e.RepetitionState.LastRepetitionAt < today);
+        }
     }
 }

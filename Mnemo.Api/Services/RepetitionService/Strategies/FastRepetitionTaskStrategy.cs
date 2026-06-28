@@ -9,13 +9,13 @@ using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Services.RepetitionService.Strategies
 {
-    public class RandomRepetitionTaskStrategy : IRepetitionTaskStrategy
+    public class FastRepetitionTaskStrategy : IRepetitionTaskStrategy
     {
         private readonly RepetitionTaskFactory _factory;
         private readonly ITaskTypeProvider _typeProvider;
         private readonly VocabularyQueries _vocabularyQueries;
 
-        public RandomRepetitionTaskStrategy(RepetitionTaskFactory factory, ITaskTypeProvider typeProvider, VocabularyQueries vocabularyQueries)
+        public FastRepetitionTaskStrategy(RepetitionTaskFactory factory, ITaskTypeProvider typeProvider, VocabularyQueries vocabularyQueries)
         {
             _factory = factory;
             _typeProvider = typeProvider;
@@ -24,11 +24,36 @@ namespace Mnemo.Services.RepetitionService.Strategies
 
         public async Task<List<RepetitionTask>> GetTasksAsync(int userId)
         {
-            var targetEntries = await _vocabularyQueries
-                .GetRandomByUserIdQuery(userId, 10)
+            int count = 10;
+
+            var priorityEntriesQuery = _vocabularyQueries
+                .GetByUserIdQuery(userId)
                 .Include(e => e.RepetitionState)
                 .NotDueEntries()
+                .NotRepeatedTodayEntries()
+                .OrderBy(e => e.Id)
+                .Take(count);
+
+
+            var mixQuery = priorityEntriesQuery;
+
+            if (priorityEntriesQuery.Count() < count)
+            {
+                var existingIds = priorityEntriesQuery.Select(e => e.Id).ToArray();
+
+                var randomEntries = _vocabularyQueries
+                    .GetRandomByUserIdQuery(userId, count-existingIds.Length, existingIds)
+                    .Include(e => e.RepetitionState)
+                    .NotDueEntries();
+
+                mixQuery = mixQuery.Concat(randomEntries);
+            }
+
+
+            var targetEntries = await mixQuery
+                .OrderBy(e => EF.Functions.Random())
                 .ToListAsync();
+
 
             var tasks = new List<RepetitionTask>();
             var index = 0;

@@ -67,7 +67,7 @@ namespace Mnemo.Services.RepetitionService
 
             IRepetitionTaskStrategy? strategy = mode switch
             {
-                "fast" => new RandomRepetitionTaskStrategy(new RepetitionTaskFactory(_distractorProvider), _typeProvider, _vocabularyQueries),
+                "fast" => new FastRepetitionTaskStrategy(new RepetitionTaskFactory(_distractorProvider), _typeProvider, _vocabularyQueries),
                 "planned" => new PlannedRepetitionTaskStrategy(new RepetitionTaskFactory(_distractorProvider), _typeProvider, _vocabularyQueries),
                 _ => null
             };
