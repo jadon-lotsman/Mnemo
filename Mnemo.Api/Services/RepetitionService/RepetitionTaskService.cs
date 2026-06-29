@@ -24,11 +24,18 @@ namespace Mnemo.Services.RepetitionService
 
         private readonly RepetitionStateService _stateService;
 
-        private readonly ITaskTypeProvider _typeProvider;
-        private readonly IDistractorProvider _distractorProvider;
+        private readonly FastRepetitionTaskStrategy _fastStrategy;
+        private readonly PlannedRepetitionTaskStrategy _plannedStrategy;
 
 
-        public RepetitionTaskService(AppDbContext context, AccountQueries accountQueries, TaskQueries taskQueries, VocabularyQueries vocabularyQueries, RepetitionStateService stateService, ITaskTypeProvider typeProvider, IDistractorProvider distractorProvider)
+        public RepetitionTaskService(
+            AppDbContext context,
+            AccountQueries accountQueries,
+            TaskQueries taskQueries,
+            VocabularyQueries vocabularyQueries,
+            RepetitionStateService stateService,
+            FastRepetitionTaskStrategy fastStrategy,
+            PlannedRepetitionTaskStrategy plannedStrategy)
         {
             _context = context;
 
@@ -38,8 +45,8 @@ namespace Mnemo.Services.RepetitionService
 
             _stateService = stateService;
 
-            _typeProvider = typeProvider;
-            _distractorProvider = distractorProvider;
+            _fastStrategy = fastStrategy;
+            _plannedStrategy = plannedStrategy;
         }
 
 
@@ -67,8 +74,8 @@ namespace Mnemo.Services.RepetitionService
 
             IRepetitionTaskStrategy? strategy = mode switch
             {
-                "fast" => new FastRepetitionTaskStrategy(new RepetitionTaskFactory(_distractorProvider), _typeProvider, _vocabularyQueries),
-                "planned" => new PlannedRepetitionTaskStrategy(new RepetitionTaskFactory(_distractorProvider), _typeProvider, _vocabularyQueries),
+                "fast" => _fastStrategy,
+                "planned" => _plannedStrategy,
                 _ => null
             };
 
@@ -94,13 +101,13 @@ namespace Mnemo.Services.RepetitionService
 
 
             var tasks = await _taskQueries.GetByUserIdQuery(userId).ToListAsync();
-            
+
 
             var totalTime = TimeSpan.Zero;
             foreach (var task in tasks)
                 totalTime += task.ElapsedTime;
 
-            var averageTime = tasks.Count > 0? totalTime / tasks.Count : TimeSpan.Zero;
+            var averageTime = tasks.Count > 0 ? totalTime / tasks.Count : TimeSpan.Zero;
 
 
             var entryIdToQuality = new Dictionary<int, double>();
@@ -145,8 +152,8 @@ namespace Mnemo.Services.RepetitionService
             {
                 Correct = correctTaskCounter,
                 Total = totalTasks,
-                Percent = totalTasks > 0 ? (int) Math.Round((double) correctTaskCounter / totalTasks * 100) : 0,
-                TotalTimeMilliseconds = (int) totalTime.TotalMilliseconds,
+                Percent = totalTasks > 0 ? (int)Math.Round((double)correctTaskCounter / totalTasks * 100) : 0,
+                TotalTimeMilliseconds = (int)totalTime.TotalMilliseconds,
                 TaskResults = taskResults.ToArray()
             };
 

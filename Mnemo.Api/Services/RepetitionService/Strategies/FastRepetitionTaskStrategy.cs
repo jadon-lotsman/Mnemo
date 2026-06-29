@@ -9,40 +9,39 @@ using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Services.RepetitionService.Strategies
 {
-    public class FastRepetitionTaskStrategy : IRepetitionTaskStrategy
+    public class FastRepetitionTaskStrategy : RepetitionTaskStrategy
     {
-        private readonly RepetitionTaskFactory _factory;
-        private readonly ITaskTypeProvider _typeProvider;
         private readonly VocabularyQueries _vocabularyQueries;
 
-        public FastRepetitionTaskStrategy(RepetitionTaskFactory factory, ITaskTypeProvider typeProvider, VocabularyQueries vocabularyQueries)
+        public FastRepetitionTaskStrategy(
+            ILogger<FastRepetitionTaskStrategy> logger,
+            RepetitionTaskFactory factory,
+            ITaskTypeProvider typeProvider,
+            VocabularyQueries vocabularyQueries) : base(logger, factory, typeProvider)
         {
-            _factory = factory;
-            _typeProvider = typeProvider;
             _vocabularyQueries = vocabularyQueries;
         }
 
-        public async Task<List<RepetitionTask>> GetTasksAsync(int userId)
-        {
-            int count = 10;
 
+        protected override async Task<IQueryable<VocabularyEntry>> GetEntriesQuery(int userId, int take)
+        {
             var priorityEntriesQuery = _vocabularyQueries
                 .GetByUserIdQuery(userId)
                 .Include(e => e.RepetitionState)
                 .NotDueEntries()
                 .NotRepeatedTodayEntries()
                 .OrderBy(e => e.Id)
-                .Take(count);
+                .Take(take);
 
 
             var mixQuery = priorityEntriesQuery;
 
-            if (priorityEntriesQuery.Count() < count)
+            if (priorityEntriesQuery.Count() < take)
             {
                 var existingIds = priorityEntriesQuery.Select(e => e.Id).ToArray();
 
                 var randomEntries = _vocabularyQueries
-                    .GetRandomByUserIdQuery(userId, count-existingIds.Length, existingIds)
+                    .GetRandomByUserIdQuery(userId, take - existingIds.Length, existingIds)
                     .Include(e => e.RepetitionState)
                     .NotDueEntries();
 
@@ -50,29 +49,7 @@ namespace Mnemo.Services.RepetitionService.Strategies
             }
 
 
-            var targetEntries = await mixQuery
-                .OrderBy(e => EF.Functions.Random())
-                .ToListAsync();
-
-
-            var tasks = new List<RepetitionTask>();
-            var index = 0;
-            var excludeIds = targetEntries.Select(e => e.Id).ToArray();
-
-            foreach (var entry in targetEntries)
-            {
-                double easeFactor = entry.RepetitionState?.EasinessFactor ?? SM2Helper.InitEF;
-
-                (Type taskType, bool isForward) = _typeProvider.GetType(easeFactor);
-                var task = await _factory.CreateByTypeAsync(isForward, taskType, entry, excludeIds);
-
-                task.OrderIndex = index;
-                index++;
-
-                tasks.Add(task);
-            }
-
-            return tasks;
+            return mixQuery;
         }
     }
 }

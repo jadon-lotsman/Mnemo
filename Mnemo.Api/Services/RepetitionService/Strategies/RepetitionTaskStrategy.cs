@@ -1,0 +1,73 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Mnemo.Data.Entities;
+using Mnemo.Data.Queries;
+using Mnemo.Services.RepetitionService.Factories;
+using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
+using Mnemo.Shared;
+using System.Diagnostics;
+
+namespace Mnemo.Services.RepetitionService.Strategies
+{
+    public abstract class RepetitionTaskStrategy : IRepetitionTaskStrategy
+    {
+        private readonly ILogger<IRepetitionTaskStrategy> _logger;
+        private readonly RepetitionTaskFactory _factory;
+        private readonly ITaskTypeProvider _typeProvider;
+
+        public RepetitionTaskStrategy(ILogger<IRepetitionTaskStrategy> logger, RepetitionTaskFactory factory, ITaskTypeProvider typeProvider)
+        {
+            _logger = logger;
+            _factory = factory;
+            _typeProvider = typeProvider;
+        }
+
+
+        public async Task<List<RepetitionTask>> GetTasksAsync(int userId)
+        {
+            const int take = 10;
+
+            _logger.LogInformation("Attempting to generate {Count} tasks for user (UserId:{UserId})", take, userId);
+            var stopwatch = Stopwatch.StartNew();
+
+            var query = await GetEntriesQuery(userId, take);
+            var targetEntries = await query
+                .OrderBy(e => EF.Functions.Random())
+                .ToListAsync();
+
+
+            if (!targetEntries.Any())
+            {
+                _logger.LogWarning("No entries found for user (UserId:{UserId})", userId);
+                return new List<RepetitionTask>();
+            }
+
+            _logger.LogInformation("Retrieved {Count} entries for user (UserId:{UserId})", targetEntries.Count, userId);
+
+
+            var tasks = new List<RepetitionTask>();
+            var index = 0;
+            var excludeIds = targetEntries.Select(e => e.Id).ToArray();
+
+            foreach (var entry in targetEntries)
+            {
+                double easeFactor = entry.RepetitionState?.EasinessFactor ?? SM2Helper.InitEF;
+
+                (Type taskType, bool isForward) = _typeProvider.GetType(easeFactor);
+                var task = await _factory.CreateByTypeAsync(isForward, taskType, entry, excludeIds);
+
+                task.OrderIndex = index;
+                index++;
+
+                tasks.Add(task);
+            }
+
+            stopwatch.Stop();
+            _logger.LogInformation("Successfully generated {TaskCount} tasks in {DurationMs} ms for user (UserId:{UserId})", tasks.Count, stopwatch.ElapsedMilliseconds, userId);
+
+            return tasks;
+        }
+
+
+        protected abstract Task<IQueryable<VocabularyEntry>> GetEntriesQuery(int userId, int take);
+    }
+}

@@ -10,48 +10,30 @@ using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Services.RepetitionService.Strategies
 {
-    public class PlannedRepetitionTaskStrategy : IRepetitionTaskStrategy
+    public class PlannedRepetitionTaskStrategy : RepetitionTaskStrategy
     {
-        private readonly RepetitionTaskFactory _factory;
-        private readonly ITaskTypeProvider _typeProvider;
         private readonly VocabularyQueries _vocabularyQueries;
 
-        public PlannedRepetitionTaskStrategy(RepetitionTaskFactory factory, ITaskTypeProvider typeProvider, VocabularyQueries vocabularyQueries)
+        public PlannedRepetitionTaskStrategy(
+            ILogger<PlannedRepetitionTaskStrategy> logger,
+            RepetitionTaskFactory factory,
+            ITaskTypeProvider typeProvider,
+            VocabularyQueries vocabularyQueries) : base(logger, factory, typeProvider)
         {
-            _factory = factory;
-            _typeProvider = typeProvider;
             _vocabularyQueries = vocabularyQueries;
         }
 
-        public async Task<List<RepetitionTask>> GetTasksAsync(int userId)
+
+        protected override async Task<IQueryable<VocabularyEntry>> GetEntriesQuery(int userId, int take)
         {
-            var targetEntries = await _vocabularyQueries
+            var query = _vocabularyQueries
                 .GetByUserIdQuery(userId)
                 .Include(e => e.RepetitionState)
                 .DueEntries()
                 .OrderBy(e => e.Id)
-                .Take(10)
-                .OrderBy(e => EF.Functions.Random())
-                .ToListAsync();
+                .Take(10);
 
-            var tasks = new List<RepetitionTask>();
-            var index = 0;
-            var excludeIds = targetEntries.Select(e => e.Id).ToArray();
-
-            foreach (var entry in targetEntries)
-            {
-                double easeFactor = entry.RepetitionState?.EasinessFactor ?? SM2Helper.InitEF;
-
-                (Type taskType, bool isForward) = _typeProvider.GetType(easeFactor);
-                var task = await _factory.CreateByTypeAsync(isForward, taskType, entry, excludeIds);
-
-                task.OrderIndex = index;
-                index++;
-
-                tasks.Add(task);
-            }
-
-            return tasks;
+            return query;
         }
     }
 }

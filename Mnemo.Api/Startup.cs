@@ -13,6 +13,7 @@ using Mnemo.Services.RepetitionService;
 using Mnemo.Services.RepetitionService.Factories;
 using Mnemo.Services.RepetitionService.Providers.DestructorProviders;
 using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
+using Mnemo.Services.RepetitionService.Strategies;
 
 namespace Mnemo
 {
@@ -114,10 +115,14 @@ namespace Mnemo
             services.AddHttpClient<IExternalDictionary, FreeDictionaryApi>();
             services.AddHostedService<EnrichmentBackgroundService>();
 
-            // DI TaskFactory
+            // DI Task Factory
             services.AddScoped<ITaskTypeProvider, WeightTaskTypeProvider>();
             services.AddScoped<IDistractorProvider, RandomDistractorProvider>();
             services.AddScoped<RepetitionTaskFactory>();
+
+            // DI Task Strategies
+            services.AddScoped<FastRepetitionTaskStrategy>();
+            services.AddScoped<PlannedRepetitionTaskStrategy>();
 
             // Use Controllers
             services.AddControllers();
