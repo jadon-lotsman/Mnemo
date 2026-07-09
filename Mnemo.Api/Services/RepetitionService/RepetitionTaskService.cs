@@ -1,16 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Mnemo.Contracts.Repetition.Results;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
-using Mnemo.Services.RepetitionService.Factories;
 using Mnemo.Services.RepetitionService.Strategies;
-using Mnemo.Services.RepetitionService.Providers.DestructorProviders;
-using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
 using Mnemo.Shared;
-using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Services.RepetitionService
 {

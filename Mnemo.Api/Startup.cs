@@ -11,7 +11,7 @@ using Mnemo.Services.EnrichmentService;
 using Mnemo.Services.EnrichmentService.ExternalDictionaries;
 using Mnemo.Services.RepetitionService;
 using Mnemo.Services.RepetitionService.Factories;
-using Mnemo.Services.RepetitionService.Providers.DestructorProviders;
+using Mnemo.Services.RepetitionService.Providers.DistractorProviders;
 using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
 using Mnemo.Services.RepetitionService.Strategies;
 
@@ -117,7 +117,9 @@ namespace Mnemo
 
             // DI Task Factory
             services.AddScoped<ITaskTypeProvider, WeightTaskTypeProvider>();
-            services.AddScoped<IDistractorProvider, RandomDistractorProvider>();
+            services.AddScoped<IDistractorProvider, CompositeDistractorProvider>();
+            services.AddScoped<AntonymDistractorProvider>();
+            services.AddScoped<RandomDistractorProvider>();
             services.AddScoped<RepetitionTaskFactory>();
 
             // DI Task Strategies

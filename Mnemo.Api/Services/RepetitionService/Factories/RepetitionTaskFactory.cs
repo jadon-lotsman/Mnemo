@@ -1,7 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Options;
-using Mnemo.Data.Entities;
-using Mnemo.Services.RepetitionService.Providers.DestructorProviders;
+﻿using Mnemo.Data.Entities;
+using Mnemo.Services.RepetitionService.Providers.DistractorProviders;
 
 namespace Mnemo.Services.RepetitionService.Factories
 {
@@ -18,7 +16,7 @@ namespace Mnemo.Services.RepetitionService.Factories
         {
             if (taskType == typeof(OptionRepetitionTask))
             {
-                var distractors = await _provider.GetDistractorsAsync(isForward, baseEntry.UserId, 3, excludeIds);
+                var distractors = await _provider.GetDistractorsAsync(isForward, baseEntry.UserId, baseEntry.Id, 3, excludeIds);
                 if (!distractors.Any())
                     return CreateTextTask(isForward, baseEntry);
 
@@ -34,7 +32,7 @@ namespace Mnemo.Services.RepetitionService.Factories
             }
             else if (taskType == typeof(YesOrNoRepetitionTask))
             {
-                var distractors = await _provider.GetDistractorsAsync(true, baseEntry.UserId, 1, excludeIds);
+                var distractors = await _provider.GetDistractorsAsync(true, baseEntry.UserId, baseEntry.Id, 1, excludeIds);
                 if (!distractors.Any())
                     return CreateTextTask(isForward, baseEntry);
 
