@@ -26,7 +26,7 @@ export async function apiRequest<T = unknown>(url: string, options: RequestInit 
       throw new Error('Hmm...')
     }
 
-    if (!response.ok) {
+    if (!response.ok && response.status !== 422) {
       let errorMessage = ''
 
       try {
@@ -42,7 +42,7 @@ export async function apiRequest<T = unknown>(url: string, options: RequestInit 
     }
 
     // Возвращаем удачный ответ
-    if (response.status === 204) {
+    if (response.status === 204 || response.status === 422) {
       return null as T
     } else {
       return (await response.json()) as T

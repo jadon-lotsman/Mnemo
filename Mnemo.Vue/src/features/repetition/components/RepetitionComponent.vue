@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import RepetitionItem from './RepetitionItem/RepetitionItem.vue'
 import { useRepetitionStore } from '../stores/RepetitionStore.ts'
 import router from '@/router/index.ts'
@@ -8,6 +8,8 @@ import { ROUTE_NAMES } from '@/shared/constants/RouteConst.ts'
 
 const calendar = useCalendarStore()
 const repetition = useRepetitionStore()
+
+const isLoading = ref<boolean>(false)
 
 const tasks = computed(() => repetition.tasks)
 
@@ -25,8 +27,10 @@ async function onFinish() {
   if (repetition.isFinished) {
     router.push({ name: ROUTE_NAMES.VOCABULARY })
   } else {
+    isLoading.value = true
     await repetition.finishTasks()
     await calendar.fetchDays()
+    isLoading.value = false
   }
 }
 
@@ -44,7 +48,7 @@ onMounted(async () => {
     :disabled="repetition.isFinished"
     @submit-answer="onSubmitAnswer"
   />
-  <button class="big-button" type="button" @click="onFinish">
+  <button class="big-button" type="button" @click="onFinish" :disabled="isLoading">
     {{ repetition.isFinished ? 'Back' : 'Finish' }}
   </button>
 </template>

@@ -13,7 +13,9 @@ export const useRepetitionStore = defineStore('repetition', () => {
   const totalTasks = computed(() => tasks.value.length)
 
   async function isExists(): Promise<boolean> {
-    return (await apiRequest<{ inProcess: string }>('/api/repetition/')).inProcess == 'true'
+    const result = await apiRequest<{ inProcess: boolean }>('/api/repetition/')
+
+    return result.inProcess
   }
 
   async function createTasks(mode: string): Promise<boolean> {
@@ -21,7 +23,7 @@ export const useRepetitionStore = defineStore('repetition', () => {
       method: 'POST',
     })
 
-    return true
+    return tasks.value !== null
   }
 
   async function finishTasks() {
