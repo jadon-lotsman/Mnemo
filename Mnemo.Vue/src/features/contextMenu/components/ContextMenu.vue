@@ -26,23 +26,27 @@ function handleItemClick(item: ContextMenuItem) {
       <div
         v-if="isOpen"
         class="context-menu"
-        :style="{ top: y + 'px', left: 22 + x + 'px' }"
+        :style="{ top: y + 'px', left: 12 + x + 'px' }"
         @click.stop
       >
-        <div v-for="contextItem in props.items" :key="contextItem.label">
-          <div
-            class="item"
-            :class="{ disable: contextItem.disabled }"
-            @mousedown.prevent
-            @click="handleItemClick(contextItem)"
-          >
-            <span class="label">{{ contextItem.label }}</span>
-            <span class="icon">{{ contextItem.icon }}</span>
+        <header>
+          <div v-for="contextItem in props.items" :key="contextItem.label">
+            <div
+              class="item"
+              :class="{ disable: contextItem.disabled }"
+              @mousedown.prevent
+              @click="handleItemClick(contextItem)"
+            >
+              <span class="icon">{{ contextItem.icon }}</span>
+              <span class="label">{{ contextItem.label }}</span>
+            </div>
           </div>
-        </div>
-        <div class="descriptions">
-          <span v-for="descr in descriptions" :key="descr">{{ descr }}.</span>
-        </div>
+        </header>
+        <footer>
+          <div class="descriptions">
+            <span v-for="descr in descriptions" :key="descr">{{ descr }}.</span>
+          </div>
+        </footer>
       </div>
     </Transition>
   </Teleport>
@@ -56,97 +60,95 @@ function handleItemClick(item: ContextMenuItem) {
   display: flex;
   flex-direction: column;
 
-  gap: 5px;
+  background-color: $cloud-white;
+  border-radius: 0px 12px 12px 12px;
 
-  background-color: #ffffff;
   box-shadow: 5px 5px 0px $shadow;
-  border-radius: 0px 10px 10px 10px;
 
-  min-width: 180px;
+  filter: drop-shadow(0px 0px 8px #bbbbbb4d);
+  backdrop-filter: blur(2px);
 
-  padding: 8px;
+  min-width: 220px;
+  padding: 8px 6px 10px 6px;
 
   z-index: 9999;
 
-  &::after {
-    content: '';
-
-    position: absolute;
-
-    width: 8px;
-    height: 8px;
-
-    top: 0px;
-    left: -22px;
-
-    border-radius: 50%;
-
-    background-color: inherit;
-  }
-
-  &::before {
-    content: '';
-
-    position: absolute;
-
-    width: 18px;
-    height: 18px;
-
-    top: 0px;
-    left: -9px;
-
-    border-radius: 50%;
-
-    background-color: inherit;
-  }
-
-  .item {
-    cursor: pointer;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 12px;
-
-    border-radius: 8px;
-
-    padding: 4px 12px 5px 10px;
-
-    font-style: italic;
-
-    .icon {
-      @include iconize-text;
-
-      color: $shadow;
-      opacity: 85%;
-
-      font-size: 21px;
-      line-height: 0.8;
-    }
-  }
-
-  .item.disable {
-    cursor: default;
-
-    color: $shadow;
-
-    .icon {
-      opacity: 65%;
-    }
-  }
-
-  .descriptions {
+  header {
     display: flex;
     flex-direction: column;
 
-    gap: 3px;
+    gap: 2px;
 
-    color: $shadow;
+    &::after {
+      content: '';
 
-    padding: 4px 8px 4px 10px;
+      position: absolute;
 
-    font-size: 14px;
+      width: 0;
+      height: 0;
+      border: 8px solid transparent;
+      border-top: 8px solid $cloud-white;
+      border-right: 8px solid $cloud-white;
+
+      top: 0px;
+      left: -12px;
+
+      background-color: transparent;
+    }
+
+    .item {
+      cursor: pointer;
+
+      display: flex;
+      align-items: center;
+
+      border-radius: 8px;
+
+      padding: 4px;
+
+      .icon {
+        @include iconize-text;
+
+        color: $shadow;
+        opacity: 85%;
+
+        margin-left: 8px;
+        margin-right: 12px;
+
+        font-size: 21px;
+        line-height: 0.8;
+      }
+
+      &:hover {
+        background-color: $plane-gray;
+      }
+    }
+
+    .item.disable {
+      cursor: default;
+
+      color: $shadow;
+
+      .icon {
+        opacity: 65%;
+      }
+    }
+  }
+
+  footer {
+    .descriptions {
+      display: flex;
+      flex-direction: column;
+
+      gap: 3px;
+
+      color: $gray-font;
+
+      margin-top: 5px;
+      margin-left: 12px;
+
+      font-size: 15px;
+    }
   }
 }
 

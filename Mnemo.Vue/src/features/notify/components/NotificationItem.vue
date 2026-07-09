@@ -37,50 +37,38 @@ function close() {
   pointer-events: all;
 
   box-shadow: 5px 5px 0px $shadow;
-  border-radius: 0px 12px 12px 12px;
 
-  margin-left: 32px;
-  margin-right: 20px;
+  border-radius: 0px 12px 12px 12px;
+  background-color: $cloud-white;
+
+  filter: drop-shadow(0px 0px 8px #bbbbbb4d);
+  backdrop-filter: blur(2px);
+
+  margin-left: 15px;
+  margin-right: 12px;
 
   max-width: $layoutWidth;
   width: fit-content;
   max-width: 400px;
   min-width: 250px;
   padding: 10px 15px;
-  padding-right: 30px;
-
-  background-color: $clear-white;
+  padding-right: 25px;
 
   &::after {
     content: '';
 
     position: absolute;
 
-    width: 8px;
-    height: 8px;
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
+    border-top: 8px solid $cloud-white;
+    border-right: 8px solid $cloud-white;
 
     top: 0px;
-    left: -22px;
+    left: -12px;
 
-    border-radius: 50%;
-
-    background-color: inherit;
-  }
-
-  &::before {
-    content: '';
-
-    position: absolute;
-
-    width: 18px;
-    height: 18px;
-
-    top: 0px;
-    left: -9px;
-
-    border-radius: 50%;
-
-    background-color: inherit;
+    background-color: transparent;
   }
 
   .icon {
@@ -88,7 +76,9 @@ function close() {
 
     display: block;
 
-    color: $plane-gray;
+    opacity: 85%;
+
+    color: $shadow;
 
     margin-right: 12px;
     margin-top: 5px;

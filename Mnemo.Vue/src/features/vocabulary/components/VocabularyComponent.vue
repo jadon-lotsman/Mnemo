@@ -76,23 +76,23 @@ async function openContextMenu(event: MouseEvent, entry: VocabularyEntry) {
 
   const menuItems: ContextMenuItem[] = [
     // {
-    //   label: 'Pin',
+    //   label: 'Pin/Unpin',
     //   icon: 'keep',
     //   action: () => console.log('pinned'),
     // },
     // {
-    //   label: 'Refresh meta',
+    //   label: 'Reset progress',
     //   icon: 'replay',
     //   action: () => console.log('reset'),
     // },
     {
-      label: 'Delete',
+      label: 'Delete entry',
       icon: 'close',
       action: () => onEntryDelete(entry.id),
     },
   ]
 
-  const creatingDate = format(new Date(entry.createdAt), 'dd.mm.yy')
+  const creatingDate = format(new Date(entry.createdAt), 'd MMM, yyyy')
   const menuDescriptions: string[] = [`Created at ${creatingDate}`]
 
   contextMenu.open(event, menuItems, menuDescriptions)
