@@ -1,39 +1,31 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 
 namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
 {
     public class AntonymDistractorProvider : IDistractorProvider
     {
-        private VocabularyQueries _vocabularyQueries;
-
-        public AntonymDistractorProvider(VocabularyQueries vocabularyQueries)
+        public AntonymDistractorProvider()
         {
-            _vocabularyQueries = vocabularyQueries;
         }
 
 
-        public async Task<List<string>> GetDistractorsAsync(bool isForward, int userId, int entryId, int take, params int[] excludeIds)
+        public async Task<List<string>> GetDistractorsAsync(bool isForward, VocabularyEntry baseEntry, int take, params int[] excludeIds)
         {
             if (isForward)
                 return [];
 
-            var entry = await _vocabularyQueries
-                .GetByIdAsync(userId, entryId);
-
-            if (entry == null || entry.Antonyms.Count < take)
+            if (baseEntry.Antonyms.Count < take)
                 return [];
 
-            var antonyms = entry
+            var antonyms = baseEntry
                 .Antonyms
                 .OrderBy(x => Random.Shared.Next())
                 .ToList();
 
-            var result = antonyms
+            return antonyms
                 .Take(take)
                 .ToList();
-
-            return result;
         }
     }
 }

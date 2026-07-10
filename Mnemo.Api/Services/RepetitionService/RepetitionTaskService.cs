@@ -14,7 +14,6 @@ namespace Mnemo.Services.RepetitionService
         private readonly TaskQueries _taskQueries;
 
         private readonly AccountQueries _accountQueries;
-        private readonly VocabularyQueries _vocabularyQueries;
 
         private readonly RepetitionStateService _stateService;
 
@@ -26,7 +25,6 @@ namespace Mnemo.Services.RepetitionService
             AppDbContext context,
             AccountQueries accountQueries,
             TaskQueries taskQueries,
-            VocabularyQueries vocabularyQueries,
             RepetitionStateService stateService,
             FastRepetitionTaskStrategy fastStrategy,
             PlannedRepetitionTaskStrategy plannedStrategy)
@@ -35,7 +33,6 @@ namespace Mnemo.Services.RepetitionService
 
             _accountQueries = accountQueries;
             _taskQueries = taskQueries;
-            _vocabularyQueries = vocabularyQueries;
 
             _stateService = stateService;
 

@@ -1,23 +1,29 @@
-﻿using Mnemo.Data.Entities;
+﻿using Microsoft.Extensions.Options;
+using Mnemo.Data.Entities;
 using Mnemo.Services.RepetitionService.Providers.DistractorProviders;
 
 namespace Mnemo.Services.RepetitionService.Factories
 {
     public class RepetitionTaskFactory
     {
+        private readonly IOptions<RepetitionOptions> _options;
         private readonly IDistractorProvider _provider;
 
-        public RepetitionTaskFactory(IDistractorProvider provider)
+        public RepetitionTaskFactory(IOptions<RepetitionOptions> options, IDistractorProvider provider)
         {
+            _options = options;
             _provider = provider;
         }
+
 
         public async Task<RepetitionTask> CreateByTypeAsync(bool isForward, Type taskType, VocabularyEntry baseEntry, params int[] excludeIds)
         {
             if (taskType == typeof(OptionRepetitionTask))
             {
-                var distractors = await _provider.GetDistractorsAsync(isForward, baseEntry.UserId, baseEntry.Id, 3, excludeIds);
-                if (!distractors.Any())
+                int take = _options.Value.OptionsDistractorCount;
+
+                var distractors = await _provider.GetDistractorsAsync(isForward, baseEntry, take, excludeIds);
+                if (distractors.Count < take)
                     return CreateTextTask(isForward, baseEntry);
 
                 return CreateOptionsTask(isForward, baseEntry, distractors);
@@ -32,8 +38,8 @@ namespace Mnemo.Services.RepetitionService.Factories
             }
             else if (taskType == typeof(YesOrNoRepetitionTask))
             {
-                var distractors = await _provider.GetDistractorsAsync(true, baseEntry.UserId, baseEntry.Id, 1, excludeIds);
-                if (!distractors.Any())
+                var distractors = await _provider.GetDistractorsAsync(true, baseEntry, 1, excludeIds);
+                if (distractors.Count < 1)
                     return CreateTextTask(isForward, baseEntry);
 
                 return CreateYesOrNoTask(baseEntry, distractors[0]);

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Mnemo.Data.Entities;
-using Mnemo.Data.Queries;
 using Mnemo.Services.RepetitionService.Factories;
 using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
 using Mnemo.Shared;
@@ -10,12 +10,18 @@ namespace Mnemo.Services.RepetitionService.Strategies
 {
     public abstract class RepetitionTaskStrategy : IRepetitionTaskStrategy
     {
+        private readonly IOptions<RepetitionOptions> _options;
         private readonly ILogger<IRepetitionTaskStrategy> _logger;
         private readonly RepetitionTaskFactory _factory;
         private readonly ITaskTypeProvider _typeProvider;
 
-        public RepetitionTaskStrategy(ILogger<IRepetitionTaskStrategy> logger, RepetitionTaskFactory factory, ITaskTypeProvider typeProvider)
+        public RepetitionTaskStrategy(
+            IOptions<RepetitionOptions> options,
+            ILogger<IRepetitionTaskStrategy> logger,
+            RepetitionTaskFactory factory,
+            ITaskTypeProvider typeProvider)
         {
+            _options = options;
             _logger = logger;
             _factory = factory;
             _typeProvider = typeProvider;
@@ -24,7 +30,7 @@ namespace Mnemo.Services.RepetitionService.Strategies
 
         public async Task<List<RepetitionTask>> GetTasksAsync(int userId)
         {
-            const int take = 10;
+            int take = _options.Value.RepetitionTaskCount;
 
             _logger.LogInformation("Attempting to generate {Count} tasks for user (UserId:{UserId})", take, userId);
             var stopwatch = Stopwatch.StartNew();

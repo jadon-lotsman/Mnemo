@@ -1,42 +1,41 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Mnemo.Data.Queries;
+﻿using Mnemo.Data.Entities;
 
 namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
 {
     public class CompositeDistractorProvider : IDistractorProvider
     {
-        private AntonymDistractorProvider _antonymDistractorProvider;
-        private RandomByPartOfSpeechProvider _partOfSpeechDistractorProvider;
-        private RandomDistractorProvider _randomDistractorProvider;
 
-        public CompositeDistractorProvider(AntonymDistractorProvider antonymDistractorProvider, RandomByPartOfSpeechProvider partOfSpeechDistractorProvider, RandomDistractorProvider randomDistractorProvider)
+        private readonly AntonymDistractorProvider _antonymDistractorProvider;
+        private readonly ByPartOfSpeechDistractorProvider _byPartOfSpeechDistractorProvider;
+        private readonly RandomDistractorProvider _randomDistractorProvider;
+
+        public CompositeDistractorProvider(AntonymDistractorProvider antonymDistractorProvider, ByPartOfSpeechDistractorProvider byPartOfSpeechDistractorProvider, RandomDistractorProvider randomDistractorProvider)
         {
             _antonymDistractorProvider = antonymDistractorProvider;
-            _partOfSpeechDistractorProvider = partOfSpeechDistractorProvider;
+            _byPartOfSpeechDistractorProvider = byPartOfSpeechDistractorProvider;
             _randomDistractorProvider = randomDistractorProvider;
         }
 
 
-        public async Task<List<string>> GetDistractorsAsync(bool isForward, int userId, int entryId, int take, params int[] excludeIds)
+        public async Task<List<string>> GetDistractorsAsync(bool isForward, VocabularyEntry baseEntry, int take, params int[] excludeIds)
         {
-            var priorityDistractors = await _antonymDistractorProvider
-                .GetDistractorsAsync(isForward, userId, entryId, 1, excludeIds);
+            var antonymDistractors = await _antonymDistractorProvider
+                .GetDistractorsAsync(isForward, baseEntry, 1, excludeIds);
 
+            var result = antonymDistractors;
 
-            var result = priorityDistractors;
-
-            if (result.Count() < take)
+            if (result.Count < take)
             {
-                var randomDistractors = await _partOfSpeechDistractorProvider
-                    .GetDistractorsAsync(isForward, userId, entryId, take - priorityDistractors.Count, excludeIds);
+                var partOfSpeechDistractors = await _byPartOfSpeechDistractorProvider
+                    .GetDistractorsAsync(isForward, baseEntry, take - result.Count, excludeIds);
 
-                result.AddRange(randomDistractors);
+                result.AddRange(partOfSpeechDistractors);
             }
 
-            if (result.Count() < take)
+            if (result.Count < take)
             {
                 var randomDistractors = await _randomDistractorProvider
-                    .GetDistractorsAsync(isForward, userId, entryId, take - priorityDistractors.Count, excludeIds);
+                    .GetDistractorsAsync(isForward, baseEntry, take - result.Count, excludeIds);
 
                 result.AddRange(randomDistractors);
             }

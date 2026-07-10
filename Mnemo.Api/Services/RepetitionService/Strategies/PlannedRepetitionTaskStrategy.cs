@@ -1,11 +1,9 @@
-﻿using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Services.RepetitionService.Factories;
-using Mnemo.Services.RepetitionService.Providers;
 using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
-using Mnemo.Shared;
 using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Services.RepetitionService.Strategies
@@ -15,10 +13,11 @@ namespace Mnemo.Services.RepetitionService.Strategies
         private readonly VocabularyQueries _vocabularyQueries;
 
         public PlannedRepetitionTaskStrategy(
+            IOptions<RepetitionOptions> options,
             ILogger<PlannedRepetitionTaskStrategy> logger,
             RepetitionTaskFactory factory,
             ITaskTypeProvider typeProvider,
-            VocabularyQueries vocabularyQueries) : base(logger, factory, typeProvider)
+            VocabularyQueries vocabularyQueries) : base(options, logger, factory, typeProvider)
         {
             _vocabularyQueries = vocabularyQueries;
         }
@@ -31,7 +30,7 @@ namespace Mnemo.Services.RepetitionService.Strategies
                 .Include(e => e.RepetitionState)
                 .DueEntries()
                 .OrderBy(e => e.Id)
-                .Take(10);
+                .Take(take);
 
             return query;
         }

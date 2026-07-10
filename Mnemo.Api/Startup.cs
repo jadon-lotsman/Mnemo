@@ -1,5 +1,4 @@
-﻿using System.Text;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -14,6 +13,7 @@ using Mnemo.Services.RepetitionService.Factories;
 using Mnemo.Services.RepetitionService.Providers.DistractorProviders;
 using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
 using Mnemo.Services.RepetitionService.Strategies;
+using System.Text;
 
 namespace Mnemo
 {
@@ -32,6 +32,7 @@ namespace Mnemo
         {
             // Configurations
             services.Configure<EnrichmentOptions>(Configuration.GetSection("Enrichment"));
+            services.Configure<RepetitionOptions>(Configuration.GetSection("Repetition"));
 
             // Add MemoryCache
             services.AddMemoryCache();
@@ -119,7 +120,7 @@ namespace Mnemo
             services.AddScoped<ITaskTypeProvider, WeightTaskTypeProvider>();
             services.AddScoped<IDistractorProvider, CompositeDistractorProvider>();
             services.AddScoped<AntonymDistractorProvider>();
-            services.AddScoped<RandomByPartOfSpeechProvider>();
+            services.AddScoped<ByPartOfSpeechDistractorProvider>();
             services.AddScoped<RandomDistractorProvider>();
             services.AddScoped<RepetitionTaskFactory>();
 
