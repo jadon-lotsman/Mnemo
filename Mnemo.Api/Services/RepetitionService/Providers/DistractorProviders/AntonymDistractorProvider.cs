@@ -21,13 +21,13 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
             var entry = await _vocabularyQueries
                 .GetByIdAsync(userId, entryId);
 
+            if (entry == null || entry.Antonyms.Count < take)
+                return [];
+
             var antonyms = entry
                 .Antonyms
                 .OrderBy(x => Random.Shared.Next())
                 .ToList();
-
-            if (antonyms.Count < take)
-                return [];
 
             var result = antonyms
                 .Take(take)

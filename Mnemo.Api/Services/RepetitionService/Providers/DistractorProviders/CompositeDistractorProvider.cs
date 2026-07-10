@@ -5,14 +5,14 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
 {
     public class CompositeDistractorProvider : IDistractorProvider
     {
-        private VocabularyQueries _vocabularyQueries;
         private AntonymDistractorProvider _antonymDistractorProvider;
+        private RandomByPartOfSpeechProvider _partOfSpeechDistractorProvider;
         private RandomDistractorProvider _randomDistractorProvider;
 
-        public CompositeDistractorProvider(VocabularyQueries vocabularyQueries, AntonymDistractorProvider antonymDistractorProvider, RandomDistractorProvider randomDistractorProvider)
+        public CompositeDistractorProvider(AntonymDistractorProvider antonymDistractorProvider, RandomByPartOfSpeechProvider partOfSpeechDistractorProvider, RandomDistractorProvider randomDistractorProvider)
         {
-            _vocabularyQueries = vocabularyQueries;
             _antonymDistractorProvider = antonymDistractorProvider;
+            _partOfSpeechDistractorProvider = partOfSpeechDistractorProvider;
             _randomDistractorProvider = randomDistractorProvider;
         }
 
@@ -25,13 +25,24 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
 
             var result = priorityDistractors;
 
-            if (priorityDistractors.Count() < take)
+            if (result.Count() < take)
+            {
+                var randomDistractors = await _partOfSpeechDistractorProvider
+                    .GetDistractorsAsync(isForward, userId, entryId, take - priorityDistractors.Count, excludeIds);
+
+                result.AddRange(randomDistractors);
+            }
+
+            if (result.Count() < take)
             {
                 var randomDistractors = await _randomDistractorProvider
                     .GetDistractorsAsync(isForward, userId, entryId, take - priorityDistractors.Count, excludeIds);
 
                 result.AddRange(randomDistractors);
             }
+
+            if (result.Count < take)
+                return [];
 
             return result;
         }

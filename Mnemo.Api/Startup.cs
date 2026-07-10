@@ -119,6 +119,7 @@ namespace Mnemo
             services.AddScoped<ITaskTypeProvider, WeightTaskTypeProvider>();
             services.AddScoped<IDistractorProvider, CompositeDistractorProvider>();
             services.AddScoped<AntonymDistractorProvider>();
+            services.AddScoped<RandomByPartOfSpeechProvider>();
             services.AddScoped<RandomDistractorProvider>();
             services.AddScoped<RepetitionTaskFactory>();
 

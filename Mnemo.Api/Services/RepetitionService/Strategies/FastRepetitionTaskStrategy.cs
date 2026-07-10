@@ -41,7 +41,8 @@ namespace Mnemo.Services.RepetitionService.Strategies
                 var existingIds = priorityEntriesQuery.Select(e => e.Id).ToArray();
 
                 var randomEntries = _vocabularyQueries
-                    .GetRandomByUserIdQuery(userId, take - existingIds.Length, existingIds)
+                    .GetByUserIdQuery(userId)
+                    .GetRandomEntries(take - existingIds.Length, existingIds)
                     .Include(e => e.RepetitionState)
                     .NotDueEntries();
 
