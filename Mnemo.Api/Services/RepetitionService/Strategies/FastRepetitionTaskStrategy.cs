@@ -42,9 +42,9 @@ namespace Mnemo.Services.RepetitionService.Strategies
 
                 var randomEntries = _vocabularyQueries
                     .GetByUserIdQuery(userId)
-                    .GetRandomEntries(take - existingIds.Length, existingIds)
                     .Include(e => e.RepetitionState)
-                    .NotDueEntries();
+                    .NotDueEntries()
+                    .GetRandomEntries(take - existingIds.Length, existingIds);
 
                 mixQuery = mixQuery.Concat(randomEntries);
             }
