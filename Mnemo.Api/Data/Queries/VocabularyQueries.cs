@@ -20,22 +20,6 @@ namespace Mnemo.Data.Queries
         public IQueryable<VocabularyEntry> GetByUserIdQuery(int userId)
             => _context.Entries.Where(e => e.User.Id == userId);
 
-        public IQueryable<VocabularyEntry> GetRandomByUserIdQuery(int userId, int? take = null, params int[] excludeIds)
-        {
-            var query = GetByUserIdQuery(userId);
-
-            if (excludeIds != null && excludeIds.Any())
-                query = query.Where(e => !excludeIds.Contains(e.Id));
-
-            if (take.HasValue)
-                return query
-                    .OrderBy(e => EF.Functions.Random())
-                    .Take(take.Value);
-
-            return query
-                .OrderBy(e => EF.Functions.Random());
-        }
-
 
         // Getters
         public async Task<bool> ExistsByIdAsync(int userId, int id)

@@ -125,7 +125,7 @@ namespace Mnemo.Shared.Extensions
                 chunks.Add(str.Substring(i, length).Trim());
             }
 
-            if (chunks.Count >= 2 && chunks[^1].Length <= chunk)
+            if (chunks.Count >= 2 && chunks[^1].Length < chunk)
             {
                 chunks[^2] += chunks[^1];
                 chunks.RemoveAt(chunks.Count - 1);

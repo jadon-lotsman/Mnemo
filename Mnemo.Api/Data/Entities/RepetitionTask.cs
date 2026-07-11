@@ -64,7 +64,7 @@ namespace Mnemo.Data.Entities
         public TextRepetitionTask() { }
 
         public TextRepetitionTask(string prompt, int userId, int entryId, List<string> correctAnswers) : base(prompt, userId, entryId)
-        { 
+        {
             CorrectAnswers = correctAnswers;
         }
 
@@ -116,9 +116,25 @@ namespace Mnemo.Data.Entities
         {
             CorrectOrder = TextNormalizer.NormalizeExample(sentence);
 
-            var parts = CorrectOrder.Split();
-            if (parts.Length <= 3)
-                parts = CorrectOrder.SplitIntoChunks(3);
+            var parts = CorrectOrder.Split().ToList();
+
+            int mergeCount = (int)Math.Floor(parts.Count / 5d);
+
+            while (mergeCount > 0 || parts.Count > 10) 
+            {
+                if (parts.Count >= 2)
+                {
+                    int index = Random.Shared.Next(parts.Count - 1);
+                    parts[index] = string.Join(' ', parts[index], parts[index + 1]);
+                    parts.RemoveAt(index + 1);
+
+                    mergeCount--;
+                }
+                else
+                {
+                    break;
+                }
+            }
 
             SentenceParts = parts
                 .OrderBy(x => Random.Shared.Next())
@@ -141,19 +157,20 @@ namespace Mnemo.Data.Entities
 
         public SyllableReorderRepetitionTask() { }
 
-        public SyllableReorderRepetitionTask(int userId, int entryId, string word) : base("", userId, entryId)
+        public SyllableReorderRepetitionTask(int userId, int entryId, string word, List<string> distractors) : base("", userId, entryId)
         {
-            CorrectOrder = TextNormalizer.NormalizeExample(word);
+            CorrectOrder = word.ToLower();
 
             Syllables = CorrectOrder
                 .SplitIntoChunks(3)
+                .Union(distractors)
                 .OrderBy(x => Random.Shared.Next())
                 .ToList();
         }
 
         protected override double GetSimilarity()
         {
-            return UserAnswer.AddEndPointIfNeeded().RemoveSpaces() == CorrectOrder.RemoveSpaces() ? 1.0 : 0.0;
+            return UserAnswer.RemoveSpaces() == CorrectOrder.RemoveSpaces() ? 1.0 : 0.0;
         }
 
         public override string GetCorrect() => CorrectOrder;

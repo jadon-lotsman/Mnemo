@@ -1,23 +1,26 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
-using Mnemo.Services.RepetitionService.Factories;
+using Mnemo.Shared.Extensions;
 
-namespace Mnemo.Services.RepetitionService.Providers.DestructorProviders
+namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
 {
-    public class RandomDistractorProvider : IDistractorProvider
+    public class ByPartOfSpeechDistractorProvider : IDistractorProvider
     {
         private VocabularyQueries _vocabularyQueries;
 
-        public RandomDistractorProvider(VocabularyQueries vocabularyQueries)
+        public ByPartOfSpeechDistractorProvider(VocabularyQueries vocabularyQueries)
         {
             _vocabularyQueries = vocabularyQueries;
         }
 
-        public async Task<List<string>> GetDistractorsAsync(bool isForward, int userId, int take, params int[] excludeIds)
+
+        public async Task<List<string>> GetDistractorsAsync(bool isForward, VocabularyEntry baseEntry, int take, params int[] excludeIds)
         {
             var entries = await _vocabularyQueries
-                    .GetRandomByUserIdQuery(userId, take, excludeIds)
+                    .GetByUserIdQuery(baseEntry.UserId)
+                    .Where(e => baseEntry.PartOfSpeech != null && e.PartOfSpeech == baseEntry.PartOfSpeech)
+                    .GetRandomEntries(take, excludeIds)
                     .ToListAsync();
 
             if (entries.Count < take)

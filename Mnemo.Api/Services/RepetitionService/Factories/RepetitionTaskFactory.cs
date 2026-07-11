@@ -1,41 +1,58 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Mnemo.Data.Entities;
-using Mnemo.Services.RepetitionService.Providers.DestructorProviders;
+using Mnemo.Services.RepetitionService.Providers.DistractorProviders;
 
 namespace Mnemo.Services.RepetitionService.Factories
 {
     public class RepetitionTaskFactory
     {
+        private readonly IOptions<RepetitionOptions> _options;
         private readonly IDistractorProvider _provider;
+        private readonly SyllableDistractorProvider _syllable;
 
-        public RepetitionTaskFactory(IDistractorProvider provider)
+        public RepetitionTaskFactory(IOptions<RepetitionOptions> options, IDistractorProvider provider, SyllableDistractorProvider syllable)
         {
+            _options = options;
             _provider = provider;
+            _syllable = syllable;
         }
+
 
         public async Task<RepetitionTask> CreateByTypeAsync(bool isForward, Type taskType, VocabularyEntry baseEntry, params int[] excludeIds)
         {
             if (taskType == typeof(OptionRepetitionTask))
             {
-                var distractors = await _provider.GetDistractorsAsync(isForward, baseEntry.UserId, 3, excludeIds);
-                if (!distractors.Any())
+                int take = _options.Value.OptionsDistractorCount;
+
+                var distractors = await _provider.GetDistractorsAsync(isForward, baseEntry, take, excludeIds);
+                if (distractors.Count < take)
                     return CreateTextTask(isForward, baseEntry);
 
                 return CreateOptionsTask(isForward, baseEntry, distractors);
             }
-            else if (taskType == typeof(SentenceReorderRepetitionTask) && baseEntry.Examples.Any())
+            else if (taskType == typeof(SentenceReorderRepetitionTask))
             {
-                return CreateSentenceReorderTask(baseEntry);
+                var filtered = baseEntry.Examples.Where(e => e.Split().Length >= 3).ToList();
+
+                if (!filtered.Any())
+                    return CreateTextTask(isForward, baseEntry);
+
+                return CreateSentenceReorderTask(baseEntry, filtered);
             }
-            else if (taskType == typeof(SyllableReorderRepetitionTask) && baseEntry.Foreign.Length >= 8)
+            else if (taskType == typeof(SyllableReorderRepetitionTask) && baseEntry.Foreign.Length > 8)
             {
-                return CreateSyllableReorderTask(baseEntry);
+                int take = 2;
+
+                var distractors = await _syllable.GetDistractorsAsync(false, baseEntry, take, excludeIds);
+                if (distractors.Count < take)
+                    return CreateTextTask(isForward, baseEntry);
+
+                return CreateSyllableReorderTask(baseEntry, distractors);
             }
             else if (taskType == typeof(YesOrNoRepetitionTask))
             {
-                var distractors = await _provider.GetDistractorsAsync(true, baseEntry.UserId, 1, excludeIds);
-                if (!distractors.Any())
+                var distractors = await _provider.GetDistractorsAsync(true, baseEntry, 1, excludeIds);
+                if (distractors.Count < 1)
                     return CreateTextTask(isForward, baseEntry);
 
                 return CreateYesOrNoTask(baseEntry, distractors[0]);
@@ -60,19 +77,19 @@ namespace Mnemo.Services.RepetitionService.Factories
             return new OptionRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, distractors, correct);
         }
 
-        public SentenceReorderRepetitionTask CreateSentenceReorderTask(VocabularyEntry baseEntry)
+        public SentenceReorderRepetitionTask CreateSentenceReorderTask(VocabularyEntry baseEntry, List<string> sentences)
         {
-            int index = Random.Shared.Next(baseEntry.Examples.Count);
-            var sentence = baseEntry.Examples[index];
+            int index = Random.Shared.Next(sentences.Count);
+            var sentence = sentences[index];
 
             return new SentenceReorderRepetitionTask(baseEntry.UserId, baseEntry.Id, sentence);
         }
 
-        public SyllableReorderRepetitionTask CreateSyllableReorderTask(VocabularyEntry baseEntry)
+        public SyllableReorderRepetitionTask CreateSyllableReorderTask(VocabularyEntry baseEntry, List<string> distractors)
         {
             var foreign = baseEntry.Foreign;
 
-            return new SyllableReorderRepetitionTask(baseEntry.UserId, baseEntry.Id, foreign);
+            return new SyllableReorderRepetitionTask(baseEntry.UserId, baseEntry.Id, foreign, distractors);
         }
 
         public YesOrNoRepetitionTask CreateYesOrNoTask(VocabularyEntry baseEntry, string distractor)

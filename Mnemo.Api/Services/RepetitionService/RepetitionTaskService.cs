@@ -1,16 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Mnemo.Contracts.Repetition.Results;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
-using Mnemo.Services.RepetitionService.Factories;
 using Mnemo.Services.RepetitionService.Strategies;
-using Mnemo.Services.RepetitionService.Providers.DestructorProviders;
-using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
 using Mnemo.Shared;
-using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Services.RepetitionService
 {
@@ -20,7 +14,6 @@ namespace Mnemo.Services.RepetitionService
         private readonly TaskQueries _taskQueries;
 
         private readonly AccountQueries _accountQueries;
-        private readonly VocabularyQueries _vocabularyQueries;
 
         private readonly RepetitionStateService _stateService;
 
@@ -32,7 +25,6 @@ namespace Mnemo.Services.RepetitionService
             AppDbContext context,
             AccountQueries accountQueries,
             TaskQueries taskQueries,
-            VocabularyQueries vocabularyQueries,
             RepetitionStateService stateService,
             FastRepetitionTaskStrategy fastStrategy,
             PlannedRepetitionTaskStrategy plannedStrategy)
@@ -41,7 +33,6 @@ namespace Mnemo.Services.RepetitionService
 
             _accountQueries = accountQueries;
             _taskQueries = taskQueries;
-            _vocabularyQueries = vocabularyQueries;
 
             _stateService = stateService;
 

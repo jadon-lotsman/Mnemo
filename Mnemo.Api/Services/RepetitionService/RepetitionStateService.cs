@@ -1,6 +1,5 @@
 ﻿using Mnemo.Contracts.Repetition;
 using Mnemo.Data;
-using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Shared;
 
@@ -11,15 +10,13 @@ namespace Mnemo.Services.RepetitionService
         private readonly ILogger<RepetitionStateService> _logger;
         private readonly AppDbContext _context;
         private readonly StateQueries _stateQueries;
-        private readonly VocabularyQueries _vocabularyQueries;
 
 
-        public RepetitionStateService(ILogger<RepetitionStateService> logger, AppDbContext context, StateQueries stateQueries, VocabularyQueries vocabularyQueries)
+        public RepetitionStateService(ILogger<RepetitionStateService> logger, AppDbContext context, StateQueries stateQueries)
         {
             _logger = logger;
             _context = context;
             _stateQueries = stateQueries;
-            _vocabularyQueries = vocabularyQueries;
         }
 
 
