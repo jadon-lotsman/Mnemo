@@ -19,10 +19,15 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
 
         public async Task<List<string>> GetDistractorsAsync(bool isForward, VocabularyEntry baseEntry, int take, params int[] excludeIds)
         {
-            var antonymDistractors = await _antonymDistractorProvider
-                .GetDistractorsAsync(isForward, baseEntry, 1, excludeIds);
+            var result = new List<string>();
 
-            var result = antonymDistractors;
+            if (baseEntry.Antonyms.Any() && Random.Shared.Next(2) == 0)
+            {
+                var antonymDistractors = await _antonymDistractorProvider
+                    .GetDistractorsAsync(isForward, baseEntry, 1, excludeIds);
+
+                result.AddRange(antonymDistractors);
+            }
 
             if (result.Count < take)
             {
@@ -39,9 +44,6 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
 
                 result.AddRange(randomDistractors);
             }
-
-            if (result.Count < take)
-                return [];
 
             return result;
         }

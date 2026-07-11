@@ -116,12 +116,15 @@ namespace Mnemo
             services.AddHttpClient<IExternalDictionary, FreeDictionaryApi>();
             services.AddHostedService<EnrichmentBackgroundService>();
 
-            // DI Task Factory
-            services.AddScoped<ITaskTypeProvider, WeightTaskTypeProvider>();
-            services.AddScoped<IDistractorProvider, CompositeDistractorProvider>();
+            // DI Distractor Providers
             services.AddScoped<AntonymDistractorProvider>();
             services.AddScoped<ByPartOfSpeechDistractorProvider>();
             services.AddScoped<RandomDistractorProvider>();
+            services.AddScoped<SyllableDistractorProvider>();
+            services.AddScoped<IDistractorProvider, CompositeDistractorProvider>();
+
+            // DI Task Factory
+            services.AddScoped<ITaskTypeProvider, WeightTaskTypeProvider>();
             services.AddScoped<RepetitionTaskFactory>();
 
             // DI Task Strategies
