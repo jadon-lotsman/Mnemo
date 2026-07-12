@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { RepetitionTask } from '../../types/RepetitionTask'
 import OptionInput from './OptionInput.vue'
 import SentenceInput from './SentenceInput.vue'
@@ -15,6 +15,11 @@ const props = defineProps<{
 const emits = defineEmits<{
   (e: 'submitAnswer', id: number, answer: string): void
 }>()
+
+const displayPartOfSpeech = computed(() => {
+  const raw = props.task.partOfSpeech
+  return raw ? raw.slice(0, 3) + '.' : '---'
+})
 
 const userAnswer = ref<string>('')
 const placeholder = ref<string>('Type the translation...')
@@ -59,7 +64,14 @@ watch(
             </div>
           </div>
 
-          <span class="icon" v-if="disabled">{{ task.isCorrect ? 'check_circle' : 'cancel' }}</span>
+          <div class="info">
+            <div v-show="task.partOfSpeech !== null" class="part-of-speech">
+              <span> ({{ displayPartOfSpeech }}) </span>
+            </div>
+            <span class="icon" v-show="disabled">{{
+              task.isCorrect ? 'check_circle' : 'cancel'
+            }}</span>
+          </div>
         </header>
         <footer>
           <div v-if="task.taskType === 'text'">
@@ -144,6 +156,12 @@ watch(
         .bold {
           color: $black-font;
         }
+      }
+
+      .info {
+        display: flex;
+
+        gap: 5px;
       }
     }
 

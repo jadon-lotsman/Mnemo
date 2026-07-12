@@ -10,6 +10,7 @@ namespace Mnemo.Contracts.Repetition
     public abstract class TaskResponse
     {
         public int Id { get; set; }
+        public string? PartOfSpeech { get; set; }
         public abstract string TaskType { get; }
         public string Prompt { get; set; }
     }

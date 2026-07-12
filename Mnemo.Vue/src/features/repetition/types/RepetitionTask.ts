@@ -1,5 +1,6 @@
 interface BaseTask {
   id: number
+  partOfSpeech?: string
   prompt: string
   taskType: string
   userAnswer: string

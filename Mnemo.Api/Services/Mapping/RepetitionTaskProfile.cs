@@ -14,7 +14,8 @@ namespace Mnemo.Services.Mapping
                 .Include<OptionRepetitionTask, OptionTaskResponse>()
                 .Include<SentenceReorderRepetitionTask, SentenceReorderTaskResponse>()
                 .Include<SyllableReorderRepetitionTask, SyllableReorderTaskResponse>()
-                .Include<YesOrNoRepetitionTask, YesOrNoTaskResponse>();
+                .Include<YesOrNoRepetitionTask, YesOrNoTaskResponse>()
+                .ForMember(dest => dest.PartOfSpeech, opt => opt.MapFrom(src => src.EntryPartOfSpeech.HasValue ? src.EntryPartOfSpeech.Value.ToString().ToLower() : null)); ;
 
             CreateMap<TextRepetitionTask, TextTaskResponse>();
             CreateMap<OptionRepetitionTask, OptionTaskResponse>();

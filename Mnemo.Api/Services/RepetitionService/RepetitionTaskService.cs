@@ -112,8 +112,8 @@ namespace Mnemo.Services.RepetitionService
                 double quality = task.GetQuality(averageTime);
                 bool isCorrect = false;
 
-                if (!entryIdToQuality.ContainsKey(task.AsessmentEntryId))
-                    entryIdToQuality.Add(task.AsessmentEntryId, quality);
+                if (!entryIdToQuality.ContainsKey(task.VocabularyEntryId))
+                    entryIdToQuality.Add(task.VocabularyEntryId, quality);
 
                 if (SM2Helper.IsPassingQuality(quality))
                 {

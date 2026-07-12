@@ -9,7 +9,8 @@ namespace Mnemo.Data.Entities
     public abstract class RepetitionTask
     {
         public int Id { get; set; }
-        public int AsessmentEntryId { get; set; }
+        public int VocabularyEntryId { get; set; }
+        public PartOfSpeech? EntryPartOfSpeech { get; set; }
 
         public string Prompt { get; set; }
         public string UserAnswer { get; set; }
@@ -24,13 +25,14 @@ namespace Mnemo.Data.Entities
 
         public RepetitionTask() { }
 
-        public RepetitionTask(string prompt, int userId, int entryId)
+        public RepetitionTask(string prompt, int userId, int entryId, PartOfSpeech? partOfSpeech = null)
         {
             Prompt = prompt;
             UserAnswer = string.Empty;
+            EntryPartOfSpeech = partOfSpeech;
 
             UserId = userId;
-            AsessmentEntryId = entryId;
+            VocabularyEntryId = entryId;
         }
 
 
@@ -63,7 +65,7 @@ namespace Mnemo.Data.Entities
 
         public TextRepetitionTask() { }
 
-        public TextRepetitionTask(string prompt, int userId, int entryId, List<string> correctAnswers) : base(prompt, userId, entryId)
+        public TextRepetitionTask(string prompt, PartOfSpeech? partOfSpeech, int userId, int entryId, List<string> correctAnswers) : base(prompt, userId, entryId, partOfSpeech)
         {
             CorrectAnswers = correctAnswers;
         }
@@ -84,7 +86,7 @@ namespace Mnemo.Data.Entities
 
         public OptionRepetitionTask() { }
 
-        public OptionRepetitionTask(string prompt, int userId, int entryId, List<string> options, string correctOption) : base(prompt, userId, entryId)
+        public OptionRepetitionTask(string prompt, PartOfSpeech? partOfSpeech, int userId, int entryId, List<string> options, string correctOption) : base(prompt, userId, entryId, partOfSpeech)
         {
             if (!options.Contains(correctOption))
                 options.Add(correctOption);
@@ -157,7 +159,7 @@ namespace Mnemo.Data.Entities
 
         public SyllableReorderRepetitionTask() { }
 
-        public SyllableReorderRepetitionTask(int userId, int entryId, string word, List<string> distractors) : base("", userId, entryId)
+        public SyllableReorderRepetitionTask(PartOfSpeech? partOfSpeech, int userId, int entryId, string word, List<string> distractors) : base("", userId, entryId, partOfSpeech)
         {
             CorrectOrder = word.ToLower();
 

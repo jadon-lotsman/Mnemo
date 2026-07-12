@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using Mnemo.Data.Entities;
 using Mnemo.Services.RepetitionService.Providers.DistractorProviders;
+using Mnemo.Shared;
 
 namespace Mnemo.Services.RepetitionService.Factories
 {
@@ -64,17 +65,21 @@ namespace Mnemo.Services.RepetitionService.Factories
         public TextRepetitionTask CreateTextTask(bool isForward, VocabularyEntry baseEntry)
         {
             string prompt = isForward ? baseEntry.Foreign : baseEntry.Translations[0];
+            var partOfSpeech = isForward ? baseEntry.PartOfSpeech : null;
+
             var correct = isForward ? baseEntry.Translations : [baseEntry.Foreign];
 
-            return new TextRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, correct);
+            return new TextRepetitionTask(prompt, partOfSpeech, baseEntry.UserId, baseEntry.Id, correct);
         }
 
         public OptionRepetitionTask CreateOptionsTask(bool isForward, VocabularyEntry baseEntry, List<string> distractors)
         {
             string prompt = isForward ? baseEntry.Foreign : baseEntry.Translations[0];
+            var partOfSpeech = isForward ? baseEntry.PartOfSpeech : null;
+
             var correct = isForward ? baseEntry.Translations[0] : baseEntry.Foreign;
 
-            return new OptionRepetitionTask(prompt, baseEntry.UserId, baseEntry.Id, distractors, correct);
+            return new OptionRepetitionTask(prompt, partOfSpeech, baseEntry.UserId, baseEntry.Id, distractors, correct);
         }
 
         public SentenceReorderRepetitionTask CreateSentenceReorderTask(VocabularyEntry baseEntry, List<string> sentences)
@@ -88,13 +93,15 @@ namespace Mnemo.Services.RepetitionService.Factories
         public SyllableReorderRepetitionTask CreateSyllableReorderTask(VocabularyEntry baseEntry, List<string> distractors)
         {
             var foreign = baseEntry.Foreign;
+            var partOfSpeech = baseEntry.PartOfSpeech;
 
-            return new SyllableReorderRepetitionTask(baseEntry.UserId, baseEntry.Id, foreign, distractors);
+            return new SyllableReorderRepetitionTask(partOfSpeech, baseEntry.UserId, baseEntry.Id, foreign, distractors);
         }
 
         public YesOrNoRepetitionTask CreateYesOrNoTask(VocabularyEntry baseEntry, string distractor)
         {
             string prompt = baseEntry.Foreign;
+
             string option;
 
             bool isCorrect = Random.Shared.Next(2) == 0;

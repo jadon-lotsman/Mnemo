@@ -14,24 +14,28 @@ const isLoading = ref<boolean>(false)
 
 async function onStart() {
   isLoading.value = true
-  const exists = await repetition.isExists()
 
-  if (exists) {
-    router.push({ name: ROUTE_NAMES.REPETITION })
-    notify.info('Repetition already exists. Redirecting...')
-  } else {
-    const success = await repetition.createTasks(selectedMode.value)
+  try {
+    const exists = await repetition.isExists()
 
-    if (success) {
+    if (exists) {
       router.push({ name: ROUTE_NAMES.REPETITION })
+      notify.info('Repetition already exists. Redirecting...')
     } else {
-      notify.failure(
-        `Couldn't start repetition with mode '${selectedMode.value}'. If your vocabulary is empty, please add some entries first`,
-      )
-    }
-  }
+      const success = await repetition.createTasks(selectedMode.value)
 
-  isLoading.value = false
+      if (success) {
+        router.push({ name: ROUTE_NAMES.REPETITION })
+      } else {
+        notify.failure(
+          `Couldn't start repetition with mode '${selectedMode.value}'. If your vocabulary is empty, please add some entries first`,
+        )
+      }
+    }
+  } catch {
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 
