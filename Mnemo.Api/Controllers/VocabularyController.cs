@@ -33,9 +33,10 @@ namespace Mnemo.Controllers
 
 
         [HttpGet("sectors")]
-        public async Task<IActionResult> GetVocabularySectors()
+        public async Task<IActionResult> GetVocabularySectors([FromQuery] string isDescending)
         {
-            var response = await _vocabularyService.GetVocabularySectorsAsync(UserId);
+            var isDescendingBoolean = isDescending == "true" ? true : false;
+            var response = await _vocabularyService.GetVocabularySectorsAsync(UserId, isDescendingBoolean);
 
             return Ok(response);
         }
