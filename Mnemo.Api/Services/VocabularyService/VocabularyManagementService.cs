@@ -1,14 +1,15 @@
 ﻿using AutoMapper;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using Mnemo.Contracts.Vocabulary;
 using Mnemo.Contracts.Vocabulary.Requests;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
-using Mnemo.Services.EnrichmentService.ExternalDictionaries;
 using Mnemo.Shared;
 using Mnemo.Shared.Extensions;
 
-namespace Mnemo.Services
+namespace Mnemo.Services.VocabularyService
 {
     public class VocabularyManagementService
     {
@@ -39,6 +40,35 @@ namespace Mnemo.Services
             _vocabularyQueries = vocabularyQueries;
         }
 
+
+
+        public async Task<VocabularyPageResponse> GetVocabularyAsync(int userId, int page, int pageSize)
+        {
+            var query = _vocabularyQueries
+                .GetByUserIdQuery(userId);
+
+            var totalEntries = await query.CountAsync();
+            var totalTranslations = await query
+                .SumAsync(e => e.Translations != null ? e.Translations.Count : 0);
+
+            var entries = await query
+                .OrderBy(e => e.Foreign)
+                .Skip((page-1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var entriesResponse = _mapper.Map<EntryResponse[]>(entries);
+
+            return new VocabularyPageResponse
+            {
+                Entries = entriesResponse,
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling(totalEntries / (double)pageSize),
+                TotalEntries = totalEntries,
+                TotalTranslations = totalTranslations
+            };
+        }
 
 
         public async Task<RequestResult<VocabularyEntry>> CreateEntryAsync(int userId, CreateEntryRequest request)

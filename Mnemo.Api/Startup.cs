@@ -5,7 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Mnemo.Data;
 using Mnemo.Data.Queries;
-using Mnemo.Services;
+using Mnemo.Services.AccountService;
 using Mnemo.Services.EnrichmentService;
 using Mnemo.Services.EnrichmentService.ExternalDictionaries;
 using Mnemo.Services.RepetitionService;
@@ -13,6 +13,7 @@ using Mnemo.Services.RepetitionService.Factories;
 using Mnemo.Services.RepetitionService.Providers.DistractorProviders;
 using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
 using Mnemo.Services.RepetitionService.Strategies;
+using Mnemo.Services.VocabularyService;
 using System.Text;
 
 namespace Mnemo

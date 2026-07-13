@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Mnemo.Contracts.Vocabulary;
 using Mnemo.Contracts.Vocabulary.Requests;
 using Mnemo.Data.Queries;
-using Mnemo.Services;
+using Mnemo.Services.VocabularyService;
 using Mnemo.Shared;
 
 namespace Mnemo.Controllers
@@ -33,12 +33,11 @@ namespace Mnemo.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAllEntries()
+        public async Task<IActionResult> GetVocabularyPage([FromQuery] int page, int pageSize)
         {
-            var entries = await _vocabularyQueries.GetByUserIdQuery(UserId).ToListAsync();
+            var response = await _vocabularyService.GetVocabularyAsync(UserId, page, pageSize);
 
-            var entriesResponse = _mapper.Map<List<EntryResponse>>(entries);
-            return Ok(entriesResponse);
+            return Ok(response);
         }
 
         [HttpGet("{id:int}")]

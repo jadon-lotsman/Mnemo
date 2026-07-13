@@ -6,7 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Mnemo.Contracts.Account.Requests;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
-using Mnemo.Services;
+using Mnemo.Services.AccountService;
 using Mnemo.Shared;
 
 namespace Mnemo.Controllers
