@@ -42,29 +42,94 @@ namespace Mnemo.Services.VocabularyService
 
 
 
-        public async Task<VocabularyPageResponse> GetVocabularyAsync(int userId, int page, int pageSize)
+        public async Task<List<VocabularySectorResponse>> GetVocabularySectorsAsync(int userId)
         {
-            var query = _vocabularyQueries
-                .GetByUserIdQuery(userId);
+            int minSectorSize = 12;
 
-            var totalEntries = await query.CountAsync();
-            var totalTranslations = await query
+            var alphabetGroups = await _vocabularyQueries
+                .GetByUserIdQuery(userId)
+                .GroupBy(e => e.Foreign.Substring(0, 1))
+                .Select(g => new
+                {
+                    Letter = g.Key,
+                    Count = g.Count(),
+                    StartWord = g.Min(e => e.Foreign)!,
+                    EndWord = g.Max(e => e.Foreign)!
+                })
+                .OrderBy(e => e.Letter)
+                .ToListAsync();
+
+            var sectors = new List<VocabularySectorResponse>();
+
+            while (alphabetGroups.Any())
+            {
+                string startWord = alphabetGroups.First().StartWord;
+                string endWord = alphabetGroups.First().EndWord;
+                int count = alphabetGroups.First().Count;
+
+
+                if (!sectors.Any())
+                {
+                    sectors.Add(new VocabularySectorResponse()
+                    {
+                        StartWord = startWord,
+                        EndWord = endWord,
+                        Count = count
+                    });
+                }
+                else
+                {
+                    var lastSection = sectors.Last();
+
+                    if (lastSection.Count < minSectorSize)
+                    {
+
+                        lastSection.EndWord = endWord;
+                        lastSection.Count += count;
+                    }
+                    else
+                    {
+                        sectors.Add(new VocabularySectorResponse()
+                        {
+                            StartWord = startWord,
+                            EndWord = endWord,
+                            Count = count
+                        });
+                    }
+                }
+
+                alphabetGroups.RemoveAt(0);
+            }
+
+
+            return sectors;
+        }
+
+        public async Task<VocabularyPageResponse> GetVocabularyPageAsync(int userId, string startWord, string endWord)
+        {
+            var totalEntries = await _vocabularyQueries.GetByUserIdQuery(userId)
+                .CountAsync();
+
+            var totalTranslations = await _vocabularyQueries.GetByUserIdQuery(userId)
                 .SumAsync(e => e.Translations != null ? e.Translations.Count : 0);
 
-            var entries = await query
+            var entries = await _vocabularyQueries
+                .GetByUserIdQuery(userId)
+                .Where(e => 
+                string.Compare(e.Foreign, startWord) >= 0 && 
+                string.Compare(e.Foreign, endWord) <= 0)
                 .OrderBy(e => e.Foreign)
-                .Skip((page-1) * pageSize)
-                .Take(pageSize)
+                .ThenBy(e => e.PartOfSpeech)
+                //.Skip((page - 1) * pageSize)
+                //.Take(pageSize)
                 .ToListAsync();
+                            
 
             var entriesResponse = _mapper.Map<EntryResponse[]>(entries);
 
             return new VocabularyPageResponse
             {
                 Entries = entriesResponse,
-                Page = page,
-                PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling(totalEntries / (double)pageSize),
                 TotalEntries = totalEntries,
                 TotalTranslations = totalTranslations
             };

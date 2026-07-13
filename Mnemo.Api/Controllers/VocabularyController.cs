@@ -32,10 +32,18 @@ namespace Mnemo.Controllers
 
 
 
-        [HttpGet]
-        public async Task<IActionResult> GetVocabularyPage([FromQuery] int page, int pageSize)
+        [HttpGet("sectors")]
+        public async Task<IActionResult> GetVocabularySectors()
         {
-            var response = await _vocabularyService.GetVocabularyAsync(UserId, page, pageSize);
+            var response = await _vocabularyService.GetVocabularySectorsAsync(UserId);
+
+            return Ok(response);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetVocabularyPage([FromQuery] string startWord, string endWord)
+        {
+            var response = await _vocabularyService.GetVocabularyPageAsync(UserId, startWord, endWord);
 
             return Ok(response);
         }
