@@ -1,25 +1,32 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import type {
   CreateEntryRequest,
   VocabularyEntry,
   PatchEntryRequest,
 } from '../types/VocabularyEntry'
 import { apiRequest } from '@/shared/utils/ApiRequest'
+import type { VocabularyPage } from '../types/VocabularyPage'
 
 export const useVocabularyStore = defineStore('vocabulary', () => {
   const entries = ref<VocabularyEntry[]>([])
   const isLoading = ref<boolean>(false)
 
-  const totalEntries = computed(() => entries.value.length)
-  const totalTranslations = computed(() =>
-    entries.value.reduce((sum, entry) => sum + entry.translations.length, 0),
-  )
+  const totalPages = ref<number>()
+  const totalEntries = ref<number>()
+  const totalTranslations = ref<number>()
 
-  async function fetchVocabulary() {
+  async function fetchVocabulary(page: number, pageSize: number = 15) {
     try {
       isLoading.value = true
-      entries.value = await apiRequest<VocabularyEntry[]>('/api/vocabulary/entries/')
+      const result = await apiRequest<VocabularyPage>(
+        `/api/vocabulary/entries?page=${page}&pageSize=${pageSize}`,
+      )
+
+      entries.value = result.entries
+      totalPages.value = result.totalPages
+      totalEntries.value = result.totalEntries
+      totalTranslations.value = result.totalTranslations
     } finally {
       isLoading.value = false
     }
@@ -65,6 +72,7 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
 
   return {
     entries,
+    totalPages,
     totalEntries,
     totalTranslations,
     isLoading,

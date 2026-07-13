@@ -100,7 +100,7 @@ watch(
       box-shadow 0.2s ease;
 
     border-radius: 12px;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 
     margin-right: 10px;
 

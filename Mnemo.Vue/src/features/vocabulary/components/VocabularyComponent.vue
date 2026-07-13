@@ -100,7 +100,7 @@ async function openContextMenu(event: MouseEvent, entry: VocabularyEntry) {
 
 onMounted(async () => {
   if (vocabulary.entries.length === 0) {
-    await vocabulary.fetchVocabulary()
+    await vocabulary.fetchVocabulary(0)
   }
 })
 </script>
@@ -114,9 +114,24 @@ onMounted(async () => {
   <VocabularyItem v-if="templateEntry" :entry="templateEntry" @create="onEntryCreate" />
 
   <div v-if="vocabulary.isLoading">
-    <ItemSkeleton v-for="e in 4" :key="e" />
+    <ItemSkeleton v-for="e in Math.max(4, entries.length)" :key="e" />
   </div>
   <div v-else>
+    <div v-show="searched.length === 0" class="nav-bar">
+      <button class="tablet-button">
+        <span>sort</span>
+      </button>
+
+      <button
+        class="tablet-radio"
+        v-for="index in vocabulary.totalPages"
+        :key="index"
+        @click="vocabulary.fetchVocabulary(index)"
+      >
+        {{ index }}
+      </button>
+    </div>
+
     <VocabularyItem
       v-for="entry in entries"
       :key="entry.id"
@@ -137,4 +152,47 @@ onMounted(async () => {
   />
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.nav-bar {
+  display: flex;
+  justify-content: end;
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+  margin-bottom: 15px;
+
+  .tablet-button,
+  .tablet-radio {
+    color: $shadow;
+    background-color: $plane-white;
+
+    padding: 3px 9px 3px 9px;
+
+    min-width: 35px;
+    height: 26px;
+  }
+
+  .tablet-button {
+    position: relative;
+
+    background-color: $plane-gray;
+
+    width: 45px;
+
+    margin-right: auto;
+
+    flex-shrink: 0;
+    flex-grow: 0;
+
+    span {
+      @include iconize-text;
+
+      position: absolute;
+
+      top: 2px;
+      left: 9px;
+    }
+  }
+}
+</style>
