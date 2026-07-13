@@ -15,6 +15,7 @@ import { useContextMenu } from '@/shared/composables/useContextMenu.ts'
 import ContextMenu from '@/features/contextMenu/components/ContextMenu.vue'
 import type { ContextMenuItem } from '@/features/contextMenu/types/ContextMenuItem.ts'
 import { format } from 'date-fns'
+import VocabularyNavbar from './VocabularyNavbar.vue'
 
 const notify = useNotify()
 const vocabulary = useVocabularyStore()
@@ -35,6 +36,10 @@ async function onSearchSubmit(query: string) {
   searched.value = await vocabulary.searchVocabulary(trimmed)
 
   if (searched.value.length == 0) notify.info(`No matches for '${query}'`)
+}
+
+async function onPageSubmit(startWord: string, endWord: string) {
+  vocabulary.fetchPage(startWord, endWord)
 }
 
 async function onCreateButton() {
@@ -100,99 +105,60 @@ async function openContextMenu(event: MouseEvent, entry: VocabularyEntry) {
 
 onMounted(async () => {
   if (vocabulary.entries.length === 0) {
-    await vocabulary.fetchVocabulary(0)
+    await vocabulary.fetchSectors()
+
+    const firstPage = vocabulary.sectors[0]
+    if (firstPage !== undefined) {
+      await onPageSubmit(firstPage.startWord, firstPage.endWord)
+    }
   }
 })
 </script>
 
 <template>
-  <VocabularyToolbar
-    :is-loading="vocabulary.isLoading"
-    @submit-search="onSearchSubmit"
-    @click-create="onCreateButton"
-  />
-  <VocabularyItem v-if="templateEntry" :entry="templateEntry" @create="onEntryCreate" />
+  <div class="vocabulary-container">
+    <VocabularyToolbar
+      :is-loading="vocabulary.loadingPlaceholder.showSkeleton"
+      @submit-search="onSearchSubmit"
+      @click-create="onCreateButton"
+    />
 
-  <div v-if="vocabulary.isLoading">
-    <ItemSkeleton v-for="e in Math.max(4, entries.length)" :key="e" />
-  </div>
-  <div v-else>
-    <div v-show="searched.length === 0" class="nav-bar">
-      <button class="tablet-button">
-        <span>sort</span>
-      </button>
+    <VocabularyNavbar
+      :is-loading="vocabulary.loadingPlaceholder.showSkeleton"
+      :tablets="vocabulary.sectors"
+      :disable-tablets="searched.length > 0"
+      @submit-page="onPageSubmit"
+    />
 
-      <button
-        class="tablet-radio"
-        v-for="index in vocabulary.totalPages"
-        :key="index"
-        @click="vocabulary.fetchVocabulary(index)"
-      >
-        {{ index }}
-      </button>
+    <VocabularyItem v-if="templateEntry" :entry="templateEntry" @create="onEntryCreate" />
+
+    <div v-if="vocabulary.loadingPlaceholder.showSkeleton">
+      <ItemSkeleton v-for="e in Math.max(4, entries.length)" :key="e" />
+    </div>
+    <div v-else>
+      <VocabularyItem
+        v-for="entry in entries"
+        :key="entry.id"
+        :entry="entry"
+        @create="onEntryCreate"
+        @patch="onEntryPatch"
+        @contextmenu.capture="(e: MouseEvent) => openContextMenu(e, entry)"
+      />
     </div>
 
-    <VocabularyItem
-      v-for="entry in entries"
-      :key="entry.id"
-      :entry="entry"
-      @create="onEntryCreate"
-      @patch="onEntryPatch"
-      @contextmenu.capture="(e: MouseEvent) => openContextMenu(e, entry)"
+    <ContextMenu
+      :is-open="contextMenu.isOpen.value"
+      :x="contextMenu.x.value"
+      :y="contextMenu.y.value"
+      :items="contextMenu.items.value"
+      :descriptions="contextMenu.descriptions.value"
+      @close="contextMenu.close"
     />
   </div>
-
-  <ContextMenu
-    :is-open="contextMenu.isOpen.value"
-    :x="contextMenu.x.value"
-    :y="contextMenu.y.value"
-    :items="contextMenu.items.value"
-    :descriptions="contextMenu.descriptions.value"
-    @close="contextMenu.close"
-  />
 </template>
 
 <style lang="scss" scoped>
-.nav-bar {
-  display: flex;
-  justify-content: end;
-  flex-wrap: wrap;
-
-  gap: 8px;
-
-  margin-bottom: 15px;
-
-  .tablet-button,
-  .tablet-radio {
-    color: $shadow;
-    background-color: $plane-white;
-
-    padding: 3px 9px 3px 9px;
-
-    min-width: 35px;
-    height: 26px;
-  }
-
-  .tablet-button {
-    position: relative;
-
-    background-color: $plane-gray;
-
-    width: 45px;
-
-    margin-right: auto;
-
-    flex-shrink: 0;
-    flex-grow: 0;
-
-    span {
-      @include iconize-text;
-
-      position: absolute;
-
-      top: 2px;
-      left: 9px;
-    }
-  }
+.vocabulary-container {
+  min-height: 100vh;
 }
 </style>

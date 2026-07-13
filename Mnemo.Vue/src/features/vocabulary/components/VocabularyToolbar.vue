@@ -10,7 +10,7 @@ const emit = defineEmits<{
   (e: 'clickCreate'): void
 }>()
 
-const searchQuery = ref('')
+const searchQuery = ref<string>('')
 const inputRef = ref<HTMLInputElement | null>(null)
 
 function createForm() {
@@ -100,7 +100,7 @@ watch(
       box-shadow 0.2s ease;
 
     border-radius: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 
     margin-right: 10px;
 

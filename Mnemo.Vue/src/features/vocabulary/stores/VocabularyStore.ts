@@ -6,38 +6,46 @@ import type {
   PatchEntryRequest,
 } from '../types/VocabularyEntry'
 import { apiRequest } from '@/shared/utils/ApiRequest'
-import type { VocabularyPage } from '../types/VocabularyPage'
+import type { VocabularyPage, VocabularySector } from '../types/VocabularySection'
+import { useLoadingPlaceholer } from '@/shared/composables/useLoadingPlaceholder'
 
 export const useVocabularyStore = defineStore('vocabulary', () => {
   const entries = ref<VocabularyEntry[]>([])
-  const isLoading = ref<boolean>(false)
+  const sectors = ref<VocabularySector[]>([])
 
   const totalPages = ref<number>()
   const totalEntries = ref<number>()
   const totalTranslations = ref<number>()
 
-  async function fetchVocabulary(page: number, pageSize: number = 15) {
+  const loadingPlaceholder = useLoadingPlaceholer()
+
+  async function fetchSectors() {
+    const result = await apiRequest<VocabularySector[]>(`/api/vocabulary/entries/sectors`)
+
+    sectors.value = result
+  }
+
+  async function fetchPage(startWord: string, endWord: string) {
     try {
-      isLoading.value = true
+      loadingPlaceholder.startLoading()
       const result = await apiRequest<VocabularyPage>(
-        `/api/vocabulary/entries?page=${page}&pageSize=${pageSize}`,
+        `/api/vocabulary/entries?startWord=${startWord}&endWord=${endWord}`,
       )
 
       entries.value = result.entries
-      totalPages.value = result.totalPages
       totalEntries.value = result.totalEntries
       totalTranslations.value = result.totalTranslations
     } finally {
-      isLoading.value = false
+      loadingPlaceholder.stopLoading()
     }
   }
 
   async function searchVocabulary(query: string): Promise<VocabularyEntry[]> {
     try {
-      isLoading.value = true
+      loadingPlaceholder.startLoading()
       return await apiRequest<VocabularyEntry[]>(`/api/Vocabulary/entries/search?query=${query}`)
     } finally {
-      isLoading.value = false
+      loadingPlaceholder.stopLoading()
     }
   }
 
@@ -72,14 +80,16 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
 
   return {
     entries,
+    sectors,
     totalPages,
     totalEntries,
     totalTranslations,
-    isLoading,
+    loadingPlaceholder,
     addEntry,
     patchEntry,
     deleteEntry,
-    fetchVocabulary,
+    fetchSectors,
+    fetchPage,
     searchVocabulary,
   }
 })
