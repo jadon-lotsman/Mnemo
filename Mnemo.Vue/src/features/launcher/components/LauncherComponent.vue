@@ -1,19 +1,23 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import RadioItem from '@/features/launcher/components/LauncherRadioItem.vue'
 import router from '@/router'
 import { useRepetitionStore } from '@/features/repetition/stores/RepetitionStore'
 import { ROUTE_NAMES } from '@/shared/constants/RouteConst'
 import { useNotify } from '@/shared/composables/useNotify'
+import { useLoadingPlaceholer } from '@/shared/composables/useLoadingPlaceholder'
 
 const notify = useNotify()
 const repetition = useRepetitionStore()
+const loadingPlaceholder = useLoadingPlaceholer()
 
 const selectedMode = ref<string>('fast')
-const isLoading = ref<boolean>(false)
+const buttonText = computed(() =>
+  loadingPlaceholder.showSkeleton.value ? 'Generate tasks...' : 'Start',
+)
 
 async function onStart() {
-  isLoading.value = true
+  loadingPlaceholder.startLoading()
 
   try {
     const exists = await repetition.isExists()
@@ -34,7 +38,7 @@ async function onStart() {
     }
   } catch {
   } finally {
-    isLoading.value = false
+    loadingPlaceholder.stopLoading()
   }
 }
 </script>
@@ -56,7 +60,9 @@ async function onStart() {
       />
     </div>
 
-    <button type="submit" class="big-button" :disabled="isLoading">Start</button>
+    <button type="submit" class="big-button" :disabled="loadingPlaceholder.isLoading.value">
+      {{ buttonText }}
+    </button>
   </form>
 </template>
 
