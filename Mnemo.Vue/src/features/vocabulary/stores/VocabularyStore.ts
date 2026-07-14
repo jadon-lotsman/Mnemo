@@ -19,10 +19,17 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
 
   const loadingPlaceholder = useLoadingPlaceholer()
 
-  async function fetchSectors() {
-    const result = await apiRequest<VocabularySector[]>(`/api/vocabulary/entries/sectors`)
+  async function fetchSectors(isDescending: boolean = false) {
+    try {
+      loadingPlaceholder.startLoading()
+      const result = await apiRequest<VocabularySector[]>(
+        `/api/vocabulary/entries/sectors?isDescending=${isDescending}`,
+      )
 
-    sectors.value = result
+      sectors.value = result
+    } finally {
+      loadingPlaceholder.stopLoading()
+    }
   }
 
   async function fetchPage(startWord: string, endWord: string) {

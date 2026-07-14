@@ -38,6 +38,15 @@ async function onSearchSubmit(query: string) {
   if (searched.value.length == 0) notify.info(`No matches for '${query}'`)
 }
 
+async function onSortSubmit(isDescending: boolean) {
+  await vocabulary.fetchSectors(isDescending)
+
+  const firstPage = vocabulary.sectors[0]
+  if (firstPage !== undefined) {
+    await onPageSubmit(firstPage.startWord, firstPage.endWord)
+  }
+}
+
 async function onPageSubmit(startWord: string, endWord: string) {
   vocabulary.fetchPage(startWord, endWord)
 }
@@ -105,12 +114,7 @@ async function openContextMenu(event: MouseEvent, entry: VocabularyEntry) {
 
 onMounted(async () => {
   if (vocabulary.entries.length === 0) {
-    await vocabulary.fetchSectors()
-
-    const firstPage = vocabulary.sectors[0]
-    if (firstPage !== undefined) {
-      await onPageSubmit(firstPage.startWord, firstPage.endWord)
-    }
+    onSortSubmit(false)
   }
 })
 </script>
@@ -127,6 +131,7 @@ onMounted(async () => {
       :is-loading="vocabulary.loadingPlaceholder.showSkeleton"
       :tablets="vocabulary.sectors"
       :disable-tablets="searched.length > 0"
+      @refresh-sort="onSortSubmit"
       @submit-page="onPageSubmit"
     />
 

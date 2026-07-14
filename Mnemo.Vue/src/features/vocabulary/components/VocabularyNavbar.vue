@@ -9,10 +9,25 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  (e: 'refreshSort', isDescending: boolean): void
   (e: 'submitPage', startWord: string, endWord: string): void
 }>()
 
+const sortTimeout = ref<boolean>(false)
+const isDescending = ref<boolean>(false)
 const pageStartWord = ref<string>('')
+
+function submitSort() {
+  if (sortTimeout.value) return
+  sortTimeout.value = true
+
+  isDescending.value = !isDescending.value
+  emit('refreshSort', isDescending.value)
+
+  setTimeout(() => {
+    sortTimeout.value = false
+  }, 1000)
+}
 
 function submitPage(startWord: string, endWord: string) {
   pageStartWord.value = startWord
@@ -29,7 +44,12 @@ watch(
 
 <template>
   <div v-show="tablets.length > 0" class="navbar">
-    <button class="tablet-button">
+    <button
+      class="tablet-button"
+      :class="{ flipped: isDescending }"
+      :disabled="sortTimeout || isLoading || disableTablets"
+      @click="submitSort"
+    >
       <span>sort</span>
     </button>
 
@@ -91,8 +111,12 @@ watch(
       position: absolute;
 
       top: 2px;
-      left: 9px;
+      left: 10px;
     }
+  }
+
+  .flipped span {
+    transform: scaleY(-1);
   }
 
   .tablet-container {
@@ -113,11 +137,14 @@ watch(
       }
 
       input:checked + span {
-        color: $gray-font;
+        opacity: 60%;
+        color: $black-font;
       }
     }
 
     .disabled {
+      cursor: default;
+
       background-color: $plane-gray;
 
       span {
