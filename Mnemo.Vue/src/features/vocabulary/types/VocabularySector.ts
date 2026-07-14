@@ -9,6 +9,11 @@ export interface VocabularySector {
 
 export interface VocabularyPage {
   entries: VocabularyEntry[]
+  hasMore: boolean
+  sectorEntries: number
+}
+
+export interface VocabularyStatistics {
   totalEntries: number
   totalTranslations: number
 }

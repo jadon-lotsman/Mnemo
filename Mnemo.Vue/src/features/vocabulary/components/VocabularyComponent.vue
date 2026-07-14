@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import { onMounted } from 'vue'
 import { useVocabularyStore } from '../stores/VocabularyStore.ts'
 import VocabularyItem from './VocabularyItem/VocabularyItem.vue'
@@ -26,6 +26,13 @@ const templateEntry = ref<VocabularyEntry>()
 const searched = ref<VocabularyEntry[]>([])
 const entries = computed(() => (searched.value.length > 0 ? searched.value : vocabulary.entries))
 
+const currentPage = ref<number>(1)
+const currentStartWord = ref<string>('')
+const currentEndWord = ref<string>('')
+
+let observer: IntersectionObserver | null = null
+const triggerRef = ref<HTMLElement | null>(null)
+
 async function onSearchSubmit(query: string) {
   const trimmed = query.trim()
   if (!trimmed) {
@@ -33,7 +40,7 @@ async function onSearchSubmit(query: string) {
     return
   }
 
-  searched.value = await vocabulary.searchVocabulary(trimmed)
+  searched.value = await vocabulary.searchEntries(trimmed)
 
   if (searched.value.length == 0) notify.info(`No matches for '${query}'`)
 }
@@ -41,14 +48,26 @@ async function onSearchSubmit(query: string) {
 async function onSortSubmit(isDescending: boolean) {
   await vocabulary.fetchSectors(isDescending)
 
-  const firstPage = vocabulary.sectors[0]
-  if (firstPage !== undefined) {
-    await onPageSubmit(firstPage.startWord, firstPage.endWord)
+  const firstSector = vocabulary.sectors[0]
+  if (firstSector !== undefined) {
+    await onSectorSubmit(firstSector.startWord, firstSector.endWord)
   }
 }
 
-async function onPageSubmit(startWord: string, endWord: string) {
-  vocabulary.fetchPage(startWord, endWord)
+async function onSectorSubmit(startWord: string, endWord: string) {
+  currentStartWord.value = startWord
+  currentEndWord.value = endWord
+
+  currentPage.value = 1
+  await vocabulary.fetchPage(currentStartWord.value, currentEndWord.value, currentPage.value)
+}
+
+async function fetchMore() {
+  if (vocabulary.loadingPlaceholder.isLoading || !vocabulary.hasMore) return
+  if (currentStartWord.value === '' || currentEndWord.value === '') return
+
+  currentPage.value++
+  await vocabulary.fetchPage(currentStartWord.value, currentEndWord.value, currentPage.value)
 }
 
 async function onCreateButton() {
@@ -112,9 +131,53 @@ async function openContextMenu(event: MouseEvent, entry: VocabularyEntry) {
   contextMenu.open(event, menuItems, menuDescriptions)
 }
 
+async function setupObserver() {
+  if (!triggerRef.value) return
+
+  if (observer) observer.disconnect()
+
+  observer = new IntersectionObserver(
+    async (entries) => {
+      const [entry] = entries
+
+      if (
+        entry !== undefined &&
+        entry.isIntersecting &&
+        !vocabulary.loadingPlaceholder.isLoading &&
+        vocabulary.hasMore
+      ) {
+        await fetchMore()
+      }
+    },
+    {
+      root: null,
+      rootMargin: '0px 0px 100px 0px',
+      threshold: 0.1,
+    },
+  )
+
+  observer.observe(triggerRef.value)
+}
+
 onMounted(async () => {
   if (vocabulary.entries.length === 0) {
-    onSortSubmit(false)
+    await vocabulary.fetchStatistics()
+    await onSortSubmit(false)
+  }
+
+  await setupObserver()
+})
+
+onUnmounted(() => {
+  if (observer) {
+    observer.disconnect()
+    observer = null
+  }
+})
+
+watch(triggerRef, (newVal) => {
+  if (newVal) {
+    setupObserver()
   }
 })
 </script>
@@ -132,7 +195,7 @@ onMounted(async () => {
       :tablets="vocabulary.sectors"
       :disable-tablets="searched.length > 0"
       @refresh-sort="onSortSubmit"
-      @submit-page="onPageSubmit"
+      @submit-sector="onSectorSubmit"
     />
 
     <VocabularyItem v-if="templateEntry" :entry="templateEntry" @create="onEntryCreate" />
@@ -149,6 +212,13 @@ onMounted(async () => {
         @patch="onEntryPatch"
         @contextmenu.capture="(e: MouseEvent) => openContextMenu(e, entry)"
       />
+
+      <span
+        ref="triggerRef"
+        class="more-placeholder"
+        v-if="vocabulary.hasMore && searched.length === 0"
+        >Loading entries...</span
+      >
     </div>
 
     <ContextMenu
@@ -165,5 +235,16 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .vocabulary-container {
   min-height: 100vh;
+
+  .more-placeholder {
+    display: block;
+
+    color: $gray-font;
+
+    padding-top: 5px;
+    padding-bottom: 30px;
+
+    text-align: center;
+  }
 }
 </style>

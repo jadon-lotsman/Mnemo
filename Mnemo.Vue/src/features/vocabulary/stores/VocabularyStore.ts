@@ -6,18 +6,43 @@ import type {
   PatchEntryRequest,
 } from '../types/VocabularyEntry'
 import { apiRequest } from '@/shared/utils/ApiRequest'
-import type { VocabularyPage, VocabularySector } from '../types/VocabularySection'
+import type {
+  VocabularyPage,
+  VocabularySector,
+  VocabularyStatistics,
+} from '../types/VocabularySector'
 import { useLoadingPlaceholer } from '@/shared/composables/useLoadingPlaceholder'
 
 export const useVocabularyStore = defineStore('vocabulary', () => {
   const entries = ref<VocabularyEntry[]>([])
-  const sectors = ref<VocabularySector[]>([])
+  const hasMore = ref<boolean>(true)
 
-  const totalPages = ref<number>()
-  const totalEntries = ref<number>()
-  const totalTranslations = ref<number>()
+  const sectors = ref<VocabularySector[]>([])
+  const sectorEntries = ref<number>(0)
+
+  const totalEntries = ref<number>(0)
+  const totalTranslations = ref<number>(0)
 
   const loadingPlaceholder = useLoadingPlaceholer()
+
+  async function fetchPage(startWord: string, endWord: string, page: number, pageSize: number = 5) {
+    try {
+      const isFirstPage: boolean = page === 1
+      loadingPlaceholder.startLoading(!isFirstPage)
+
+      const result = await apiRequest<VocabularyPage>(
+        `/api/vocabulary/entries?startWord=${startWord}&endWord=${endWord}&page=${page}&pageSize=${pageSize}`,
+      )
+
+      if (isFirstPage) entries.value = result.entries
+      else entries.value = entries.value.concat(result.entries)
+
+      hasMore.value = result.hasMore
+      sectorEntries.value = result.sectorEntries
+    } finally {
+      loadingPlaceholder.stopLoading()
+    }
+  }
 
   async function fetchSectors(isDescending: boolean = false) {
     try {
@@ -32,14 +57,11 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
     }
   }
 
-  async function fetchPage(startWord: string, endWord: string) {
+  async function fetchStatistics() {
     try {
       loadingPlaceholder.startLoading()
-      const result = await apiRequest<VocabularyPage>(
-        `/api/vocabulary/entries?startWord=${startWord}&endWord=${endWord}`,
-      )
+      const result = await apiRequest<VocabularyStatistics>(`/api/vocabulary/entries/statistics`)
 
-      entries.value = result.entries
       totalEntries.value = result.totalEntries
       totalTranslations.value = result.totalTranslations
     } finally {
@@ -47,7 +69,7 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
     }
   }
 
-  async function searchVocabulary(query: string): Promise<VocabularyEntry[]> {
+  async function searchEntries(query: string): Promise<VocabularyEntry[]> {
     try {
       loadingPlaceholder.startLoading()
       return await apiRequest<VocabularyEntry[]>(`/api/Vocabulary/entries/search?query=${query}`)
@@ -63,6 +85,9 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
     })
 
     entries.value.push(result)
+
+    totalEntries.value++
+    totalTranslations.value += result.translations.length
   }
 
   async function patchEntry(id: number, body: PatchEntryRequest) {
@@ -75,28 +100,37 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
     if (index !== -1) {
       entries.value.splice(index, 1, result)
     }
+
+    totalTranslations.value -= body.translationsRemove?.length || 0
+    totalTranslations.value += body.translationsAdd?.length || 0
   }
 
   async function deleteEntry(deleteId: number) {
+    const translationsCount = entries.value.find((e) => e.id === deleteId)?.translations.length || 0
     entries.value = entries.value.filter((e) => e.id !== deleteId)
 
-    await apiRequest<VocabularyEntry>(`/api/vocabulary/entries/${deleteId}`, {
+    await apiRequest<boolean>(`/api/vocabulary/entries/${deleteId}`, {
       method: 'DELETE',
     })
+
+    totalEntries.value--
+    totalTranslations.value -= translationsCount
   }
 
   return {
     entries,
+    hasMore,
     sectors,
-    totalPages,
+    sectorEntries,
     totalEntries,
     totalTranslations,
     loadingPlaceholder,
     addEntry,
     patchEntry,
     deleteEntry,
-    fetchSectors,
     fetchPage,
-    searchVocabulary,
+    fetchSectors,
+    fetchStatistics,
+    searchEntries,
   }
 })

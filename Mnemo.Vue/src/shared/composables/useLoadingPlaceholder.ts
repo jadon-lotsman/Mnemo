@@ -5,10 +5,11 @@ export function useLoadingPlaceholer(delay: number = 300) {
   const showSkeleton = ref(false)
   let timer: ReturnType<typeof setTimeout> | null = null
 
-  const startLoading = () => {
+  const startLoading = (disableSkeleton: boolean = false) => {
     isLoading.value = true
     showSkeleton.value = false
     if (timer) clearTimeout(timer)
+    if (disableSkeleton) return
     timer = setTimeout(() => {
       if (isLoading.value) {
         showSkeleton.value = true
