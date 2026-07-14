@@ -56,17 +56,18 @@ namespace Mnemo.Services.VocabularyService
                     Count = g.Count(),
                     StartWord = g.Min(e => e.Foreign)!,
                     EndWord = g.Max(e => e.Foreign)!
-                });
+                })
+                .OrderBy(e => e.Letter);
 
-            query = isDescending ? query.OrderByDescending(e => e.Letter) : query.OrderBy(e => e.Letter);
 
             var groups = await query.ToListAsync();
             var sectors = new List<VocabularySectorResponse>();
+            var index = 0;
 
             foreach (var group in groups)
             {
-                string sectorStart = isDescending ? group.EndWord : group.StartWord;
-                string sectorEnd = isDescending ? group.StartWord : group.EndWord;
+                string sectorStart = group.StartWord;
+                string sectorEnd = group.EndWord;
                 int count = group.Count;
 
 
@@ -82,8 +83,9 @@ namespace Mnemo.Services.VocabularyService
                 else
                 {
                     var lastSection = sectors.Last();
+                    var isLastGroup = index == groups.Count - 1;
 
-                    if (lastSection.Count < minSectorSize)
+                    if (lastSection.Count < minSectorSize || (isLastGroup && count < minSectorSize))
                     {
                         lastSection.EndWord = sectorEnd;
                         lastSection.Count += count;
@@ -97,6 +99,22 @@ namespace Mnemo.Services.VocabularyService
                             Count = count
                         });
                     }
+                }
+
+                index++;
+            }
+
+            if (sectors.Any())
+            {
+                sectors.First().StartWord = "a";
+                sectors.Last().EndWord = "z" + char.MaxValue;
+
+                if (isDescending)
+                {
+                    foreach (var sector in sectors)
+                        (sector.EndWord, sector.StartWord) = (sector.StartWord, sector.EndWord);
+
+                    sectors.Reverse();
                 }
             }
 
