@@ -2,6 +2,7 @@
 using Mnemo.Data;
 using Mnemo.Data.Queries;
 using Mnemo.Shared;
+using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Services.RepetitionService
 {
@@ -24,6 +25,9 @@ namespace Mnemo.Services.RepetitionService
         {
             var states = await _stateQueries.GetAllByUserIdAsync(userId);
 
+            var dateToday = DateOnly.FromDateTime(DateTime.UtcNow);
+            int daysUntilNext = DateTime.UtcNow.DaysUntilNext(DayOfWeek.Monday);
+
             var grouped = states
                 .GroupBy(s => s.NextRepetitionAt)
                 .Select(d => new RepetitionDateResponse
@@ -31,6 +35,7 @@ namespace Mnemo.Services.RepetitionService
                     Date = d.Key,
                     VocabularyForeigns = d.Select(s => s.VocabularyEntry.Foreign).ToArray()
                 })
+                .Where(d => d.Date <= dateToday.AddDays(7 + daysUntilNext))
                 .OrderBy(d => d.Date)
                 .ToList();
 
