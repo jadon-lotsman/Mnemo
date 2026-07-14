@@ -32,6 +32,14 @@ namespace Mnemo.Controllers
 
 
 
+        [HttpGet]
+        public async Task<IActionResult> GetVocabularyPage([FromQuery] string startWord, string endWord, int page, int pageSize)
+        {
+            var response = await _vocabularyService.GetVocabularyPageAsync(UserId, startWord, endWord, page, pageSize);
+
+            return Ok(response);
+        }
+
         [HttpGet("sectors")]
         public async Task<IActionResult> GetVocabularySectors([FromQuery] string isDescending)
         {
@@ -41,10 +49,10 @@ namespace Mnemo.Controllers
             return Ok(response);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetVocabularyPage([FromQuery] string startWord, string endWord)
+        [HttpGet("statistics")]
+        public async Task<IActionResult> GetVocabularyStatistics()
         {
-            var response = await _vocabularyService.GetVocabularyPageAsync(UserId, startWord, endWord);
+            var response = await _vocabularyService.GetVocabularyStatisticsAsync(UserId);
 
             return Ok(response);
         }

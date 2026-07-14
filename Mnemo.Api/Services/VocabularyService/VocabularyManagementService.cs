@@ -8,7 +8,6 @@ using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Shared;
 using Mnemo.Shared.Extensions;
-using System.Text.RegularExpressions;
 
 namespace Mnemo.Services.VocabularyService
 {
@@ -42,6 +41,25 @@ namespace Mnemo.Services.VocabularyService
         }
 
 
+
+        public async Task<VocabularyStatisticsResponse> GetVocabularyStatisticsAsync(int userId)
+        {
+            var query = _vocabularyQueries
+                .GetByUserIdQuery(userId);
+
+            var totalEntries = await query
+                .CountAsync();
+
+            var totalTranslations = await query
+                .SumAsync(e => e.Translations.Count);
+
+
+            return new VocabularyStatisticsResponse()
+            {
+                TotalEntries = totalEntries,
+                TotalTranslations = totalTranslations
+            };
+        }
 
         public async Task<List<VocabularySectorResponse>> GetVocabularySectorsAsync(int userId, bool isDescending)
         {
@@ -122,18 +140,8 @@ namespace Mnemo.Services.VocabularyService
             return sectors;
         }
 
-        public async Task<VocabularyPageResponse> GetVocabularyPageAsync(int userId, string startWord, string endWord)
+        public async Task<VocabularyPageResponse> GetVocabularyPageAsync(int userId, string startWord, string endWord, int page, int pageSize)
         {
-            var query = _vocabularyQueries
-                .GetByUserIdQuery(userId);
-
-            var totalEntries = await query
-                .CountAsync();
-
-            var totalTranslations = await query
-                .SumAsync(e => e.Translations != null ? e.Translations.Count : 0);
-
-
             bool isDescending = string.Compare(endWord, startWord) < 0;
 
             string minWord, maxWord;
@@ -149,10 +157,10 @@ namespace Mnemo.Services.VocabularyService
             }
 
 
-            var filteredQuery = query
+            var filteredQuery = _vocabularyQueries
+                .GetByUserIdQuery(userId)
                 .Where(e => string.Compare(e.Foreign, minWord) >= 0 &&
                             string.Compare(e.Foreign, maxWord) <= 0);
-
 
             IOrderedQueryable<VocabularyEntry> orderedQuery;
             if (isDescending)
@@ -168,15 +176,21 @@ namespace Mnemo.Services.VocabularyService
                     .ThenBy(e => e.PartOfSpeech);
             }
 
+            var totalSectorEntries = await orderedQuery.CountAsync();
+            int totalPages = (int)Math.Ceiling(totalSectorEntries / (decimal)pageSize);
 
-            var entries = await orderedQuery.ToListAsync();
+            var entries = await orderedQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
             var entriesResponse = _mapper.Map<EntryResponse[]>(entries);
 
             return new VocabularyPageResponse
             {
                 Entries = entriesResponse,
-                TotalEntries = totalEntries,
-                TotalTranslations = totalTranslations
+                hasMore = page < totalPages,
+                SectorEntries = totalSectorEntries,
             };
         }
 
