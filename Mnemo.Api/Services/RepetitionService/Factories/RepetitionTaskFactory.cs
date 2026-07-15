@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Mnemo.Data.Entities;
+using Mnemo.Data.Queries;
 using Mnemo.Services.RepetitionService.Providers.DistractorProviders;
 using Mnemo.Shared;
 
@@ -10,33 +11,38 @@ namespace Mnemo.Services.RepetitionService.Factories
         private readonly IOptions<RepetitionOptions> _options;
         private readonly IDistractorProvider _provider;
         private readonly SyllableDistractorProvider _syllable;
+        private readonly VocabularyQueries _vocabularyQueries;
 
-        public RepetitionTaskFactory(IOptions<RepetitionOptions> options, IDistractorProvider provider, SyllableDistractorProvider syllable)
+        public RepetitionTaskFactory(IOptions<RepetitionOptions> options, IDistractorProvider provider, SyllableDistractorProvider syllable, VocabularyQueries vocabularyQueries)
         {
             _options = options;
             _provider = provider;
             _syllable = syllable;
+            _vocabularyQueries = vocabularyQueries;
         }
 
 
         public async Task<RepetitionTask> CreateByTypeAsync(bool isForward, Type taskType, VocabularyEntry baseEntry, params int[] excludeIds)
         {
+            bool showPartOfSpeechLabel = await _vocabularyQueries.HasAlternativePartOfSpeechAsync(baseEntry.UserId, baseEntry.Foreign, baseEntry.PartOfSpeech) && isForward;
+
+
             if (taskType == typeof(OptionRepetitionTask))
             {
                 int take = _options.Value.OptionsDistractorCount;
 
                 var distractors = await _provider.GetDistractorsAsync(isForward, baseEntry, take, excludeIds);
                 if (distractors.Count < take)
-                    return CreateTextTask(isForward, baseEntry);
+                    return CreateTextTask(isForward, showPartOfSpeechLabel, baseEntry);
 
-                return CreateOptionsTask(isForward, baseEntry, distractors);
+                return CreateOptionsTask(isForward, showPartOfSpeechLabel, baseEntry, distractors);
             }
             else if (taskType == typeof(SentenceReorderRepetitionTask))
             {
                 var filtered = baseEntry.Examples.Where(e => e.Split().Length >= 3).ToList();
 
                 if (!filtered.Any())
-                    return CreateTextTask(isForward, baseEntry);
+                    return CreateTextTask(isForward, showPartOfSpeechLabel, baseEntry);
 
                 return CreateSentenceReorderTask(baseEntry, filtered);
             }
@@ -46,36 +52,36 @@ namespace Mnemo.Services.RepetitionService.Factories
 
                 var distractors = await _syllable.GetDistractorsAsync(false, baseEntry, take, excludeIds);
                 if (distractors.Count < take)
-                    return CreateTextTask(isForward, baseEntry);
+                    return CreateTextTask(isForward, showPartOfSpeechLabel, baseEntry);
 
-                return CreateSyllableReorderTask(baseEntry, distractors);
+                return CreateSyllableReorderTask(showPartOfSpeechLabel, baseEntry, distractors);
             }
             else if (taskType == typeof(YesOrNoRepetitionTask))
             {
                 var distractors = await _provider.GetDistractorsAsync(true, baseEntry, 1, excludeIds);
                 if (distractors.Count < 1)
-                    return CreateTextTask(isForward, baseEntry);
+                    return CreateTextTask(isForward, showPartOfSpeechLabel, baseEntry);
 
                 return CreateYesOrNoTask(baseEntry, distractors[0]);
             }
 
-            return CreateTextTask(isForward, baseEntry);
+            return CreateTextTask(isForward, showPartOfSpeechLabel, baseEntry);
         }
 
-        public TextRepetitionTask CreateTextTask(bool isForward, VocabularyEntry baseEntry)
+        public TextRepetitionTask CreateTextTask(bool isForward, bool showPartOfSpeechLabel, VocabularyEntry baseEntry)
         {
             string prompt = isForward ? baseEntry.Foreign : baseEntry.Translations[0];
-            var partOfSpeech = isForward ? baseEntry.PartOfSpeech : null;
+            var partOfSpeech = showPartOfSpeechLabel ? baseEntry.PartOfSpeech : null;
 
             var correct = isForward ? baseEntry.Translations : [baseEntry.Foreign];
 
             return new TextRepetitionTask(prompt, partOfSpeech, baseEntry.UserId, baseEntry.Id, correct);
         }
 
-        public OptionRepetitionTask CreateOptionsTask(bool isForward, VocabularyEntry baseEntry, List<string> distractors)
+        public OptionRepetitionTask CreateOptionsTask(bool isForward, bool showPartOfSpeechLabel, VocabularyEntry baseEntry, List<string> distractors)
         {
             string prompt = isForward ? baseEntry.Foreign : baseEntry.Translations[0];
-            var partOfSpeech = isForward ? baseEntry.PartOfSpeech : null;
+            var partOfSpeech = showPartOfSpeechLabel ? baseEntry.PartOfSpeech : null;
 
             var correct = isForward ? baseEntry.Translations[0] : baseEntry.Foreign;
 
@@ -90,10 +96,10 @@ namespace Mnemo.Services.RepetitionService.Factories
             return new SentenceReorderRepetitionTask(baseEntry.UserId, baseEntry.Id, sentence);
         }
 
-        public SyllableReorderRepetitionTask CreateSyllableReorderTask(VocabularyEntry baseEntry, List<string> distractors)
+        public SyllableReorderRepetitionTask CreateSyllableReorderTask(bool showPartOfSpeechLabel, VocabularyEntry baseEntry, List<string> distractors)
         {
             var foreign = baseEntry.Foreign;
-            var partOfSpeech = baseEntry.PartOfSpeech;
+            var partOfSpeech = showPartOfSpeechLabel ? baseEntry.PartOfSpeech : null;
 
             return new SyllableReorderRepetitionTask(partOfSpeech, baseEntry.UserId, baseEntry.Id, foreign, distractors);
         }

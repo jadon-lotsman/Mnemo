@@ -69,18 +69,6 @@ namespace Mnemo.Controllers
             return Ok(entryRespose);
         }
 
-        [HttpGet("find")]
-        public async Task<IActionResult> GetEntryByKey([FromQuery] string foreign)
-        {
-            var entries = await _vocabularyQueries.GetByForeignAsync(UserId, foreign);
-
-            if (entries == null)
-                return NotFound();
-
-            var entriesRespose = _mapper.Map<List<EntryResponse>>(entries);
-            return Ok(entriesRespose);
-        }
-
         [HttpGet("search")]
         public async Task<IActionResult> SearchInVocabularyByQuery([FromQuery] string query)
         {

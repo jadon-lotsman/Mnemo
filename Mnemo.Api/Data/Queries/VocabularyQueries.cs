@@ -28,6 +28,9 @@ namespace Mnemo.Data.Queries
         public async Task<bool> ExistsByKeysAsync(int userId, string foreign, PartOfSpeech? partOfSpeech)
             => await GetByUserIdQuery(userId).AnyAsync(e => e.Foreign == foreign && e.PartOfSpeech == partOfSpeech);
 
+        public async Task<bool> HasAlternativePartOfSpeechAsync(int userId, string foreign, PartOfSpeech? partOfSpeech)
+            => await GetByUserIdQuery(userId).AnyAsync(e => e.Foreign == foreign && e.PartOfSpeech != partOfSpeech);
+
 
         public async Task<VocabularyEntry?> GetByIdAsync(int userId, int id)
             => await GetByUserIdQuery(userId).FirstOrDefaultAsync(e => e.Id == id);
@@ -40,9 +43,6 @@ namespace Mnemo.Data.Queries
 
             return list.ToDictionary(e => e.Id);
         }
-
-        public async Task<List<VocabularyEntry>> GetByForeignAsync(int userId, string foreign)
-            => await GetByUserIdQuery(userId).Where(e => e.Foreign == foreign).ToListAsync();
 
         public async Task<List<VocabularyEntry>> GetByQueryAsync(int userId, string query, int limit=20)
         {
