@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Mnemo.Contracts.Vocabulary;
 using Mnemo.Contracts.Vocabulary.Requests;
 using Mnemo.Data.Queries;
-using Mnemo.Services;
+using Mnemo.Services.VocabularyService;
 using Mnemo.Shared;
 
 namespace Mnemo.Controllers
@@ -33,12 +33,28 @@ namespace Mnemo.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAllEntries()
+        public async Task<IActionResult> GetVocabularyPage([FromQuery] string startWord, string endWord, int page, int pageSize)
         {
-            var entries = await _vocabularyQueries.GetByUserIdQuery(UserId).ToListAsync();
+            var response = await _vocabularyService.GetVocabularyPageAsync(UserId, startWord, endWord, page, pageSize);
 
-            var entriesResponse = _mapper.Map<List<EntryResponse>>(entries);
-            return Ok(entriesResponse);
+            return Ok(response);
+        }
+
+        [HttpGet("sectors")]
+        public async Task<IActionResult> GetVocabularySectors([FromQuery] string isDescending)
+        {
+            var isDescendingBoolean = isDescending == "true" ? true : false;
+            var response = await _vocabularyService.GetVocabularySectorsAsync(UserId, isDescendingBoolean);
+
+            return Ok(response);
+        }
+
+        [HttpGet("statistics")]
+        public async Task<IActionResult> GetVocabularyStatistics()
+        {
+            var response = await _vocabularyService.GetVocabularyStatisticsAsync(UserId);
+
+            return Ok(response);
         }
 
         [HttpGet("{id:int}")]

@@ -3,7 +3,7 @@ using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Shared;
 
-namespace Mnemo.Services
+namespace Mnemo.Services.AccountService
 {
     public class AccountManagementService
     {

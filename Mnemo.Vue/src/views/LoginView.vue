@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useNotify } from '@/shared/composables/useNotify'
 import { apiRequest } from '@/shared/utils/ApiRequest'
 import CollapsibleSection from '@/shared/components/CollapsibleSection.vue'
 import { ROUTE_NAMES } from '@/shared/constants/RouteConst'
+import { useLoadingPlaceholer } from '@/shared/composables/useLoadingPlaceholder'
 
 const route = useRoute()
 const router = useRouter()
 const notify = useNotify()
+const loadingPlaceholder = useLoadingPlaceholer()
 
 const username = ref<string>('')
-const isLoading = ref<boolean>(false)
+const buttonText = computed(() => (loadingPlaceholder.showSkeleton.value ? 'Logining...' : 'Login'))
 
 const login = async function () {
   if (username.value.trim() == '') {
@@ -20,7 +22,7 @@ const login = async function () {
   }
 
   try {
-    isLoading.value = true
+    loadingPlaceholder.startLoading()
 
     const result = await apiRequest<{ token: string }>('/api/account/login', {
       method: 'POST',
@@ -35,7 +37,7 @@ const login = async function () {
 
     router.push({ name: ROUTE_NAMES.VOCABULARY })
   } finally {
-    isLoading.value = false
+    loadingPlaceholder.stopLoading()
   }
 }
 
@@ -50,7 +52,9 @@ onMounted(() => {
   <CollapsibleSection title="Login">
     <form @submit.prevent="login">
       <input class="input" type="text" placeholder="Username..." v-model="username" />
-      <button class="big-button" type="submit" :disabled="isLoading">Login</button>
+      <button class="big-button" type="submit" :disabled="loadingPlaceholder.isLoading.value">
+        {{ buttonText }}
+      </button>
     </form>
   </CollapsibleSection>
 </template>

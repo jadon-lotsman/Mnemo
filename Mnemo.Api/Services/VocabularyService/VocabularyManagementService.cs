@@ -1,14 +1,15 @@
 ﻿using AutoMapper;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using Mnemo.Contracts.Vocabulary;
 using Mnemo.Contracts.Vocabulary.Requests;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
-using Mnemo.Services.EnrichmentService.ExternalDictionaries;
 using Mnemo.Shared;
 using Mnemo.Shared.Extensions;
 
-namespace Mnemo.Services
+namespace Mnemo.Services.VocabularyService
 {
     public class VocabularyManagementService
     {
@@ -39,6 +40,159 @@ namespace Mnemo.Services
             _vocabularyQueries = vocabularyQueries;
         }
 
+
+
+        public async Task<VocabularyStatisticsResponse> GetVocabularyStatisticsAsync(int userId)
+        {
+            var query = _vocabularyQueries
+                .GetByUserIdQuery(userId);
+
+            var totalEntries = await query
+                .CountAsync();
+
+            var totalTranslations = await query
+                .SumAsync(e => e.Translations.Count);
+
+
+            return new VocabularyStatisticsResponse()
+            {
+                TotalEntries = totalEntries,
+                TotalTranslations = totalTranslations
+            };
+        }
+
+        public async Task<List<VocabularySectorResponse>> GetVocabularySectorsAsync(int userId, bool isDescending)
+        {
+            int minSectorSize = 12;
+
+            var query = _vocabularyQueries
+                .GetByUserIdQuery(userId)
+                .GroupBy(e => e.Foreign.Substring(0, 1))
+                .Select(g => new
+                {
+                    Letter = g.Key,
+                    Count = g.Count(),
+                    StartWord = g.Min(e => e.Foreign)!,
+                    EndWord = g.Max(e => e.Foreign)!
+                })
+                .OrderBy(e => e.Letter);
+
+
+            var groups = await query.ToListAsync();
+            var sectors = new List<VocabularySectorResponse>();
+            var index = 0;
+
+            foreach (var group in groups)
+            {
+                string sectorStart = group.StartWord;
+                string sectorEnd = group.EndWord;
+                int count = group.Count;
+
+
+                if (!sectors.Any())
+                {
+                    sectors.Add(new VocabularySectorResponse()
+                    {
+                        StartWord = sectorStart,
+                        EndWord = sectorEnd,
+                        Count = count
+                    });
+                }
+                else
+                {
+                    var lastSection = sectors.Last();
+                    var isLastGroup = index == groups.Count - 1;
+
+                    if (lastSection.Count < minSectorSize || (isLastGroup && count < minSectorSize))
+                    {
+                        lastSection.EndWord = sectorEnd;
+                        lastSection.Count += count;
+                    }
+                    else
+                    {
+                        sectors.Add(new VocabularySectorResponse()
+                        {
+                            StartWord = sectorStart,
+                            EndWord = sectorEnd,
+                            Count = count
+                        });
+                    }
+                }
+
+                index++;
+            }
+
+            if (sectors.Any())
+            {
+                sectors.First().StartWord = "a";
+                sectors.Last().EndWord = "z" + char.MaxValue;
+
+                if (isDescending)
+                {
+                    foreach (var sector in sectors)
+                        (sector.EndWord, sector.StartWord) = (sector.StartWord, sector.EndWord);
+
+                    sectors.Reverse();
+                }
+            }
+
+
+            return sectors;
+        }
+
+        public async Task<VocabularyPageResponse> GetVocabularyPageAsync(int userId, string startWord, string endWord, int page, int pageSize)
+        {
+            bool isDescending = string.Compare(endWord, startWord) < 0;
+
+            string minWord, maxWord;
+            if (isDescending)
+            {
+                minWord = endWord;
+                maxWord = startWord;
+            }
+            else
+            {
+                minWord = startWord;
+                maxWord = endWord;
+            }
+
+
+            var filteredQuery = _vocabularyQueries
+                .GetByUserIdQuery(userId)
+                .Where(e => string.Compare(e.Foreign, minWord) >= 0 &&
+                            string.Compare(e.Foreign, maxWord) <= 0);
+
+            IOrderedQueryable<VocabularyEntry> orderedQuery;
+            if (isDescending)
+            {
+                orderedQuery = filteredQuery
+                    .OrderByDescending(e => e.Foreign)
+                    .ThenByDescending(e => e.PartOfSpeech);
+            }
+            else
+            {
+                orderedQuery = filteredQuery
+                    .OrderBy(e => e.Foreign)
+                    .ThenBy(e => e.PartOfSpeech);
+            }
+
+            var totalSectorEntries = await orderedQuery.CountAsync();
+            int totalPages = (int)Math.Ceiling(totalSectorEntries / (decimal)pageSize);
+
+            var entries = await orderedQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var entriesResponse = _mapper.Map<EntryResponse[]>(entries);
+
+            return new VocabularyPageResponse
+            {
+                Entries = entriesResponse,
+                hasMore = page < totalPages,
+                SectorEntries = totalSectorEntries,
+            };
+        }
 
 
         public async Task<RequestResult<VocabularyEntry>> CreateEntryAsync(int userId, CreateEntryRequest request)

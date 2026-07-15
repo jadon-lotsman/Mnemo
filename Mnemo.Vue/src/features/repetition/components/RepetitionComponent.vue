@@ -1,17 +1,24 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import RepetitionItem from './RepetitionItem/RepetitionItem.vue'
 import { useRepetitionStore } from '../stores/RepetitionStore.ts'
 import router from '@/router/index.ts'
 import { useCalendarStore } from '@/features/calendar/stores/CalendarStore.ts'
 import { ROUTE_NAMES } from '@/shared/constants/RouteConst.ts'
+import { useLoadingPlaceholer } from '@/shared/composables/useLoadingPlaceholder.ts'
 
 const calendar = useCalendarStore()
 const repetition = useRepetitionStore()
-
-const isLoading = ref<boolean>(false)
+const loadingPlaceholder = useLoadingPlaceholer()
 
 const tasks = computed(() => repetition.tasks)
+const buttonText = computed(() =>
+  repetition.isFinished
+    ? 'Back'
+    : loadingPlaceholder.showSkeleton.value
+      ? 'Finishing...'
+      : 'Finish',
+)
 
 let lastAction: number = Date.now()
 
@@ -27,10 +34,10 @@ async function onFinish() {
   if (repetition.isFinished) {
     router.push({ name: ROUTE_NAMES.VOCABULARY })
   } else {
-    isLoading.value = true
+    loadingPlaceholder.startLoading()
     await repetition.finishTasks()
     await calendar.fetchDays()
-    isLoading.value = false
+    loadingPlaceholder.stopLoading()
   }
 }
 
@@ -48,8 +55,13 @@ onMounted(async () => {
     :disabled="repetition.isFinished"
     @submit-answer="onSubmitAnswer"
   />
-  <button class="big-button" type="button" @click="onFinish" :disabled="isLoading">
-    {{ repetition.isFinished ? 'Back' : 'Finish' }}
+  <button
+    class="big-button"
+    type="button"
+    @click="onFinish"
+    :disabled="loadingPlaceholder.isLoading.value"
+  >
+    {{ buttonText }}
   </button>
 </template>
 
