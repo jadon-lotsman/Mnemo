@@ -17,20 +17,12 @@ namespace Mnemo.Data.Queries
 
         // Queries
         public IQueryable<RepetitionState> GetByUserIdQuery(int userId)
-            => _context.RepetitionStates
-            .Include(s => s.VocabularyEntry)
-            .Where(s => s.VocabularyEntry.UserId == userId);
+            => _context.RepetitionStates.Where(s => s.VocabularyEntry.UserId == userId);
 
 
         // Getters
         public async Task<RepetitionState?> GetByEntryIdAsync(int userId, int entryId)
             => await GetByUserIdQuery(userId).FirstOrDefaultAsync(s => s.VocabularyEntryId == entryId);
-
-        public async Task<List<RepetitionState>> GetAllByUserIdAsync(int userId)
-            => await GetByUserIdQuery(userId)
-            .OrderBy(s => s.NextRepetitionAt)
-            .Include(e => e.VocabularyEntry)
-            .ToListAsync();
 
         public async Task<Dictionary<int, RepetitionState>> GetDictByEntryIdsAsync(int userId, IEnumerable<int> ids)
         {

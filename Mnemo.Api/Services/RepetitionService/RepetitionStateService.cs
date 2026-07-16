@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Routing.Matching;
+using Microsoft.EntityFrameworkCore;
 using Mnemo.Contracts.Repetition;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
@@ -23,9 +24,12 @@ namespace Mnemo.Services.RepetitionService
         }
 
 
-        public async Task<List<RepetitionDateResponse>> GetScheduleAsync(int userId)
+        public async Task<List<RepetitionDateResponse>> GetRepetitionScheduleAsync(int userId)
         {
-            var states = await _stateQueries.GetAllByUserIdAsync(userId);
+            var states = _stateQueries
+                .GetByUserIdQuery(userId)
+                .Where(s => s.LastRepetitionAt != DateOnly.MinValue) // Exclude new entries with default RepetitionState
+                .Include(s => s.VocabularyEntry);
 
             var dateToday = DateOnly.FromDateTime(DateTime.UtcNow);
             int daysUntilNext = DateTime.UtcNow.DaysUntilNext(DayOfWeek.Monday);
@@ -102,7 +106,6 @@ namespace Mnemo.Services.RepetitionService
 
             var groups = _stateQueries
                 .GetByUserIdQuery(userId)
-                .Where(s => s.NextRepetitionAt != today)
                 .GroupBy(s => s.NextRepetitionAt)
                 .ToDictionary(g => g.Key, g => g.ToList());
 

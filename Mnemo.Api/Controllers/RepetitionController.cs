@@ -96,9 +96,9 @@ namespace Mnemo.Controllers
 
 
         [HttpGet("states/")]
-        public async Task<IActionResult> GetScheduleDays()
+        public async Task<IActionResult> GetRepetitionSchedule()
         {
-            var days = await _stateService.GetScheduleAsync(UserId);
+            var days = await _stateService.GetRepetitionScheduleAsync(UserId);
 
             return Ok(days);
         }
