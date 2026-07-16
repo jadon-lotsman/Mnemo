@@ -1,5 +1,7 @@
-﻿using Mnemo.Contracts.Repetition;
+﻿using Microsoft.AspNetCore.Routing.Matching;
+using Mnemo.Contracts.Repetition;
 using Mnemo.Data;
+using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Shared;
 using Mnemo.Shared.Extensions;
@@ -92,6 +94,78 @@ namespace Mnemo.Services.RepetitionService
             _logger.LogInformation("Successfully recorded qualities for {Count} entries from user (UserId:{UserId})", stateDict.Count, userId);
 
             return RequestResult<bool>.Success(true);
+        }
+
+        public async Task BalanceRepetitionStateAsync(int userId, int repetitionTaskCout)
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            var groups = _stateQueries
+                .GetByUserIdQuery(userId)
+                .Where(s => s.NextRepetitionAt != today)
+                .GroupBy(s => s.NextRepetitionAt)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+
+            int maxPerDay = repetitionTaskCout;
+
+            bool changed;
+            do
+            {
+                changed = false;
+
+                var overfilled = groups
+                    .Where(g => g.Value.Count() > maxPerDay)
+                    .OrderByDescending(g => g.Key)
+                    .ToList();
+
+
+                foreach (var day in overfilled)
+                {
+                    var moveTo = day.Value
+                        .OrderBy(s => s.EasinessFactor)
+                        .Take(day.Value.Count - maxPerDay)
+                        .ToList();
+
+
+                    foreach (var state in moveTo)
+                    {
+                        DateOnly? nearest = FindNearestFreeDay(today, state.NextRepetitionAt, groups, maxPerDay);
+
+                        if (nearest.HasValue)
+                        {
+                            day.Value.Remove(state);
+                            state.NextRepetitionAt = nearest.Value;
+
+                            if (!groups.ContainsKey(nearest.Value))
+                                groups[nearest.Value] = new List<RepetitionState>();
+
+                            groups[nearest.Value].Add(state);
+                            changed = true;
+                        }
+                    }
+                }
+
+            } while (changed);
+
+
+            await _context.SaveChangesAsync();
+        }
+
+        private DateOnly? FindNearestFreeDay(DateOnly today, DateOnly original, Dictionary<DateOnly, List<RepetitionState>> groups, int maxCount, int maxOffset = 3)
+        {
+            for (int offset = 1; offset <= maxOffset; offset++)
+            {
+                var candidates = new[] { original.AddDays(offset), original.AddDays(-offset) };
+                foreach (var date in candidates)
+                {
+                    if (date <= today) continue;
+                    if (!groups.TryGetValue(date, out var list) || list.Count < maxCount)
+                        return date;
+                }
+            }
+
+            return null;
         }
     }
 }
