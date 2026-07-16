@@ -11,8 +11,6 @@ namespace Mnemo.Services.RepetitionService
 {
     public class RepetitionTaskService
     {
-        private readonly IOptions<RepetitionOptions> _options;
-
         private readonly AppDbContext _context;
         private readonly TaskQueries _taskQueries;
 
@@ -25,7 +23,6 @@ namespace Mnemo.Services.RepetitionService
 
 
         public RepetitionTaskService(
-            IOptions<RepetitionOptions> options,
             AppDbContext context,
             AccountQueries accountQueries,
             TaskQueries taskQueries,
@@ -33,8 +30,6 @@ namespace Mnemo.Services.RepetitionService
             FastRepetitionTaskStrategy fastStrategy,
             PlannedRepetitionTaskStrategy plannedStrategy)
         {
-            _options = options;
-
             _context = context;
 
             _accountQueries = accountQueries;
@@ -141,7 +136,7 @@ namespace Mnemo.Services.RepetitionService
 
             var record = await _stateService.RecordQualityRepetitionStateAsync(userId, entryIdToQuality);
 
-            await _stateService.BalanceRepetitionStateAsync(userId, _options.Value.RepetitionTaskCount);
+            await _stateService.BalanceRepetitionStateAsync(userId);
 
             if (!record.IsSuccess)
                 return RequestResult<RepetitionResultResponse>.Failure(record.ErrorCode!.Value, record.ErrorMessage);

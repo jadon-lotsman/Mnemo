@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Routing.Matching;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Mnemo.Contracts.Repetition;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
@@ -11,13 +12,19 @@ namespace Mnemo.Services.RepetitionService
 {
     public class RepetitionStateService
     {
+        private readonly IOptions<RepetitionOptions> _options;
         private readonly ILogger<RepetitionStateService> _logger;
         private readonly AppDbContext _context;
         private readonly StateQueries _stateQueries;
 
 
-        public RepetitionStateService(ILogger<RepetitionStateService> logger, AppDbContext context, StateQueries stateQueries)
+        public RepetitionStateService(
+            IOptions<RepetitionOptions> options,
+            ILogger<RepetitionStateService> logger,
+            AppDbContext context,
+            StateQueries stateQueries)
         {
+            _options = options;
             _logger = logger;
             _context = context;
             _stateQueries = stateQueries;
@@ -35,13 +42,14 @@ namespace Mnemo.Services.RepetitionService
             int daysUntilNext = DateTime.UtcNow.DaysUntilNext(DayOfWeek.Monday);
 
             var grouped = states
+                .Where(s => s.NextRepetitionAt <= dateToday.AddDays(7 + daysUntilNext))
                 .GroupBy(s => s.NextRepetitionAt)
                 .Select(d => new RepetitionDateResponse
                 {
                     Date = d.Key,
+                    IsImportantDay = d.Average(s => s.EasinessFactor) < SM2Helper.ImportantDayEF || d.Count() > _options.Value.RepetitionTaskCount,
                     VocabularyForeigns = d.Select(s => s.VocabularyEntry.Foreign).ToArray()
                 })
-                .Where(d => d.Date <= dateToday.AddDays(7 + daysUntilNext))
                 .OrderBy(d => d.Date)
                 .ToList();
 
@@ -100,7 +108,7 @@ namespace Mnemo.Services.RepetitionService
             return RequestResult<bool>.Success(true);
         }
 
-        public async Task BalanceRepetitionStateAsync(int userId, int repetitionTaskCout)
+        public async Task BalanceRepetitionStateAsync(int userId)
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
@@ -110,7 +118,7 @@ namespace Mnemo.Services.RepetitionService
                 .ToDictionary(g => g.Key, g => g.ToList());
 
 
-            int maxPerDay = repetitionTaskCout;
+            int maxPerDay = _options.Value.RepetitionTaskCount;
 
             bool changed;
             do

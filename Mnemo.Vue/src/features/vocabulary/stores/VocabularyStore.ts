@@ -25,7 +25,12 @@ export const useVocabularyStore = defineStore('vocabulary', () => {
 
   const loadingPlaceholder = useLoadingPlaceholer()
 
-  async function fetchPage(startWord: string, endWord: string, page: number, pageSize: number = 5) {
+  async function fetchPage(
+    startWord: string,
+    endWord: string,
+    page: number,
+    pageSize: number = 10,
+  ) {
     try {
       const isFirstPage: boolean = page === 1
       loadingPlaceholder.startLoading(!isFirstPage)

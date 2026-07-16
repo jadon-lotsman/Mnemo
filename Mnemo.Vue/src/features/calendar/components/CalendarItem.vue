@@ -20,6 +20,7 @@ function showPlannedForeigns() {
 
 <template>
   <div class="day" :class="{ 'day--planned': isPlanned }" @click="showPlannedForeigns()">
+    <div v-show="data.isImportantDay" class="important-mark">*</div>
     <span>{{ date.getDate() }}</span>
     <span>{{ date.toLocaleString('en-EN', { month: 'short' }).toLowerCase() + '.' }}</span>
   </div>
@@ -27,6 +28,8 @@ function showPlannedForeigns() {
 
 <style lang="scss" scoped>
 .day {
+  position: relative;
+
   cursor: default;
   user-select: none;
 
@@ -44,6 +47,18 @@ function showPlannedForeigns() {
   border-radius: 12px;
 
   font-size: 16px;
+
+  .important-mark {
+    position: absolute;
+
+    top: 6px;
+    right: 12px;
+
+    color: $black-font;
+
+    font-size: 18px;
+    font-weight: 200;
+  }
 
   &--planned {
     @include lift();

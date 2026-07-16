@@ -30,6 +30,7 @@ export function fillMissingDays(days: RepetitionDay[]): RepetitionDay[] {
     } else {
       result.push({
         date: dateStr,
+        isImportantDay: false,
         vocabularyForeigns: [],
       })
     }
