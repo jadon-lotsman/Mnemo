@@ -63,10 +63,10 @@ namespace Mnemo.Services.VocabularyService
 
         public async Task<List<VocabularySectorResponse>> GetVocabularySectorsAsync(int userId, bool isDescending)
         {
-            int minSectorSize = 12;
+            var query = _vocabularyQueries.GetByUserIdQuery(userId);
+            int minSectorSize = Math.Max(10, query.Count() / 7);
 
-            var query = _vocabularyQueries
-                .GetByUserIdQuery(userId)
+            var groupQuery = query
                 .GroupBy(e => e.Foreign.Substring(0, 1))
                 .Select(g => new
                 {
@@ -78,7 +78,7 @@ namespace Mnemo.Services.VocabularyService
                 .OrderBy(e => e.Letter);
 
 
-            var groups = await query.ToListAsync();
+            var groups = await groupQuery.ToListAsync();
             var sectors = new List<VocabularySectorResponse>();
             var index = 0;
 
