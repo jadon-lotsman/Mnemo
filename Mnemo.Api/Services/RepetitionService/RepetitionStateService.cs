@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Routing.Matching;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualBasic;
 using Mnemo.Contracts.Repetition;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Shared;
 using Mnemo.Shared.Extensions;
+using System.Diagnostics;
 
 namespace Mnemo.Services.RepetitionService
 {
@@ -33,13 +35,12 @@ namespace Mnemo.Services.RepetitionService
 
         public async Task<List<RepetitionDateResponse>> GetRepetitionScheduleAsync(int userId)
         {
-            var states = _stateQueries
-                .GetByUserIdQuery(userId)
-                .Where(s => s.LastRepetitionAt != DateOnly.MinValue) // Exclude new entries with default RepetitionState
-                .Include(s => s.VocabularyEntry);
-
             var dateToday = DateOnly.FromDateTime(DateTime.UtcNow);
             int daysUntilNext = DateTime.UtcNow.DaysUntilNext(DayOfWeek.Monday);
+
+            var states = _stateQueries
+                .GetByUserIdQuery(userId)
+                .Include(s => s.VocabularyEntry);
 
             var grouped = states
                 .Where(s => s.NextRepetitionAt <= dateToday.AddDays(7 + daysUntilNext))
@@ -120,6 +121,18 @@ namespace Mnemo.Services.RepetitionService
 
             int maxPerDay = _options.Value.RepetitionTaskCount;
 
+            int totalMoved = 0;
+
+            int overfilledBefore, overfilledAfter;
+            int totalStates = groups.Values.Sum(list => list.Count);
+
+            _logger.LogInformation("Starting balance {Count} states from user (UserId:{UserId})", totalStates, userId);
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            overfilledBefore = groups
+                .Count(g => g.Value.Count() > maxPerDay);
+
             bool changed;
             do
             {
@@ -130,6 +143,14 @@ namespace Mnemo.Services.RepetitionService
                     .OrderByDescending(g => g.Value.Count())
                     .ThenBy(g => g.Key)
                     .ToList();
+
+
+
+                if (!overfilled.Any())
+                {
+                    _logger.LogDebug("No overfilled days found for user (UserId:{UserId}), done...", userId);
+                    break;
+                }
 
 
                 foreach (var day in overfilled)
@@ -156,16 +177,30 @@ namespace Mnemo.Services.RepetitionService
                             succesfullyMoved.Add(state);
                             changed = true;
                         }
+                        else
+                        {
+                            break;
+                        }
                     }
 
                     var toRemove = new HashSet<RepetitionState>(succesfullyMoved);
                     day.Value.RemoveAll(toRemove.Contains);
-                }
 
+                    totalMoved += toRemove.Count;
+                }
             } while (changed);
 
-            
+            overfilledAfter = groups
+                .Count(g => g.Value.Count() > maxPerDay);
+
+            stopwatch.Stop();
+
+            _logger.LogInformation("Balance finished with: TotalMoved:{TotalMoved}, OverfilledDays: {before} -> {after}. It took {ElapsedMs} ms for user (UserId:{UserId}). Saving...",
+                 totalMoved, overfilledBefore, overfilledAfter, stopwatch.ElapsedMilliseconds, userId);
+
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Successfully balanced for user (UserId:{UserId})", userId);
         }
 
         private DateOnly? FindNearestFreeDay(DateOnly today, DateOnly original, Dictionary<DateOnly, List<RepetitionState>> groups, int maxCount, int maxOffset = 3)
