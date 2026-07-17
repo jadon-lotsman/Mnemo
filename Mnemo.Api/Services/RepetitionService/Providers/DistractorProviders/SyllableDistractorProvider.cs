@@ -7,7 +7,7 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
     public class SyllableDistractorProvider : IDistractorProvider
     {
         private readonly RandomDistractorProvider _randomDistractorProvider;
-        private readonly HashSet<string> _helpingEnDistractors = new() { "pre", "tion", "de", "nth", "ture", "rse" };
+        private readonly HashSet<string> _helpingEnDistractors = new() { "tion", "de", "nth", "ture", "rse", "ment", "ness", "ful", "able", "un", "er" };
         private readonly HashSet<string> _helpingRuDistractors = new() { "пере", "на", "де", "еть", "ый", "ять" };
 
         public SyllableDistractorProvider(RandomDistractorProvider randomDistractorProvider)
@@ -20,7 +20,7 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
             var result = new List<string>();
 
             var randomDistractors = await _randomDistractorProvider
-                .GetDistractorsAsync(isForward, baseEntry, take-2, excludeIds);
+                .GetDistractorsAsync(isForward, baseEntry, take, excludeIds);
 
             foreach (var distractor in randomDistractors)
             {
