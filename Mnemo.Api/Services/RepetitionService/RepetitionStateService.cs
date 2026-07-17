@@ -127,7 +127,8 @@ namespace Mnemo.Services.RepetitionService
 
                 var overfilled = groups
                     .Where(g => g.Value.Count() > maxPerDay)
-                    .OrderByDescending(g => g.Key)
+                    .OrderByDescending(g => g.Value.Count())
+                    .ThenBy(g => g.Key)
                     .ToList();
 
 
@@ -138,6 +139,7 @@ namespace Mnemo.Services.RepetitionService
                         .Take(day.Value.Count - maxPerDay)
                         .ToList();
 
+                    var succesfullyMoved = new List<RepetitionState>();
 
                     foreach (var state in moveTo)
                     {
@@ -145,21 +147,24 @@ namespace Mnemo.Services.RepetitionService
 
                         if (nearest.HasValue)
                         {
-                            day.Value.Remove(state);
                             state.NextRepetitionAt = nearest.Value;
 
                             if (!groups.ContainsKey(nearest.Value))
                                 groups[nearest.Value] = new List<RepetitionState>();
 
                             groups[nearest.Value].Add(state);
+                            succesfullyMoved.Add(state);
                             changed = true;
                         }
                     }
+
+                    var toRemove = new HashSet<RepetitionState>(succesfullyMoved);
+                    day.Value.RemoveAll(toRemove.Contains);
                 }
 
             } while (changed);
 
-
+            
             await _context.SaveChangesAsync();
         }
 
