@@ -47,6 +47,7 @@ namespace Mnemo.Data.Entities
 
 
         protected abstract double GetSimilarity();
+        public abstract double GetDifficultFactor();
 
         public abstract string GetCorrect();
 
@@ -54,7 +55,7 @@ namespace Mnemo.Data.Entities
         {
             double similarity = GetSimilarity();
 
-            return SM2Helper.ComputeQuality(averageTime, ElapsedTime, ActionCounter, similarity);
+            return SM2Helper.ComputeRecallQuality(averageTime, ElapsedTime, ActionCounter, similarity, GetDifficultFactor());
         }
     }
 
@@ -73,6 +74,16 @@ namespace Mnemo.Data.Entities
         protected override double GetSimilarity()
         {
             return CorrectAnswers.Max(UserAnswer.ComputeLevenshteinSimilarity);
+        }
+
+        public override double GetDifficultFactor()
+        {
+            double avgLength = CorrectAnswers.Average(a => a.Length);
+            int spaceCount = UserAnswer.Split().Length - 1;
+
+            double lengthBonus = 0.02d * (avgLength / 3d);
+            double spaceBonus = 0.02d * spaceCount;
+            return 1.0d + Math.Min(lengthBonus, 0.2d) + spaceBonus;
         }
 
         public override string GetCorrect() => CorrectAnswers.First();
@@ -101,6 +112,11 @@ namespace Mnemo.Data.Entities
         protected override double GetSimilarity()
         {
             return CorrectOption == UserAnswer ? 1.0 : 0.0;
+        }
+
+        public override double GetDifficultFactor()
+        {
+            return 0.7d + 0.05d * (Options.Count - 2);
         }
 
         public override string GetCorrect() => CorrectOption;
@@ -148,6 +164,11 @@ namespace Mnemo.Data.Entities
             return UserAnswer.AddEndPointIfNeeded().RemoveSpaces() == CorrectOrder.RemoveSpaces() ? 1.0 : 0.0;
         }
 
+        public override double GetDifficultFactor()
+        {
+            return 1.05d + 0.06d * Math.Floor(CorrectOrder.Split().Length / 5d);
+        }
+
         public override string GetCorrect() => CorrectOrder;
     }
 
@@ -173,6 +194,11 @@ namespace Mnemo.Data.Entities
         protected override double GetSimilarity()
         {
             return UserAnswer.RemoveSpaces() == CorrectOrder.RemoveSpaces() ? 1.0 : 0.0;
+        }
+
+        public override double GetDifficultFactor()
+        {
+            return 0.85d + 0.03d * (Syllables.Count - 2);
         }
 
         public override string GetCorrect() => CorrectOrder;
@@ -202,6 +228,11 @@ namespace Mnemo.Data.Entities
             };
 
             return isCorrect ? 1.0 : 0.0;
+        }
+
+        public override double GetDifficultFactor()
+        {
+            return 0.65d;
         }
 
         public override string GetCorrect() => CorrectYesOrNo ? "yes" : "no";

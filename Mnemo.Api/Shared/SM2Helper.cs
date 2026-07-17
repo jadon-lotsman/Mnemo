@@ -12,29 +12,35 @@
 
         public const int MinQuality = 0;
         public const int MaxQuality = 5;
+        public const int PassingQuality = 3;
 
         private const int FirstIntervalDays = 1;
         private const int SecondIntervalDays = 3;
 
 
-        public static double ComputeQuality(TimeSpan averageTime, TimeSpan actionTime, int actionCounter, double similarity)
+        public static double ComputeRecallQuality(TimeSpan averageTime, TimeSpan actionTime, int actionCounter, double similarity, double difficult)
         {
-            if (similarity <= 0.88) return MinQuality;
-            if (similarity >= 1.0) return MaxQuality;
+            double penalty = similarity < 0.99d ? Math.Pow(similarity, 2.0d) : 1;
+            double Accuracy = CalcAccuracySigmoid(similarity * penalty);
 
-            var changeCounter = Math.Max(0, actionCounter - 1);
-            double Stability = Math.Exp(-changeCounter * 0.5f);
+            double Stability = CalcStabilityExp(actionCounter);
 
-            double Accuracy = CalcSigmoidAccuracy(similarity);
+            var timeRatio = CalcReactionRatio(actionTime, averageTime);
+            double Reaction = CalcReactionPow(timeRatio);
 
-            var ratio = actionTime > TimeSpan.Zero ? averageTime / actionTime : 0;
-            double Reaction = CalcPowReaction(ratio);
+            double rawKnowledge = (0.3d * Accuracy + 0.35d * Stability + 0.35d * Reaction) * difficult;
+            double Quality = rawKnowledge * MaxQuality;
 
-            double Knowledge = 0.6 * Accuracy + 0.2 * Stability + 0.2 * Reaction;
+            if (Accuracy < 0.5d)
+                return MinQuality;
+            else if (!IsPassingQuality(Quality) && Accuracy >= 0.8d)
+                return PassingQuality;
 
-            double Quality = Math.Clamp(Knowledge, 0, 1) * MaxQuality;
+            Quality = Math.Clamp(Quality, 0, MaxQuality);
+            Quality = Math.Round(Quality, 1);
 
-            return Math.Round(Quality, 1);
+
+            return Quality;
         }
 
 
@@ -53,7 +59,7 @@
                 {
                     0 => FirstIntervalDays,
                     1 => SecondIntervalDays,
-                    _ => (int) Math.Ceiling((interval > 0 ? interval : 1) * easinessFactor)
+                    _ => (int)Math.Ceiling((interval > 0 ? interval : 1) * easinessFactor)
                 };
 
                 nextInterval = Math.Clamp(nextInterval, MinInterval, MaxInterval);
@@ -66,14 +72,29 @@
         }
 
 
-        public static bool IsPassingQuality(double quality) => quality >= 3;
+        public static bool IsPassingQuality(double quality) => quality >= PassingQuality;
 
-        private static double CalcSigmoidAccuracy(double similarity, double center = 0.8, double steepness = 10.0)
+        private static double CalcStabilityExp(int actionCounter)
+        {
+            var changeCounter = Math.Max(0, actionCounter - 1);
+            return Math.Exp(-changeCounter * 0.5f);
+        }
+
+        private static double CalcAccuracySigmoid(double similarity, double center = 0.5, double steepness = 8.0)
         {
             return 1.0 / (1.0 + Math.Exp(-steepness * (similarity - center)));
         }
 
-        private static double CalcPowReaction(double ratio, double min = 0.7, double max = 1.2, double center = 1.0, double steepness = 1.5)
+        private static double CalcReactionRatio(TimeSpan actionTime, TimeSpan averageTime)
+        {
+            double actionSec = Math.Max(actionTime.TotalSeconds, 0.5);
+            double avgSec = Math.Max(averageTime.TotalSeconds, 0.5);
+
+            double ratio = Math.Log(avgSec + 1) / Math.Log(actionSec + 1);
+            return ratio;
+        }
+
+        private static double CalcReactionPow(double ratio, double min = 0.7, double max = 1.1, double steepness = 0.75)
         {
             double raw = Math.Pow(ratio, steepness);
             return Math.Clamp(raw, min, max);

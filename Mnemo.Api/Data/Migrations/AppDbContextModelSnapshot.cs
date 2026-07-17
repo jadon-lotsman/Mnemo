@@ -51,7 +51,7 @@ namespace Mnemo.Data.Migrations
                     b.HasIndex("VocabularyEntryId")
                         .IsUnique();
 
-                    b.ToTable("RepetitionStates");
+                    b.ToTable("RepetitionStates", (string)null);
                 });
 
             modelBuilder.Entity("Mnemo.Data.Entities.RepetitionTask", b =>
@@ -95,7 +95,7 @@ namespace Mnemo.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RepetitionTasks");
+                    b.ToTable("RepetitionTasks", (string)null);
 
                     b.HasDiscriminator<string>("task_type").HasValue("RepetitionTask");
 
@@ -117,7 +117,7 @@ namespace Mnemo.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Mnemo.Data.Entities.VocabularyEntry", b =>
@@ -171,7 +171,7 @@ namespace Mnemo.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Entries");
+                    b.ToTable("Entries", (string)null);
                 });
 
             modelBuilder.Entity("Mnemo.Data.Entities.OptionRepetitionTask", b =>
@@ -216,7 +216,7 @@ namespace Mnemo.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.ToTable("RepetitionTasks", t =>
+                    b.ToTable("RepetitionTasks", null, t =>
                         {
                             t.Property("CorrectOrder")
                                 .HasColumnName("SyllableReorderRepetitionTask_CorrectOrder");
