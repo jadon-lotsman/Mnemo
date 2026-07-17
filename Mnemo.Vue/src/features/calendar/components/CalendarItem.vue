@@ -14,7 +14,7 @@ function showPlannedForeigns() {
 
   const formatted = props.data.vocabularyForeigns.map((word) => `'${word}'`).join(', ')
 
-  notify.custom(`planned at date`, formatted)
+  notify.custom(`planned ${props.data.vocabularyForeigns.length} entries`, formatted)
 }
 </script>
 
