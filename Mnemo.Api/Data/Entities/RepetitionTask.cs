@@ -47,7 +47,7 @@ namespace Mnemo.Data.Entities
 
 
         protected abstract double GetSimilarity();
-        public abstract double GetDifficultFactor();
+        protected abstract double GetDifficultFactor();
 
         public abstract string GetCorrect();
 
@@ -76,7 +76,7 @@ namespace Mnemo.Data.Entities
             return CorrectAnswers.Max(UserAnswer.ComputeLevenshteinSimilarity);
         }
 
-        public override double GetDifficultFactor()
+        protected override double GetDifficultFactor()
         {
             double avgLength = CorrectAnswers.Average(a => a.Length);
             int spaceCount = UserAnswer.Split().Length - 1;
@@ -114,7 +114,7 @@ namespace Mnemo.Data.Entities
             return CorrectOption == UserAnswer ? 1.0 : 0.0;
         }
 
-        public override double GetDifficultFactor()
+        protected override double GetDifficultFactor()
         {
             return 0.7d + 0.05d * (Options.Count - 2);
         }
@@ -164,7 +164,7 @@ namespace Mnemo.Data.Entities
             return UserAnswer.AddEndPointIfNeeded().RemoveSpaces() == CorrectOrder.RemoveSpaces() ? 1.0 : 0.0;
         }
 
-        public override double GetDifficultFactor()
+        protected override double GetDifficultFactor()
         {
             return 1.05d + 0.06d * Math.Floor(CorrectOrder.Split().Length / 5d);
         }
@@ -196,7 +196,7 @@ namespace Mnemo.Data.Entities
             return UserAnswer.RemoveSpaces() == CorrectOrder.RemoveSpaces() ? 1.0 : 0.0;
         }
 
-        public override double GetDifficultFactor()
+        protected override double GetDifficultFactor()
         {
             return 0.85d + 0.03d * (Syllables.Count - 2);
         }
@@ -230,7 +230,7 @@ namespace Mnemo.Data.Entities
             return isCorrect ? 1.0 : 0.0;
         }
 
-        public override double GetDifficultFactor()
+        protected override double GetDifficultFactor()
         {
             return 0.65d;
         }
