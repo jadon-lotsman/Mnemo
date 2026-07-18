@@ -4,6 +4,7 @@
     {
         public const double MinEF = 1.3;
         public const double InitEF = 2.5;
+        public const double MaxEF = 3.2;
         public const double ImportantDayEF = 1.8;
         public const double OvertimeBonusEF = 0.05;
 
@@ -18,7 +19,7 @@
         private const int SecondIntervalDays = 3;
 
 
-        public static double ComputeRecallQuality(TimeSpan averageTime, TimeSpan actionTime, int actionCounter, double similarity, double difficult)
+        public static double ComputeRecallQuality(TimeSpan averageTime, TimeSpan actionTime, int actionCounter, double similarity, double difficulty)
         {
             double penalty = similarity < 0.99d ? Math.Pow(similarity, 2.0d) : 1;
             double Accuracy = CalcAccuracySigmoid(similarity * penalty);
@@ -28,7 +29,7 @@
             var timeRatio = CalcReactionRatio(actionTime, averageTime);
             double Reaction = CalcReactionPow(timeRatio);
 
-            double rawKnowledge = (0.3d * Accuracy + 0.35d * Stability + 0.35d * Reaction) * difficult;
+            double rawKnowledge = (0.3d * Accuracy + 0.4d * Stability + 0.3d * Reaction) * difficulty;
             double Quality = rawKnowledge * MaxQuality;
 
             if (Accuracy < 0.5d)
@@ -66,7 +67,7 @@
             }
 
             nextEasinessFactor = easinessFactor + (0.1 - (MaxQuality - quality) * (0.08 + (MaxQuality - quality) * 0.02));
-            nextEasinessFactor = Math.Max(nextEasinessFactor, MinEF);
+            nextEasinessFactor = Math.Clamp(nextEasinessFactor, MinEF, MaxEF);
 
             return (nextInterval, nextEasinessFactor);
         }

@@ -1,40 +1,91 @@
-﻿using Mnemo.Data.Entities;
+﻿using Microsoft.AspNetCore.Identity;
+using Mnemo.Data.Entities;
 using Mnemo.Shared;
 
 namespace Mnemo.Services.RepetitionService.Providers.TaskTypeProviders
 {
     public class WeightTaskTypeProvider : ITaskTypeProvider
     {
-        public (Type taskType, bool isForward) GetType(double easeFactor)
+        private readonly ILogger<WeightTaskTypeProvider> _logger;
+
+        private static readonly (Type TaskType, double BaseWeigth, double Difficulty)[] TaskDifficulties = new[]
         {
-            var typeRand = Random.Shared.NextDouble();
-            var forwardRand= Random.Shared.NextDouble();
+            (typeof(YesOrNoRepetitionTask),         0.9d,   0.0d),
+            (typeof(OptionRepetitionTask),          0.95d,  1.5d),
+            (typeof(SyllableReorderRepetitionTask), 1.0d,   2.2d),
+            (typeof(TextRepetitionTask),            1.0d,   2.5d),
+            (typeof(SentenceReorderRepetitionTask), 0.3d,   3.0d)
+        };
 
-            if (easeFactor < 1.8)
+
+        public WeightTaskTypeProvider(ILogger<WeightTaskTypeProvider> logger)
+        {
+            _logger = logger;
+        }
+
+
+
+        public (Type taskType, bool isForward) GetType(double easinessFactor)
+        {
+            double targetDifficulty = CalcTargetDifficult(easinessFactor, 0.0d, TaskDifficulties.Last().Difficulty);
+
+            double[] weights = TaskDifficulties
+                .Select(t => t.BaseWeigth * CalcGaussianSimilarity(targetDifficulty, t.Difficulty, 0.6d))
+                .ToArray();
+
+
+            double sum = weights.Sum();
+            double[] probabilities = weights.Select(w => w / sum).ToArray();
+
+            double rand = Random.Shared.NextDouble();
+            double cumulative = 0.0;
+            Type selectedType = TaskDifficulties.Last().TaskType;
+
+            for (int i = 0; i < probabilities.Length; i++)
             {
-                bool isForward = forwardRand <= 0.8;
-
-                if (typeRand < 0.4) return (typeof(YesOrNoRepetitionTask), isForward);
-                if (typeRand < 0.9) return (typeof(SyllableReorderRepetitionTask), isForward);
-                return (typeof(OptionRepetitionTask), isForward);
+                cumulative += probabilities[i];
+                if (rand < cumulative)
+                {
+                    selectedType = TaskDifficulties[i].TaskType;
+                    break;
+                }
             }
-            else if (easeFactor < 2.3)
-            {
-                bool isForward = forwardRand <= 0.6;
 
-                if (typeRand < 0.1) return (typeof(YesOrNoRepetitionTask), isForward);
-                if (typeRand < 0.3) return (typeof(SyllableReorderRepetitionTask), isForward);
-                if (typeRand < 0.6) return (typeof(OptionRepetitionTask), isForward);
-                return (typeof(TextRepetitionTask), isForward);
-            }
-            else
-            {
-                bool isForward = forwardRand <= 0.5;
+            bool isForward = CalcIsForward(easinessFactor, 0.4d, 0.8d);
 
-                if (typeRand < 0.2) return (typeof(OptionRepetitionTask), isForward);
-                if (typeRand < 0.8) return (typeof(TextRepetitionTask), isForward);
-                return (typeof(SentenceReorderRepetitionTask), isForward);
-            }
+
+            _logger.LogDebug(
+                "With EasinessFactor:{EasinessFactor:F1} (TargetDifficult:{TargetDifficult:F1}/Max:{MaxDifficulty:F1}) " +
+                "resultng probabilities are [{Probabilities}] (SelectedType:{SelectedType})",
+                easinessFactor,
+                targetDifficulty,
+                TaskDifficulties.Last().Difficulty,
+                string.Join("|", probabilities.Select(p => p.ToString("F2"))),
+                selectedType.Name
+            );
+
+            return (selectedType, isForward);
+        }
+
+        public double CalcGaussianSimilarity(double targetDifficulty, double taskDifficulty, double sigma)
+        {
+            return Math.Exp(-Math.Pow(taskDifficulty - targetDifficulty, 2) / (2 * sigma * sigma));
+        }
+
+        public double CalcTargetDifficult(double easinessFactor, double min, double max)
+        {
+            double normalized = (easinessFactor - SM2Helper.MinEF) / (SM2Helper.MaxEF - SM2Helper.MinEF);
+            normalized = Math.Clamp(normalized, 0.0d, 1.0d);
+
+            return (max - min) * normalized;
+        }
+
+        public bool CalcIsForward(double easinessFactor, double min, double max)
+        {
+            double normalized = (easinessFactor - SM2Helper.MinEF) / (SM2Helper.MaxEF - SM2Helper.MinEF);
+            normalized = Math.Clamp(normalized, 0.0d, 1.0d);
+
+            return Random.Shared.NextDouble() <= max - (max - min) * normalized;
         }
     }
 }

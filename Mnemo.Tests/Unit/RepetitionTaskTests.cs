@@ -13,7 +13,7 @@ namespace Mnemo.Tests.Unit
         [Fact]
         public void TextRepetitionTask_ShouldReturnPassingQuality()
         {
-            var task = new TextRepetitionTask("apple", 0, 0, ["яблоко"]);
+            var task = new TextRepetitionTask("apple", PartOfSpeech.Noun, 0, 0, ["яблоко"]);
 
             task.SubmitAnswer("яблоко", TimeSpan.Zero);
             var quality = task.GetQuality(TimeSpan.Zero);
@@ -24,7 +24,7 @@ namespace Mnemo.Tests.Unit
         [Fact]
         public void OptionRepetitionTask_ShouldReturnPassingQuality()
         {
-            var task = new OptionRepetitionTask("apple", 0, 0, ["груша", "яблоко", "банан"], "яблоко");
+            var task = new OptionRepetitionTask("apple", PartOfSpeech.Noun, 0, 0, ["груша", "яблоко", "банан"], "яблоко");
 
             task.SubmitAnswer("яблоко", TimeSpan.Zero);
             var quality = task.GetQuality(TimeSpan.Zero);
@@ -35,10 +35,9 @@ namespace Mnemo.Tests.Unit
         [Theory]
         [InlineData("This apple tastes very sour")]
         [InlineData("Apple is sour.")]
-        [InlineData("Antidisestablishment")]
-        public void OrderPartsRepetitionTask_ShouldReturnPassingQuality(string sentence)
+        public void SentenceReorderRepetitionTask_ShouldReturnPassingQuality(string sentence)
         {
-            var task = new OrderPartsRepetitionTask(0, 0, sentence);
+            var task = new SentenceReorderRepetitionTask(0, 0, sentence);
 
             task.SubmitAnswer(sentence, TimeSpan.Zero);
             var quality = task.GetQuality(TimeSpan.Zero);
