@@ -38,7 +38,7 @@
                 return PassingQuality;
 
             Quality = Math.Clamp(Quality, 0, MaxQuality);
-            Quality = Math.Round(Quality, 1);
+            Quality = Math.Round(Quality, 2);
 
 
             return Quality;

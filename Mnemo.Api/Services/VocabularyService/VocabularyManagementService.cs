@@ -290,12 +290,12 @@ namespace Mnemo.Services.VocabularyService
             if (foreignUpdated || partOfSpeechUpdated)
             {
                 currentEntry.ResetAllMeta();
-                _logger.LogInformation("All metadata reset and set as {Status}: (EntryId:{EntryId}) for user (UserId:{UserId})", currentEntry.EnrichmentStatus, entryId, userId);
+                _logger.LogDebug("All metadata reset and set as {Status}: (EntryId:{EntryId}) for user (UserId:{UserId})", currentEntry.EnrichmentStatus, entryId, userId);
             }
             else if (transcriptionUpdated)
             {
                 currentEntry.ResetAudio();
-                _logger.LogInformation("Audio reset and set as {Status}: (EntryId:{EntryId}) for user (UserId:{UserId})", currentEntry.EnrichmentStatus, entryId, userId);
+                _logger.LogDebug("Audio reset and set as {Status}: (EntryId:{EntryId}) for user (UserId:{UserId})", currentEntry.EnrichmentStatus, entryId, userId);
             }
 
 

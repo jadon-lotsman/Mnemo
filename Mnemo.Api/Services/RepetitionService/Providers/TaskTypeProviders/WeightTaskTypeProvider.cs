@@ -55,13 +55,13 @@ namespace Mnemo.Services.RepetitionService.Providers.TaskTypeProviders
 
 
             _logger.LogDebug(
-                "With EasinessFactor:{EasinessFactor:F1} (TargetDifficult:{TargetDifficult:F1}/Max:{MaxDifficulty:F1}) " +
-                "resultng probabilities are [{Probabilities}] (SelectedType:{SelectedType})",
+                "Provide with EasinessFactor:{EasinessFactor:F1}: TargetDifficult:{TargetDifficult:F1} (MaxDifficult:{MaxDifficulty:F1}) " +
+                "resultng SelectedType:{SelectedType} [{Probabilities}] ",
                 easinessFactor,
                 targetDifficulty,
                 TaskDifficulties.Last().Difficulty,
-                string.Join("|", probabilities.Select(p => p.ToString("F2"))),
-                selectedType.Name
+                selectedType.Name,
+                string.Join("|", probabilities.Select(p => p.ToString("F2")))
             );
 
             return (selectedType, isForward);

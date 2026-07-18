@@ -14,6 +14,7 @@ namespace Mnemo.Data.Entities
 
         public string Prompt { get; set; }
         public string UserAnswer { get; set; }
+        public bool HasUserAnswer => !string.IsNullOrWhiteSpace(UserAnswer);
         public int OrderIndex { get; set; }
         public int ActionCounter { get; set; }
         public TimeSpan ElapsedTime { get; set; }
@@ -42,7 +43,7 @@ namespace Mnemo.Data.Entities
             UserAnswer = userAnswer;
 
             if (ElapsedTime == TimeSpan.Zero)
-                ElapsedTime = elapsedTime;
+                ElapsedTime += elapsedTime;
         }
 
 

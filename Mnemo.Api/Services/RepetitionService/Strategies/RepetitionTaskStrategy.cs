@@ -47,7 +47,7 @@ namespace Mnemo.Services.RepetitionService.Strategies
                 return new List<RepetitionTask>();
             }
 
-            _logger.LogInformation("Retrieved {Count} entries for user (UserId:{UserId})", targetEntries.Count, userId);
+            _logger.LogDebug("Retrieved {Count} entries for user (UserId:{UserId}). Tasks generating...", targetEntries.Count, userId);
 
 
             var tasks = new List<RepetitionTask>();

@@ -58,14 +58,13 @@ namespace Mnemo.Services.RepetitionService
         }
 
 
-        public async Task<RequestResult<bool>> RecordQualityRepetitionStateAsync(int userId, Dictionary<int, double> entryIdToQuality)
+        public async Task RecordQualityRepetitionStateAsync(int userId, Dictionary<int, double> entryIdToQuality)
         {
             _logger.LogInformation("Attempting to record quality for {Count} entries from user (UserId:{UserId})", entryIdToQuality.Count, userId);
 
             if (entryIdToQuality == null || !entryIdToQuality.Any())
             {
                 _logger.LogWarning("Entry-to-quality dictionary is empty from user (UserId:{UserId})", userId);
-                return RequestResult<bool>.Failure(ErrorCode.InvalidData, "Entry-to-quality is empty");
             }
 
 
@@ -74,7 +73,6 @@ namespace Mnemo.Services.RepetitionService
             if (stateDict.Count == 0)
             {
                 _logger.LogWarning("States pull is empty from user (UserId:{UserId})", userId);
-                return RequestResult<bool>.Success(false);
             }
 
 
@@ -93,20 +91,17 @@ namespace Mnemo.Services.RepetitionService
                     errors.Add($"Entry {state.VocabularyEntryId} failed: {errorMessage}");
             }
 
-            _logger.LogInformation("Quality recording entries is ending from user (UserId:{UserId}). Saving changes...", userId);
+            _logger.LogDebug("Quality recording entries is ending from user (UserId:{UserId}). Saving changes...", userId);
             await _context.SaveChangesAsync();
 
             if (errors.Any())
             {
                 var joined = string.Join("; ", errors);
                 _logger.LogWarning("Success, but quality recording failed for {Count} entries: {Errors}", errors.Count, joined);
-                return RequestResult<bool>.Failure(ErrorCode.ActionNotAllowed, joined);
             }
 
 
             _logger.LogInformation("Successfully recorded qualities for {Count} entries from user (UserId:{UserId})", stateDict.Count, userId);
-
-            return RequestResult<bool>.Success(true);
         }
 
         public async Task BalanceRepetitionStateAsync(int userId)
@@ -148,7 +143,7 @@ namespace Mnemo.Services.RepetitionService
 
                 if (!overfilled.Any())
                 {
-                    _logger.LogDebug("No overfilled days found for user (UserId:{UserId}), done...", userId);
+                    _logger.LogDebug("No overfilled days found for user (UserId:{UserId})", userId);
                     break;
                 }
 
@@ -195,11 +190,10 @@ namespace Mnemo.Services.RepetitionService
 
             stopwatch.Stop();
 
-            _logger.LogInformation("Balance finished with: TotalMoved:{TotalMoved}, OverfilledDays: {before} -> {after}. It took {ElapsedMs} ms for user (UserId:{UserId}). Saving...",
+            _logger.LogDebug("Balance finished with: TotalMoved:{TotalMoved}, OverfilledDays: {before} -> {after}. It took {ElapsedMs} ms for user (UserId:{UserId}). Saving...",
                  totalMoved, overfilledBefore, overfilledAfter, stopwatch.ElapsedMilliseconds, userId);
 
             await _context.SaveChangesAsync();
-
             _logger.LogInformation("Successfully balanced for user (UserId:{UserId})", userId);
         }
 
