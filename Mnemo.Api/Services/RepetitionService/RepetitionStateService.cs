@@ -48,7 +48,7 @@ namespace Mnemo.Services.RepetitionService
                 .Select(d => new RepetitionDateResponse
                 {
                     Date = d.Key,
-                    IsImportantDay = d.Average(s => s.EasinessFactor) < SM2Helper.ImportantDayEF || d.Count() > _options.Value.RepetitionTaskCount,
+                    IsImportantDay = d.Count() > _options.Value.RepetitionTaskCount,
                     VocabularyForeigns = d.Select(s => s.VocabularyEntry.Foreign).ToArray()
                 })
                 .OrderBy(d => d.Date)

@@ -113,7 +113,7 @@ watch(
         </button>
       </form>
     </div>
-    <span class="correct" v-if="task.quality != null && task.quality != 5">
+    <span class="correct" v-if="task.isCorrect != null && !task.isCorrect">
       Correct is "{{ capitalize(task.correctAnswer ?? '') }}"
     </span>
   </article>

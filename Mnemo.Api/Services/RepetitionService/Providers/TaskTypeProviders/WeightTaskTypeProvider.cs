@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Mnemo.Data.Entities;
-using Mnemo.Shared;
+using Mnemo.Shared.SM2Helper;
 
 namespace Mnemo.Services.RepetitionService.Providers.TaskTypeProviders
 {
@@ -10,7 +10,7 @@ namespace Mnemo.Services.RepetitionService.Providers.TaskTypeProviders
 
         private static readonly (Type TaskType, double BaseWeigth, double Difficulty)[] TaskDifficulties = new[]
         {
-            (typeof(YesOrNoRepetitionTask),         0.9d,   0.0d),
+            (typeof(YesOrNoRepetitionTask),         0.6d,   0.1d),
             (typeof(OptionRepetitionTask),          0.95d,  1.5d),
             (typeof(SyllableReorderRepetitionTask), 1.0d,   2.2d),
             (typeof(TextRepetitionTask),            1.0d,   2.5d),
@@ -56,7 +56,7 @@ namespace Mnemo.Services.RepetitionService.Providers.TaskTypeProviders
 
             _logger.LogDebug(
                 "Provide with EasinessFactor:{EasinessFactor:F1}: TargetDifficult:{TargetDifficult:F1} (MaxDifficult:{MaxDifficulty:F1}) " +
-                "resultng SelectedType:{SelectedType} [{Probabilities}] ",
+                "resulting SelectedType:{SelectedType, -30} [{Probabilities}] ",
                 easinessFactor,
                 targetDifficulty,
                 TaskDifficulties.Last().Difficulty,

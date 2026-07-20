@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Mnemo.Data.Entities;
 using Mnemo.Services.RepetitionService.Factories;
 using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
-using Mnemo.Shared;
+using Mnemo.Shared.SM2Helper;
 using System.Diagnostics;
 
 namespace Mnemo.Services.RepetitionService.Strategies

@@ -1,11 +1,10 @@
-﻿namespace Mnemo.Shared
+﻿namespace Mnemo.Shared.SM2Helper
 {
     public static class SM2Helper
     {
         public const double MinEF = 1.3;
         public const double InitEF = 2.5;
         public const double MaxEF = 3.2;
-        public const double ImportantDayEF = 1.8;
         public const double OvertimeBonusEF = 0.05;
 
         public const int MinInterval = 1;
@@ -19,29 +18,36 @@
         private const int SecondIntervalDays = 3;
 
 
-        public static double ComputeRecallQuality(TimeSpan averageTime, TimeSpan actionTime, int actionCounter, double similarity, double difficulty)
+        public static QualityResult ComputeRecallQuality(TimeSpan typeAverageTime, TimeSpan taskActionTime, int actionCounter, double similarity, double difficulty)
         {
-            double penalty = similarity < 0.99d ? Math.Pow(similarity, 2.0d) : 1;
+            double penalty = similarity < 0.99d ? Math.Pow(similarity, 3.0d) : 1;
             double Accuracy = CalcAccuracySigmoid(similarity * penalty);
 
             double Stability = CalcStabilityExp(actionCounter);
 
-            var timeRatio = CalcReactionRatio(actionTime, averageTime);
+            var timeRatio = CalcReactionRatio(taskActionTime, typeAverageTime);
             double Reaction = CalcReactionPow(timeRatio);
 
-            double rawKnowledge = (0.3d * Accuracy + 0.4d * Stability + 0.3d * Reaction) * difficulty;
-            double Quality = rawKnowledge * MaxQuality;
+            double rawKnowledge = (0.20d * Accuracy + 0.45d * Stability + 0.35d * Reaction) * difficulty;
+            double Quality = rawKnowledge * MaxQuality - 0.25d;
 
             if (Accuracy < 0.5d)
-                return MinQuality;
+                Quality = MinQuality;
             else if (!IsPassingQuality(Quality) && Accuracy >= 0.8d)
-                return PassingQuality;
+                Quality = PassingQuality;
 
             Quality = Math.Clamp(Quality, 0, MaxQuality);
             Quality = Math.Round(Quality, 2);
 
 
-            return Quality;
+            return new QualityResult()
+            {
+                Quality     = Quality,
+                Difficulty  = difficulty,
+                Accuracy    = Accuracy,
+                Stability   = Stability,
+                Reaction    = Reaction,
+            };
         }
 
 
@@ -81,7 +87,7 @@
             return Math.Exp(-changeCounter * 0.5f);
         }
 
-        private static double CalcAccuracySigmoid(double similarity, double center = 0.5, double steepness = 8.0)
+        private static double CalcAccuracySigmoid(double similarity, double center = 0.7, double steepness = 12.0)
         {
             return 1.0 / (1.0 + Math.Exp(-steepness * (similarity - center)));
         }
@@ -95,7 +101,7 @@
             return ratio;
         }
 
-        private static double CalcReactionPow(double ratio, double min = 0.7, double max = 1.1, double steepness = 0.75)
+        private static double CalcReactionPow(double ratio, double min = 0.6, double max = 1.05, double steepness = 1.2)
         {
             double raw = Math.Pow(ratio, steepness);
             return Math.Clamp(raw, min, max);

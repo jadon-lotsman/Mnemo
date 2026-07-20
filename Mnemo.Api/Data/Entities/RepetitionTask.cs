@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Mnemo.Shared;
 using Mnemo.Shared.Extensions;
+using Mnemo.Shared.SM2Helper;
 
 namespace Mnemo.Data.Entities
 {
@@ -52,11 +53,12 @@ namespace Mnemo.Data.Entities
 
         public abstract string GetCorrect();
 
-        public double GetQuality(TimeSpan averageTime)
+        public QualityResult GetQuality(TimeSpan typeAverageTime)
         {
             double similarity = GetSimilarity();
+            double difficulty = GetDifficultFactor();
 
-            return SM2Helper.ComputeRecallQuality(averageTime, ElapsedTime, ActionCounter, similarity, GetDifficultFactor());
+            return SM2Helper.ComputeRecallQuality(typeAverageTime, ElapsedTime, ActionCounter, similarity, difficulty);
         }
     }
 
@@ -79,12 +81,10 @@ namespace Mnemo.Data.Entities
 
         protected override double GetDifficultFactor()
         {
-            double avgLength = CorrectAnswers.Average(a => a.Length);
-            int spaceCount = UserAnswer.Split().Length - 1;
+            double anwLength = UserAnswer.Length;
 
-            double lengthBonus = 0.02d * (avgLength / 3d);
-            double spaceBonus = 0.02d * spaceCount;
-            return 1.0d + Math.Min(lengthBonus, 0.2d) + spaceBonus;
+            double lengthBonus = 0.02d * (anwLength / 2.5d);
+            return 1.0d + Math.Min(lengthBonus, 0.2d);
         }
 
         public override string GetCorrect() => CorrectAnswers.First();
@@ -117,7 +117,7 @@ namespace Mnemo.Data.Entities
 
         protected override double GetDifficultFactor()
         {
-            return 0.7d + 0.05d * (Options.Count - 2);
+            return 0.8d + 0.025d * (Options.Count - 2);
         }
 
         public override string GetCorrect() => CorrectOption;
@@ -167,7 +167,7 @@ namespace Mnemo.Data.Entities
 
         protected override double GetDifficultFactor()
         {
-            return 1.05d + 0.06d * Math.Floor(CorrectOrder.Split().Length / 5d);
+            return 1.05d + 0.1d * Math.Floor(CorrectOrder.Split().Length / 5d);
         }
 
         public override string GetCorrect() => CorrectOrder;
@@ -233,7 +233,7 @@ namespace Mnemo.Data.Entities
 
         protected override double GetDifficultFactor()
         {
-            return 0.65d;
+            return 0.64d;
         }
 
         public override string GetCorrect() => CorrectYesOrNo ? "yes" : "no";
