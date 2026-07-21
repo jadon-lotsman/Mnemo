@@ -2,6 +2,6 @@
 {
     public interface ITaskTypeProvider
     {
-        (Type taskType, bool isForward) GetType(double easeFactor);
+        (Type taskType, bool isForward) GetType(double easinessFactor);
     }
 }

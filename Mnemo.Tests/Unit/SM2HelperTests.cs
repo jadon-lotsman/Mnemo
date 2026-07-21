@@ -5,18 +5,19 @@ namespace Mnemo.Tests.Unit
     public class SM2HelperTests
     {
         [Theory]
-        [InlineData(10, 10, 1, 1.0, true)]
-        [InlineData(10, 12, 1, 0.9, true)]
-        [InlineData(10, 10, 3, 0.85, false)]
-        [InlineData(10, 20, 1, 0.3, false)]
-        [InlineData(10, 10, 1, 0.6, false)]
-        public void ComputeQuality_ShouldReturnCorrectPassing(double averageSec, double actionSec, int actionCounter, double similarity, bool expectedPassing)
+        [InlineData(10, 10, 1, 1.0, 1.0, true)]
+        [InlineData(10, 12, 1, 0.9, 1.0, true)]
+        [InlineData(10, 10, 3, 0.85, 1.0, true)]
+        [InlineData(10, 20, 1, 0.3, 1.0, false)]
+        [InlineData(10, 10, 1, 0.6, 1.0, false)]
+        public void ComputeRecallQuality_ShouldReturnCorrectPassing(double averageSec, double actionSec, int actionCounter, double similarity, double difficult, bool expectedPassing)
         {
-            double quality = SM2Helper.ComputeQuality(
+            double quality = SM2Helper.ComputeRecallQuality(
                 TimeSpan.FromSeconds(averageSec),
                 TimeSpan.FromSeconds(actionSec),
                 actionCounter,
-                similarity);
+                similarity,
+                difficult);
 
 
             Assert.Equal(expectedPassing, SM2Helper.IsPassingQuality(quality));

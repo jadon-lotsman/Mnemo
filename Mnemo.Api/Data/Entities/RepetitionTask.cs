@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Mnemo.Shared;
 using Mnemo.Shared.Extensions;
+using Mnemo.Shared.SM2Helper;
 
 namespace Mnemo.Data.Entities
 {
@@ -14,6 +15,7 @@ namespace Mnemo.Data.Entities
 
         public string Prompt { get; set; }
         public string UserAnswer { get; set; }
+        public bool HasUserAnswer => !string.IsNullOrWhiteSpace(UserAnswer);
         public int OrderIndex { get; set; }
         public int ActionCounter { get; set; }
         public TimeSpan ElapsedTime { get; set; }
@@ -42,19 +44,21 @@ namespace Mnemo.Data.Entities
             UserAnswer = userAnswer;
 
             if (ElapsedTime == TimeSpan.Zero)
-                ElapsedTime = elapsedTime;
+                ElapsedTime += elapsedTime;
         }
 
 
         protected abstract double GetSimilarity();
+        protected abstract double GetDifficultFactor();
 
         public abstract string GetCorrect();
 
-        public double GetQuality(TimeSpan averageTime)
+        public QualityResult GetQuality(TimeSpan typeAverageTime)
         {
             double similarity = GetSimilarity();
+            double difficulty = GetDifficultFactor();
 
-            return SM2Helper.ComputeQuality(averageTime, ElapsedTime, ActionCounter, similarity);
+            return SM2Helper.ComputeRecallQuality(typeAverageTime, ElapsedTime, ActionCounter, similarity, difficulty);
         }
     }
 
@@ -73,6 +77,14 @@ namespace Mnemo.Data.Entities
         protected override double GetSimilarity()
         {
             return CorrectAnswers.Max(UserAnswer.ComputeLevenshteinSimilarity);
+        }
+
+        protected override double GetDifficultFactor()
+        {
+            double anwLength = UserAnswer.Length;
+
+            double lengthBonus = 0.02d * (anwLength / 2.5d);
+            return 1.0d + Math.Min(lengthBonus, 0.2d);
         }
 
         public override string GetCorrect() => CorrectAnswers.First();
@@ -101,6 +113,11 @@ namespace Mnemo.Data.Entities
         protected override double GetSimilarity()
         {
             return CorrectOption == UserAnswer ? 1.0 : 0.0;
+        }
+
+        protected override double GetDifficultFactor()
+        {
+            return 0.8d + 0.025d * (Options.Count - 2);
         }
 
         public override string GetCorrect() => CorrectOption;
@@ -148,6 +165,11 @@ namespace Mnemo.Data.Entities
             return UserAnswer.AddEndPointIfNeeded().RemoveSpaces() == CorrectOrder.RemoveSpaces() ? 1.0 : 0.0;
         }
 
+        protected override double GetDifficultFactor()
+        {
+            return 1.05d + 0.1d * Math.Floor(CorrectOrder.Split().Length / 5d);
+        }
+
         public override string GetCorrect() => CorrectOrder;
     }
 
@@ -173,6 +195,11 @@ namespace Mnemo.Data.Entities
         protected override double GetSimilarity()
         {
             return UserAnswer.RemoveSpaces() == CorrectOrder.RemoveSpaces() ? 1.0 : 0.0;
+        }
+
+        protected override double GetDifficultFactor()
+        {
+            return 0.85d + 0.03d * (Syllables.Count - 2);
         }
 
         public override string GetCorrect() => CorrectOrder;
@@ -202,6 +229,11 @@ namespace Mnemo.Data.Entities
             };
 
             return isCorrect ? 1.0 : 0.0;
+        }
+
+        protected override double GetDifficultFactor()
+        {
+            return 0.64d;
         }
 
         public override string GetCorrect() => CorrectYesOrNo ? "yes" : "no";

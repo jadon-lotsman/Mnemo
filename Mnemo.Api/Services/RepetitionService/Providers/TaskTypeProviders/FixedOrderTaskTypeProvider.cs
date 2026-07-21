@@ -9,7 +9,7 @@ namespace Mnemo.Services.RepetitionService.Providers.TaskTypeProviders
         private int _index = 0;
 
 
-        public (Type taskType, bool isForward) GetType(double easeFactor)
+        public (Type taskType, bool isForward) GetType(double easinessFactor)
         { 
             return (_order[_index++ % _order.Length], true);
         }

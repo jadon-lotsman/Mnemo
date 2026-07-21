@@ -6,11 +6,13 @@ using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Services.RepetitionService.Strategies;
 using Mnemo.Shared;
+using Mnemo.Shared.SM2Helper;
 
 namespace Mnemo.Services.RepetitionService
 {
     public class RepetitionTaskService
     {
+        private readonly ILogger<RepetitionTaskService> _logger;
         private readonly AppDbContext _context;
         private readonly TaskQueries _taskQueries;
 
@@ -23,6 +25,7 @@ namespace Mnemo.Services.RepetitionService
 
 
         public RepetitionTaskService(
+            ILogger<RepetitionTaskService> logger,
             AppDbContext context,
             AccountQueries accountQueries,
             TaskQueries taskQueries,
@@ -30,6 +33,8 @@ namespace Mnemo.Services.RepetitionService
             FastRepetitionTaskStrategy fastStrategy,
             PlannedRepetitionTaskStrategy plannedStrategy)
         {
+            _logger = logger;
+
             _context = context;
 
             _accountQueries = accountQueries;
@@ -58,11 +63,20 @@ namespace Mnemo.Services.RepetitionService
 
         public async Task<RequestResult<List<RepetitionTask>>> StartRepetitionAsync(int userId, string mode)
         {
+            _logger.LogInformation("Attempting to start repetition for user (UserId:{UserId})", userId);
+
             if (!await _accountQueries.ExistsByIdAsync(userId))
+            {
+                _logger.LogWarning("User (UserId:{UserId}) not found", userId);
                 return RequestResult<List<RepetitionTask>>.Failure(ErrorCode.UserNotFound);
+            }
 
             if (await _taskQueries.ExistsByUserId(userId))
+            {
+                _logger.LogWarning("Repetition already exists for user (UserId:{UserId})", userId);
                 return RequestResult<List<RepetitionTask>>.Success(await _taskQueries.GetByUserIdQuery(userId).ToListAsync());
+            }
+
 
             IRepetitionTaskStrategy? strategy = mode switch
             {
@@ -72,99 +86,171 @@ namespace Mnemo.Services.RepetitionService
             };
 
             if (strategy == null)
+            {
+                _logger.LogWarning("Request from user (UserId:{UserId}) contains an unknown repetition mode '{mode}'", userId, mode);
                 return RequestResult<List<RepetitionTask>>.Failure(ErrorCode.InvalidData);
+            }
 
 
             var tasks = await strategy.GetTasksAsync(userId);
 
             if (!tasks.Any())
+            {
+                _logger.LogWarning("Repetition strategy returns an empty result for user (UserId:{UserId})", userId);
                 return RequestResult<List<RepetitionTask>>.Failure(ErrorCode.TaskGenerationFailed);
+            }
 
             await _context.RepetitionTasks.AddRangeAsync(tasks);
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Successfully started repetition for user (UserId:{UserId})", userId);
 
             return RequestResult<List<RepetitionTask>>.Success(tasks);
         }
 
         public async Task<RequestResult<RepetitionResultResponse>> FinishRepetitionAsync(int userId)
         {
-            if (!await _taskQueries.ExistsByUserId(userId))
-                return RequestResult<RepetitionResultResponse>.Failure(ErrorCode.RepetitionNotFound);
+            _logger.LogInformation("Attempting to finish repetition for user (UserId:{UserId})", userId);
 
+            if (!await _taskQueries.ExistsByUserId(userId))
+            {
+                _logger.LogWarning("No repetition tasks found for user (UserId:{UserId})", userId);
+                return RequestResult<RepetitionResultResponse>.Failure(ErrorCode.RepetitionNotFound);
+            }
 
             var tasks = await _taskQueries.GetByUserIdQuery(userId).ToListAsync();
+            _logger.LogDebug("Retrieved {TaskCount} tasks for user (UserId:{UserId})", tasks.Count, userId);
 
 
-            var totalTime = TimeSpan.Zero;
-            foreach (var task in tasks)
-                totalTime += task.ElapsedTime;
+            var statsByType = tasks
+                .GroupBy(t => t.GetType())
+                .Select(g => new
+                {
+                    Type = g.Key,
+                    Count = g.Count(),
+                    TotalSeconds = g.Sum(t => t.ElapsedTime.TotalSeconds),
+                    AvgSeconds = g.Average(t => t.ElapsedTime.TotalSeconds)
+                })
+                .ToList();
 
-            var averageTime = tasks.Count > 0 ? totalTime / tasks.Count : TimeSpan.Zero;
+            foreach (var stat in statsByType)
+            {
+                _logger.LogDebug(
+                    "Time groups for tasks from user (UserId:{UserId, 2}): TaskType:{TaskType, -30} [{Total, -4:F1} sec|Count:{Count, 2}|~AverageTime:{Avg:F1} sec]",
+                    userId,
+                    stat.Type.Name,
+                    stat.TotalSeconds,
+                    stat.Count,
+                    stat.AvgSeconds
+                );
+            }
+
+            var averageByType = statsByType
+                .ToDictionary(
+                    s => s.Type,
+                    s => s.AvgSeconds
+                );
 
 
             var entryIdToQuality = new Dictionary<int, double>();
             var taskResults = new List<TaskResultResponse>();
 
             int totalTasks = tasks.Count;
-            int correctTaskCounter = 0;
+            int correctCount = 0;
+            int unansweredCount = 0;
 
             foreach (var task in tasks)
             {
-                double quality = task.GetQuality(averageTime);
-                bool isCorrect = false;
+                var taskType = task.GetType();
+                var avgForType = averageByType.TryGetValue(taskType, out var avg)
+                    ? TimeSpan.FromSeconds(avg)
+                    : TimeSpan.Zero;
+
+                var taskResult = task.GetQuality(avgForType);
+                bool isCorrect = SM2Helper.IsPassingQuality(taskResult.Quality);
+
+                if (isCorrect)
+                    correctCount++;
+
+                if (!task.HasUserAnswer)
+                    unansweredCount++;
 
                 if (!entryIdToQuality.ContainsKey(task.VocabularyEntryId))
-                    entryIdToQuality.Add(task.VocabularyEntryId, quality);
-
-                if (SM2Helper.IsPassingQuality(quality))
-                {
-                    isCorrect = true;
-                    correctTaskCounter++;
-                }
+                    entryIdToQuality.Add(task.VocabularyEntryId, taskResult.Quality);
 
                 taskResults.Add(new TaskResultResponse()
                 {
                     Id = task.Id,
-                    Quality = quality,
+                    Quality = taskResult.Quality,
                     IsCorrect = isCorrect,
                     CorrectAnswer = task.GetCorrect()
                 });
+
+                _logger.LogDebug("Log for task with OrderIndex:{OrderIndex, 2} from user (UserId:{UserId, 2}) TaskType:{TaskType, -30} " +
+                    "[{D:F2}|{A:F1}|{S:F1}|{R:F1}|{Quality:F2}]{IsGiven}",
+                    task.OrderIndex + 1,
+                    userId,
+                    task.GetType().Name,
+                    taskResult.Difficulty,
+                    taskResult.Accuracy,
+                    taskResult.Stability,
+                    taskResult.Reaction,
+                    taskResult.Quality,
+                    task.HasUserAnswer ? "" : " (answer not given)"
+                );
             }
+
+            _logger.LogDebug("Removing {count} tasks...", totalTasks);
 
             _context.RepetitionTasks.RemoveRange(tasks);
             await _context.SaveChangesAsync();
 
-            var record = await _stateService.RecordQualityRepetitionStateAsync(userId, entryIdToQuality);
 
-            await _stateService.BalanceRepetitionStateAsync(userId);
-
-            if (!record.IsSuccess)
-                return RequestResult<RepetitionResultResponse>.Failure(record.ErrorCode!.Value, record.ErrorMessage);
-
+            int percent = totalTasks > 0 ? (int)(double)(correctCount * 100d / totalTasks) : 0;
 
             var response = new RepetitionResultResponse()
             {
-                Correct = correctTaskCounter,
+                Correct = correctCount,
                 Total = totalTasks,
-                Percent = totalTasks > 0 ? (int)Math.Round((double)correctTaskCounter / totalTasks * 100) : 0,
-                TotalTimeMilliseconds = (int)totalTime.TotalMilliseconds,
+                Percent = percent,
+                TotalTimeMilliseconds = (int)tasks.Sum(t => t.ElapsedTime.TotalMilliseconds),
                 TaskResults = taskResults.ToArray()
             };
+
+            _logger.LogInformation(
+                "Tasks was successfully removed. User (UserId:{UserId}) completed {TotalTasks} tasks: " +
+                "(Correct:{CorrectCount}, Unanswered:{Unanswered}, Percent:{CorrectPercent:F1}%)",
+                userId,
+                totalTasks,
+                correctCount,
+                unansweredCount,
+                percent
+            );
+
+
+            await _stateService.RecordQualityRepetitionStateAsync(userId, entryIdToQuality);
+            await _stateService.BalanceRepetitionStateAsync(userId);
 
             return RequestResult<RepetitionResultResponse>.Success(response);
         }
 
         public async Task<RequestResult<RepetitionTask>> SubmitRepetitionTaskAnswerAsync(int userId, int taskId, string answer, TimeSpan elapsedTime)
         {
+            _logger.LogInformation("Attempting to submit task (TaskId:{TaskId}) answer for user (UserId:{UserId})", taskId, userId);
+
             var task = await _taskQueries.GetTaskByIdAsync(userId, taskId);
 
             if (task == null)
+            {
+                _logger.LogWarning("Task (TaskId:{TaskId}) not found for user (UserId:{UserId})", taskId, userId);
                 return RequestResult<RepetitionTask>.Failure(ErrorCode.TaskNotFound);
+            }
 
 
             task.SubmitAnswer(answer, elapsedTime);
 
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Successfully submitted answer (TaskId:{TaskId}, OrderIndex:{Order}) for user (UserId:{UserId})", taskId, task.OrderIndex, userId);
 
             return RequestResult<RepetitionTask>.Success(task);
         }

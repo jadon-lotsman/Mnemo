@@ -1,4 +1,4 @@
-﻿using Mnemo.Shared;
+﻿using Mnemo.Shared.SM2Helper;
 
 namespace Mnemo.Data.Entities
 {
