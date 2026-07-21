@@ -23,15 +23,12 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
                     .GetRandomEntries(take, excludeIds)
                     .ToListAsync();
 
-            if (entries.Count < take)
-                return [];
-
             var result = new List<string>();
             foreach (var entry in entries)
             {
-                string distructor = isForward ? entry.Translations[0] : entry.Foreign;
-                if (!result.Contains(distructor))
-                    result.Add(distructor);
+                string distractor = isForward ? entry.Translations[0] : entry.Foreign;
+                if (!result.Contains(distractor))
+                    result.Add(distractor);
             }
 
             return result;

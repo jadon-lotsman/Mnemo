@@ -15,17 +15,15 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
             if (isForward)
                 return [];
 
-            if (baseEntry.Antonyms.Count < take)
+            if (!baseEntry.Antonyms.Any())
                 return [];
 
-            var antonyms = baseEntry
-                .Antonyms
+            var result = baseEntry.Antonyms
                 .OrderBy(x => Random.Shared.Next())
-                .ToList();
-
-            return antonyms
                 .Take(take)
                 .ToList();
+
+            return result;
         }
     }
 }

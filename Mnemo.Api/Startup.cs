@@ -119,6 +119,7 @@ namespace Mnemo
 
             // DI Distractor Providers
             services.AddScoped<AntonymDistractorProvider>();
+            services.AddScoped<PrefixDistractorProvider>();
             services.AddScoped<ByPartOfSpeechDistractorProvider>();
             services.AddScoped<RandomDistractorProvider>();
             services.AddScoped<SyllableDistractorProvider>();

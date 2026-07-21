@@ -25,9 +25,9 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
             foreach (var distractor in randomDistractors)
             {
                 var syllables = distractor.SplitIntoChunks(3);
-                int index = Random.Shared.Next(syllables.Length);
+                int index = Random.Shared.Next(1, syllables.Length);
 
-                if (syllables.Length <= 1)
+                if (syllables.Length-1 <= 1)
                     continue;
 
                 result.Add(syllables[index]);
