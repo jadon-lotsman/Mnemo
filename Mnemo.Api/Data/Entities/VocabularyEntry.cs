@@ -1,5 +1,5 @@
 ﻿using Mnemo.Contracts.Vocabulary;
-using Mnemo.Shared;
+using Mnemo.Shared.Enums;
 
 namespace Mnemo.Data.Entities
 {
@@ -37,7 +37,7 @@ namespace Mnemo.Data.Entities
         }
 
 
-        public bool EnrichMeta(EnrichResponse enrich)
+        public bool SetMeta(EnrichResponse enrich)
         {
             if (enrich == null)
                 return false;

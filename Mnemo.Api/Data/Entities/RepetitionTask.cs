@@ -1,9 +1,6 @@
-﻿using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Mnemo.Shared;
+﻿using Mnemo.Shared;
+using Mnemo.Shared.Enums;
 using Mnemo.Shared.Extensions;
-using Mnemo.Shared.SM2Helper;
 
 namespace Mnemo.Data.Entities
 {
@@ -48,18 +45,10 @@ namespace Mnemo.Data.Entities
         }
 
 
-        protected abstract double GetSimilarity();
-        protected abstract double GetDifficultFactor();
+        public abstract double GetSimilarity();
+        public abstract double GetDifficultFactor();
 
         public abstract string GetCorrect();
-
-        public QualityResult GetQuality(TimeSpan typeAverageTime)
-        {
-            double similarity = GetSimilarity();
-            double difficulty = GetDifficultFactor();
-
-            return SM2Helper.ComputeRecallQuality(typeAverageTime, ElapsedTime, ActionCounter, similarity, difficulty);
-        }
     }
 
     public class TextRepetitionTask : RepetitionTask
@@ -74,12 +63,12 @@ namespace Mnemo.Data.Entities
             CorrectAnswers = correctAnswers;
         }
 
-        protected override double GetSimilarity()
+        public override double GetSimilarity()
         {
             return CorrectAnswers.Max(UserAnswer.ComputeLevenshteinSimilarity);
         }
 
-        protected override double GetDifficultFactor()
+        public override double GetDifficultFactor()
         {
             double anwLength = UserAnswer.Length;
 
@@ -110,12 +99,12 @@ namespace Mnemo.Data.Entities
             CorrectOption = correctOption;
         }
 
-        protected override double GetSimilarity()
+        public override double GetSimilarity()
         {
             return CorrectOption == UserAnswer ? 1.0 : 0.0;
         }
 
-        protected override double GetDifficultFactor()
+        public override double GetDifficultFactor()
         {
             return 0.8d + 0.025d * (Options.Count - 2);
         }
@@ -139,7 +128,7 @@ namespace Mnemo.Data.Entities
 
             int mergeCount = (int)Math.Floor(parts.Count / 5d);
 
-            while (mergeCount > 0 || parts.Count > 10) 
+            while (mergeCount > 0 || parts.Count > 10)
             {
                 if (parts.Count >= 2)
                 {
@@ -160,12 +149,12 @@ namespace Mnemo.Data.Entities
                 .ToList();
         }
 
-        protected override double GetSimilarity()
+        public override double GetSimilarity()
         {
             return UserAnswer.AddEndPointIfNeeded().RemoveSpaces() == CorrectOrder.RemoveSpaces() ? 1.0 : 0.0;
         }
 
-        protected override double GetDifficultFactor()
+        public override double GetDifficultFactor()
         {
             return 1.05d + 0.1d * Math.Floor(CorrectOrder.Split().Length / 5d);
         }
@@ -192,12 +181,12 @@ namespace Mnemo.Data.Entities
                 .ToList();
         }
 
-        protected override double GetSimilarity()
+        public override double GetSimilarity()
         {
             return UserAnswer.RemoveSpaces() == CorrectOrder.RemoveSpaces() ? 1.0 : 0.0;
         }
 
-        protected override double GetDifficultFactor()
+        public override double GetDifficultFactor()
         {
             return 0.85d + 0.03d * (Syllables.Count - 2);
         }
@@ -219,7 +208,7 @@ namespace Mnemo.Data.Entities
             CorrectYesOrNo = correctYesOrNo;
         }
 
-        protected override double GetSimilarity()
+        public override double GetSimilarity()
         {
             bool isCorrect = UserAnswer switch
             {
@@ -231,7 +220,7 @@ namespace Mnemo.Data.Entities
             return isCorrect ? 1.0 : 0.0;
         }
 
-        protected override double GetDifficultFactor()
+        public override double GetDifficultFactor()
         {
             return 0.64d;
         }

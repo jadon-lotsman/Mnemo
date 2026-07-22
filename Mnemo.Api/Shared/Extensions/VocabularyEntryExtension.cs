@@ -1,5 +1,6 @@
 ﻿using Mnemo.Contracts.Vocabulary.Requests;
 using Mnemo.Data.Entities;
+using Mnemo.Shared.Enums;
 
 namespace Mnemo.Shared.Extensions
 {

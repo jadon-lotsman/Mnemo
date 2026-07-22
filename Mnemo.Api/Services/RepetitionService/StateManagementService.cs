@@ -1,36 +1,38 @@
-﻿using Microsoft.AspNetCore.Routing.Matching;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Microsoft.VisualBasic;
 using Mnemo.Contracts.Repetition;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
-using Mnemo.Shared;
 using Mnemo.Shared.Extensions;
 using System.Diagnostics;
 
 namespace Mnemo.Services.RepetitionService
 {
-    public class RepetitionStateService
+    public class StateManagementService
     {
+        private readonly IOptions<SM2Options> _sm2;
         private readonly IOptions<RepetitionOptions> _options;
-        private readonly ILogger<RepetitionStateService> _logger;
+        private readonly ILogger<StateManagementService> _logger;
+
         private readonly AppDbContext _context;
         private readonly StateQueries _stateQueries;
 
 
-        public RepetitionStateService(
+        public StateManagementService(
+            IOptions<SM2Options> sm2,
             IOptions<RepetitionOptions> options,
-            ILogger<RepetitionStateService> logger,
+            ILogger<StateManagementService> logger,
             AppDbContext context,
             StateQueries stateQueries)
         {
+            _sm2 = sm2;
             _options = options;
             _logger = logger;
             _context = context;
             _stateQueries = stateQueries;
         }
+
 
 
         public async Task<List<RepetitionDateResponse>> GetRepetitionScheduleAsync(int userId)
@@ -87,8 +89,31 @@ namespace Mnemo.Services.RepetitionService
                 if (!entryIdToQuality.TryGetValue(state.VocabularyEntryId, out double quality))
                     continue;
 
-                if (!state.TryRecordQuality(quality, today, out string? errorMessage))
-                    errors.Add($"Entry {state.VocabularyEntryId} failed: {errorMessage}");
+                if (quality < _sm2.Value.MinQuality || quality > _sm2.Value.MaxQuality)
+                {
+                    errors.Add($"Quality {Math.Round(quality, 1)} out of range {_sm2.Value.MinQuality}...{_sm2.Value.MaxQuality}");
+                    continue;
+                }
+
+
+                bool isPassing = _sm2.Value.IsPassingQuality(quality);
+
+                if (state.IsDueAt(today))
+                {
+                    (int interval, double ef) = ComputeNextState(
+                        state.EasinessFactor,
+                        state.RepetitionInterval,
+                        state.RepetitionCounter,
+                        quality);
+
+                    state.SetState(interval, ef, isPassing, today);
+                }
+                else
+                {
+                    double efBonus = quality * 0.01d;
+
+                    state.SetBonus(efBonus, isPassing, today);
+                }
             }
 
             _logger.LogDebug("Quality recording entries is ending from user (UserId:{UserId}). Saving changes...", userId);
@@ -103,6 +128,34 @@ namespace Mnemo.Services.RepetitionService
 
             _logger.LogInformation("Successfully recorded qualities for {Count} entries from user (UserId:{UserId})", stateDict.Count, userId);
         }
+
+        public (int newInterval, double newEasinessFactor) ComputeNextState(double easinessFactor, int interval, int repetitionCounter, double quality)
+        {
+            double nextEasinessFactor;
+            int nextInterval;
+
+            if (!_sm2.Value.IsPassingQuality(quality))
+            {
+                nextInterval = _sm2.Value.FirstIntervalDays;
+            }
+            else
+            {
+                nextInterval = repetitionCounter switch
+                {
+                    0 => _sm2.Value.FirstIntervalDays,
+                    1 => _sm2.Value.SecondIntervalDays,
+                    _ => (int)Math.Ceiling((interval > 0 ? interval : 1) * easinessFactor)
+                };
+
+                nextInterval = Math.Clamp(nextInterval, _sm2.Value.MinInterval, _sm2.Value.MaxInterval);
+            }
+
+            nextEasinessFactor = easinessFactor + (0.1 - (_sm2.Value.MaxQuality - quality) * (0.08 + (_sm2.Value.MaxQuality - quality) * 0.02));
+            nextEasinessFactor = Math.Clamp(nextEasinessFactor, _sm2.Value.MinEF, _sm2.Value.MaxEF);
+
+            return (nextInterval, nextEasinessFactor);
+        }
+
 
         public async Task BalanceRepetitionStateAsync(int userId)
         {

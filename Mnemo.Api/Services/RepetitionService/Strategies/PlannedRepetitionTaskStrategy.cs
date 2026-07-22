@@ -14,10 +14,11 @@ namespace Mnemo.Services.RepetitionService.Strategies
 
         public PlannedRepetitionTaskStrategy(
             IOptions<RepetitionOptions> options,
+            IOptions<SM2Options> sm2,
             ILogger<PlannedRepetitionTaskStrategy> logger,
             RepetitionTaskFactory factory,
             ITaskTypeProvider typeProvider,
-            VocabularyQueries vocabularyQueries) : base(options, logger, factory, typeProvider)
+            VocabularyQueries vocabularyQueries) : base(options, sm2, logger, factory, typeProvider)
         {
             _vocabularyQueries = vocabularyQueries;
         }

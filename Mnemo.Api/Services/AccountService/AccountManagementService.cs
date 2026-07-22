@@ -2,6 +2,7 @@
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Shared;
+using Mnemo.Shared.Enums;
 
 namespace Mnemo.Services.AccountService
 {

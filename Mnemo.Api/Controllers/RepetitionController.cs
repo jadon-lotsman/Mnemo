@@ -1,15 +1,13 @@
-﻿using System.Security.Claims;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Mnemo.Contracts.Repetition;
 using Mnemo.Contracts.Repetition.Requests;
-using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Services.RepetitionService;
-using Mnemo.Shared;
+using Mnemo.Shared.Enums;
+using System.Security.Claims;
 
 namespace Mnemo.Controllers
 {
@@ -21,10 +19,10 @@ namespace Mnemo.Controllers
         private readonly IMapper _mapper;
         private readonly TaskQueries _taskQueries;
         private readonly RepetitionTaskService _taskService;
-        private readonly RepetitionStateService _stateService;
+        private readonly StateManagementService _stateService;
 
 
-        public RepetitionController(IMapper mapper, TaskQueries sessionQueries, RepetitionTaskService taskService,  RepetitionStateService stateService)
+        public RepetitionController(IMapper mapper, TaskQueries sessionQueries, RepetitionTaskService taskService, StateManagementService stateService)
         {
             _mapper = mapper;
             _taskQueries = sessionQueries;

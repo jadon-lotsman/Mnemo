@@ -1,5 +1,5 @@
-﻿using System.Text.RegularExpressions;
-using Mnemo.Shared;
+﻿using Mnemo.Shared.Enums;
+using System.Text.RegularExpressions;
 
 namespace Mnemo.Controllers.Validation
 {
@@ -9,10 +9,10 @@ namespace Mnemo.Controllers.Validation
             @"^[\p{L}\s'\-]+$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private static readonly HashSet<char> _forbiddenChars = new() {
-            '@', '#', '$', '%', '^', '&', '*', '(', ')', '=', '+', '{', '}', '<', '>', '\\', '|', '`', '~'};
+            '@', '#', '$', '%', '^', '&', '*', '(', ')', '=', '+', '{', '}', '<', '>', '\\', '|', '~'};
 
         private static readonly Regex _translationRegex = new(
-            @"^[\p{L}\s\-\'\.\,]+$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            @"^[\p{L}\s\'\.\,]+$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
 
         public static bool IsValidPartOfSpeech(string? partOfSpeech)

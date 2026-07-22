@@ -1,10 +1,9 @@
-﻿using System.Diagnostics;
-using System.Threading;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Mnemo.Data;
 using Mnemo.Services.EnrichmentService.ExternalDictionaries;
-using Mnemo.Shared;
+using Mnemo.Shared.Enums;
+using System.Diagnostics;
 
 namespace Mnemo.Services.EnrichmentService
 {
@@ -59,9 +58,9 @@ namespace Mnemo.Services.EnrichmentService
 
         private async Task ResetStuckProcessingAsync(CancellationToken stoppingToken)
         {
-            const int pending = (int) EnrichmentStatus.Pending;
-            const int processing = (int) EnrichmentStatus.Processing;
-            const int failed = (int) EnrichmentStatus.Failed;
+            const int pending = (int)EnrichmentStatus.Pending;
+            const int processing = (int)EnrichmentStatus.Processing;
+            const int failed = (int)EnrichmentStatus.Failed;
 
             using var scope = _scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -98,8 +97,8 @@ namespace Mnemo.Services.EnrichmentService
             int failedCount = 0;
             int notFoundCount = 0;
 
-            const int processing = (int) EnrichmentStatus.Processing;
-            const int pending = (int) EnrichmentStatus.Pending;
+            const int processing = (int)EnrichmentStatus.Processing;
+            const int pending = (int)EnrichmentStatus.Pending;
 
             using var scope = _scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -168,7 +167,7 @@ namespace Mnemo.Services.EnrichmentService
                         }
                         else
                         {
-                            entry.EnrichMeta(enrichResponse);
+                            entry.SetMeta(enrichResponse);
                             completedCount++;
                         }
 

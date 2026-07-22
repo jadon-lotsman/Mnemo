@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Mnemo.Data;
 using Mnemo.Data.Entities;
-using Mnemo.Shared;
+using Mnemo.Shared.Enums;
 
 namespace Mnemo.Data.Queries
 {
@@ -44,7 +43,7 @@ namespace Mnemo.Data.Queries
             return list.ToDictionary(e => e.Id);
         }
 
-        public async Task<List<VocabularyEntry>> GetByQueryAsync(int userId, string query, int limit=20)
+        public async Task<List<VocabularyEntry>> GetByQueryAsync(int userId, string query, int limit = 20)
         {
             query = query.ToLower();
 

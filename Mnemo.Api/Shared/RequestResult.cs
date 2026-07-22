@@ -1,4 +1,5 @@
-﻿using Mnemo.Shared.Extensions;
+﻿using Mnemo.Shared.Enums;
+using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Shared
 {

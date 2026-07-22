@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Mnemo.Data;
 using Mnemo.Data.Entities;
 
 namespace Mnemo.Data.Queries

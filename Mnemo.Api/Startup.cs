@@ -32,8 +32,9 @@ namespace Mnemo
         public void ConfigureServices(IServiceCollection services)
         {
             // Configurations
-            services.Configure<EnrichmentOptions>(Configuration.GetSection("Enrichment"));
-            services.Configure<RepetitionOptions>(Configuration.GetSection("Repetition"));
+            services.Configure<EnrichmentOptions>(Configuration.GetSection("EnrichmentOptions"));
+            services.Configure<RepetitionOptions>(Configuration.GetSection("RepetitionOptions"));
+            services.Configure<SM2Options>(Configuration.GetSection("SM2Options"));
 
             // Add MemoryCache
             services.AddMemoryCache();
@@ -110,7 +111,8 @@ namespace Mnemo
             // DI Services
             services.AddScoped<AccountManagementService>();
             services.AddScoped<RepetitionTaskService>();
-            services.AddScoped<RepetitionStateService>();
+            services.AddScoped<StateManagementService>();
+            services.AddScoped<QualityCalculationService>();
             services.AddScoped<VocabularyManagementService>();
 
             // DI Enrichment

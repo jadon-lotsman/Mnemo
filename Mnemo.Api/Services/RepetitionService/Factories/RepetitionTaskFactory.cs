@@ -2,7 +2,6 @@
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Services.RepetitionService.Providers.DistractorProviders;
-using Mnemo.Shared;
 
 namespace Mnemo.Services.RepetitionService.Factories
 {

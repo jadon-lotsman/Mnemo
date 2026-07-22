@@ -1,4 +1,4 @@
-﻿namespace Mnemo.Shared
+﻿namespace Mnemo.Shared.Enums
 {
     public enum ErrorCode
     {

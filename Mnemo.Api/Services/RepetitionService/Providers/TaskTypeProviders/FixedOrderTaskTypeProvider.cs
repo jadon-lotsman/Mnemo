@@ -1,5 +1,4 @@
 ﻿using Mnemo.Data.Entities;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Mnemo.Services.RepetitionService.Providers.TaskTypeProviders
 {
@@ -10,7 +9,7 @@ namespace Mnemo.Services.RepetitionService.Providers.TaskTypeProviders
 
 
         public (Type taskType, bool isForward) GetType(double easinessFactor)
-        { 
+        {
             return (_order[_index++ % _order.Length], true);
         }
     }

@@ -1,5 +1,4 @@
 ﻿using Mnemo.Data.Entities;
-using Mnemo.Data.Queries;
 
 namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
 {

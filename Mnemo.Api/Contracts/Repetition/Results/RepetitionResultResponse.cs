@@ -1,6 +1,4 @@
-﻿using Mnemo.Contracts.Vocabulary;
-
-namespace Mnemo.Contracts.Repetition.Results
+﻿namespace Mnemo.Contracts.Repetition.Results
 {
     public class RepetitionResultResponse
     {

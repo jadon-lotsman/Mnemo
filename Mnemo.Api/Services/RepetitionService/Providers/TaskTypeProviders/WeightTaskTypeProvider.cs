@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.Extensions.Options;
 using Mnemo.Data.Entities;
-using Mnemo.Shared.SM2Helper;
 
 namespace Mnemo.Services.RepetitionService.Providers.TaskTypeProviders
 {
     public class WeightTaskTypeProvider : ITaskTypeProvider
     {
         private readonly ILogger<WeightTaskTypeProvider> _logger;
+        private readonly IOptions<SM2Options> _sm2;
+
 
         private static readonly (Type TaskType, double BaseWeigth, double Difficulty)[] TaskDifficulties = new[]
         {
@@ -18,9 +19,10 @@ namespace Mnemo.Services.RepetitionService.Providers.TaskTypeProviders
         };
 
 
-        public WeightTaskTypeProvider(ILogger<WeightTaskTypeProvider> logger)
+        public WeightTaskTypeProvider(ILogger<WeightTaskTypeProvider> logger, IOptions<SM2Options> sm2)
         {
             _logger = logger;
+            _sm2 = sm2;
         }
 
 
@@ -74,7 +76,7 @@ namespace Mnemo.Services.RepetitionService.Providers.TaskTypeProviders
 
         public double CalcTargetDifficult(double easinessFactor, double min, double max)
         {
-            double normalized = (easinessFactor - SM2Helper.MinEF) / (SM2Helper.MaxEF - SM2Helper.MinEF);
+            double normalized = (easinessFactor - _sm2.Value.MinEF) / (_sm2.Value.MaxEF - _sm2.Value.MinEF);
             normalized = Math.Clamp(normalized, 0.0d, 1.0d);
 
             return (max - min) * normalized;
@@ -82,7 +84,7 @@ namespace Mnemo.Services.RepetitionService.Providers.TaskTypeProviders
 
         public bool CalcIsForward(double easinessFactor, double min, double max)
         {
-            double normalized = (easinessFactor - SM2Helper.MinEF) / (SM2Helper.MaxEF - SM2Helper.MinEF);
+            double normalized = (easinessFactor - _sm2.Value.MinEF) / (_sm2.Value.MaxEF - _sm2.Value.MinEF);
             normalized = Math.Clamp(normalized, 0.0d, 1.0d);
 
             return Random.Shared.NextDouble() <= max - (max - min) * normalized;

@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using Mnemo.Contracts.Vocabulary.Requests;
-using Mnemo.Shared;
+using Mnemo.Shared.Enums;
 
 namespace Mnemo.Controllers.Validation
 {

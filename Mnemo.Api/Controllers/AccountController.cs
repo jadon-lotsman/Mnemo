@@ -1,13 +1,13 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Mnemo.Contracts.Account.Requests;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Services.AccountService;
-using Mnemo.Shared;
+using Mnemo.Shared.Enums;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace Mnemo.Controllers
 {

@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using AutoMapper;
+﻿using AutoMapper;
 using Mnemo.Contracts.Repetition;
 using Mnemo.Data.Entities;
 

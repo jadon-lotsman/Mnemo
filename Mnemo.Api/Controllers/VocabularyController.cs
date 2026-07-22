@@ -1,13 +1,12 @@
-﻿using System.Security.Claims;
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Mnemo.Contracts.Vocabulary;
 using Mnemo.Contracts.Vocabulary.Requests;
 using Mnemo.Data.Queries;
 using Mnemo.Services.VocabularyService;
-using Mnemo.Shared;
+using Mnemo.Shared.Enums;
+using System.Security.Claims;
 
 namespace Mnemo.Controllers
 {

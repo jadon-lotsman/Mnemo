@@ -1,5 +1,4 @@
 ﻿using Mnemo.Data.Entities;
-using Mnemo.Data.Queries;
 using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
@@ -27,7 +26,7 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
                 var syllables = distractor.SplitIntoChunks(3);
                 int index = Random.Shared.Next(1, syllables.Length);
 
-                if (syllables.Length-1 <= 1)
+                if (syllables.Length - 1 <= 1)
                     continue;
 
                 result.Add(syllables[index]);

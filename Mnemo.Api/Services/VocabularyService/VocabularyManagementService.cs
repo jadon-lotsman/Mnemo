@@ -1,12 +1,15 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Mnemo.Contracts.Vocabulary;
 using Mnemo.Contracts.Vocabulary.Requests;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
+using Mnemo.Services.RepetitionService;
 using Mnemo.Shared;
+using Mnemo.Shared.Enums;
 using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Services.VocabularyService
@@ -17,6 +20,7 @@ namespace Mnemo.Services.VocabularyService
         private readonly IValidator<CreateEntryRequest> _createValidator;
         private readonly IValidator<PatchEntryRequest> _patchValidator;
         private readonly IMapper _mapper;
+        private readonly IOptions<SM2Options> _sm2;
         private readonly AppDbContext _context;
         private readonly AccountQueries _accountQueries;
         private readonly VocabularyQueries _vocabularyQueries;
@@ -27,6 +31,7 @@ namespace Mnemo.Services.VocabularyService
             IValidator<CreateEntryRequest> createValidator,
             IValidator<PatchEntryRequest> patchValidator,
             IMapper mapper,
+            IOptions<SM2Options> sm2,
             AppDbContext context,
             AccountQueries accountQueries,
             VocabularyQueries vocabularyQueries)
@@ -35,6 +40,7 @@ namespace Mnemo.Services.VocabularyService
             _createValidator = createValidator;
             _patchValidator = patchValidator;
             _mapper = mapper;
+            _sm2 = sm2;
             _context = context;
             _accountQueries = accountQueries;
             _vocabularyQueries = vocabularyQueries;
@@ -225,7 +231,11 @@ namespace Mnemo.Services.VocabularyService
 
 
             entry.UserId = userId;
-            entry.RepetitionState = new RepetitionState();
+            entry.RepetitionState = new RepetitionState()
+            {
+                EasinessFactor = _sm2.Value.InitEF,
+                RepetitionInterval = _sm2.Value.MinInterval
+            };
 
             await _context.Entries.AddAsync(entry);
             await _context.SaveChangesAsync();

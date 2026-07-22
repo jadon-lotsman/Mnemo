@@ -1,9 +1,9 @@
-﻿using System.Text.Json;
-using FluentValidation;
+﻿using FluentValidation;
 using Microsoft.Extensions.Caching.Memory;
 using Mnemo.Contracts.Vocabulary;
-using Mnemo.Data.Entities;
 using Mnemo.Shared;
+using Mnemo.Shared.Enums;
+using System.Text.Json;
 
 namespace Mnemo.Services.EnrichmentService.ExternalDictionaries
 {
@@ -53,7 +53,7 @@ namespace Mnemo.Services.EnrichmentService.ExternalDictionaries
 
                     // Cache status 404 as null
                     if (result.StatusCode == System.Net.HttpStatusCode.NotFound)
-                        _cache.Set(cacheKey, (EnrichResponse?) null, _cacheLifetime);
+                        _cache.Set(cacheKey, (EnrichResponse?)null, _cacheLifetime);
 
                     return RequestResult<EnrichResponse?>.Success(null);
                 }

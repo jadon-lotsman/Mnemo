@@ -3,7 +3,6 @@ using Microsoft.Extensions.Options;
 using Mnemo.Data.Entities;
 using Mnemo.Services.RepetitionService.Factories;
 using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
-using Mnemo.Shared.SM2Helper;
 using System.Diagnostics;
 
 namespace Mnemo.Services.RepetitionService.Strategies
@@ -11,17 +10,20 @@ namespace Mnemo.Services.RepetitionService.Strategies
     public abstract class RepetitionTaskStrategy : IRepetitionTaskStrategy
     {
         private readonly IOptions<RepetitionOptions> _options;
+        private readonly IOptions<SM2Options> _sm2;
         private readonly ILogger<IRepetitionTaskStrategy> _logger;
         private readonly RepetitionTaskFactory _factory;
         private readonly ITaskTypeProvider _typeProvider;
 
         public RepetitionTaskStrategy(
             IOptions<RepetitionOptions> options,
+            IOptions<SM2Options> sm2,
             ILogger<IRepetitionTaskStrategy> logger,
             RepetitionTaskFactory factory,
             ITaskTypeProvider typeProvider)
         {
             _options = options;
+            _sm2 = sm2;
             _logger = logger;
             _factory = factory;
             _typeProvider = typeProvider;
@@ -56,7 +58,7 @@ namespace Mnemo.Services.RepetitionService.Strategies
 
             foreach (var entry in targetEntries)
             {
-                double easeFactor = entry.RepetitionState?.EasinessFactor ?? SM2Helper.InitEF;
+                double easeFactor = entry.RepetitionState?.EasinessFactor ?? _sm2.Value.MinEF;
 
                 (Type taskType, bool isForward) = _typeProvider.GetType(easeFactor);
                 var task = await _factory.CreateByTypeAsync(isForward, taskType, entry, excludeIds);

@@ -6,19 +6,21 @@ using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Services.RepetitionService.Strategies;
 using Mnemo.Shared;
-using Mnemo.Shared.SM2Helper;
+using Mnemo.Shared.Enums;
 
 namespace Mnemo.Services.RepetitionService
 {
     public class RepetitionTaskService
     {
         private readonly ILogger<RepetitionTaskService> _logger;
+        private readonly IOptions<SM2Options> _sm2;
         private readonly AppDbContext _context;
         private readonly TaskQueries _taskQueries;
 
         private readonly AccountQueries _accountQueries;
 
-        private readonly RepetitionStateService _stateService;
+        private readonly StateManagementService _stateService;
+        private readonly QualityCalculationService _qualityService;
 
         private readonly FastRepetitionTaskStrategy _fastStrategy;
         private readonly PlannedRepetitionTaskStrategy _plannedStrategy;
@@ -26,14 +28,17 @@ namespace Mnemo.Services.RepetitionService
 
         public RepetitionTaskService(
             ILogger<RepetitionTaskService> logger,
+            IOptions<SM2Options> sm2,
             AppDbContext context,
             AccountQueries accountQueries,
             TaskQueries taskQueries,
-            RepetitionStateService stateService,
+            StateManagementService stateService,
+            QualityCalculationService qualityService,
             FastRepetitionTaskStrategy fastStrategy,
             PlannedRepetitionTaskStrategy plannedStrategy)
         {
             _logger = logger;
+            _sm2 = sm2;
 
             _context = context;
 
@@ -41,6 +46,7 @@ namespace Mnemo.Services.RepetitionService
             _taskQueries = taskQueries;
 
             _stateService = stateService;
+            _qualityService = qualityService;
 
             _fastStrategy = fastStrategy;
             _plannedStrategy = plannedStrategy;
@@ -166,8 +172,8 @@ namespace Mnemo.Services.RepetitionService
                     ? TimeSpan.FromSeconds(avg)
                     : TimeSpan.Zero;
 
-                var taskResult = task.GetQuality(avgForType);
-                bool isCorrect = SM2Helper.IsPassingQuality(taskResult.Quality);
+                var taskResult = _qualityService.ComputeTaskQuality(avgForType, task.ElapsedTime, task.ActionCounter, task.GetSimilarity(), task.GetDifficultFactor());
+                bool isCorrect = _sm2.Value.IsPassingQuality(taskResult.Quality);
 
                 if (isCorrect)
                     correctCount++;
