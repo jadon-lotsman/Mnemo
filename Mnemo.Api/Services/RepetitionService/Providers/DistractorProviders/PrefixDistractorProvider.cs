@@ -27,7 +27,8 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
                 if (string.IsNullOrWhiteSpace(prefix))
                     return [];
 
-                query = query.Where(e => e.Translations[0].StartsWith(prefix));
+                query = query.Where(e => e.Translations[0].StartsWith(prefix)
+                                         && !e.Foreign.Equals(baseEntry.Foreign));
             }
             else
             {
@@ -36,7 +37,8 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
                 if (string.IsNullOrWhiteSpace(prefix))
                     return [];
 
-                query = query.Where(e => e.Foreign.StartsWith(prefix));
+                query = query.Where(e => e.Foreign.StartsWith(prefix)
+                                         && !e.Foreign.Equals(baseEntry.Foreign));
             }
 
             var entries = await query
