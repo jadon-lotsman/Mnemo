@@ -199,22 +199,23 @@ function saveChanges() {
   transition:
     transform 0.2s,
     box-shadow 0.2s ease;
+
   cursor: default;
   margin-bottom: 20px;
-  box-shadow: 5px 5px 0px $shadow;
+  box-shadow: 5px 5px 0px $shadow-color;
   border-radius: 12px;
-  background-color: $plane-gray;
+  background-color: $surface-secondary;
   min-width: 370px;
 
   max-width: 470px;
 
-  color: $black-font;
+  color: $text-primary;
 
   font-size: 16px;
 
   &.editor-mode {
     transform: translateY(-3px);
-    box-shadow: 8px 8px 0px $shadow;
+    box-shadow: 8px 8px 0px $shadow-color;
   }
 
   header {
@@ -222,7 +223,7 @@ function saveChanges() {
     grid-template-columns: 30% 30% auto auto;
 
     border-radius: 12px;
-    background-color: $plane-white;
+    background-color: $surface-primary;
 
     padding: 10px 15px;
 
@@ -243,7 +244,7 @@ function saveChanges() {
         margin-right: 4px;
 
         .audio-button {
-          @include iconize-text;
+          @include iconize;
 
           opacity: 65%;
 
@@ -252,7 +253,7 @@ function saveChanges() {
 
           padding: 0px;
 
-          color: $shadow;
+          color: $shadow-color;
           font-size: 24px;
 
           line-height: 0.8;

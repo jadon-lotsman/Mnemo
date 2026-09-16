@@ -34,15 +34,15 @@ function showPlannedForeigns() {
   justify-content: center;
   cursor: default;
 
-  box-shadow: 5px 5px 0px $shadow;
+  box-shadow: 5px 5px 0px $shadow-color;
   border-radius: 12px;
 
-  background-color: $plane-white;
+  background-color: $surface-primary;
 
   max-width: 60px;
   height: 65px;
 
-  color: $shadow;
+  color: $shadow-color;
 
   font-size: 16px;
   user-select: none;
@@ -54,7 +54,7 @@ function showPlannedForeigns() {
     top: 6px;
     right: 12px;
 
-    color: $black-font;
+    color: $text-primary;
     font-weight: 200;
 
     font-size: 18px;
@@ -65,7 +65,7 @@ function showPlannedForeigns() {
 
     cursor: pointer;
 
-    color: $black-font;
+    color: $text-primary;
   }
 }
 </style>

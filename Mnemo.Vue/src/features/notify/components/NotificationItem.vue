@@ -41,17 +41,17 @@ function close() {
   margin-right: 12px;
   margin-left: 15px;
 
-  box-shadow: 5px 5px 0px $shadow;
+  box-shadow: 5px 5px 0px $shadow-color;
   border-radius: 0px 12px 12px 12px;
 
-  background-color: $cloud-white;
+  background-color: $elevated-bg;
 
   padding: 10px 15px;
   padding-right: 25px;
 
   width: fit-content;
   min-width: 250px;
-  max-width: $layoutWidth;
+  max-width: $layout-width;
 
   pointer-events: all;
 
@@ -62,8 +62,8 @@ function close() {
     left: -12px;
 
     border: 8px solid transparent;
-    border-top: 8px solid $cloud-white;
-    border-right: 8px solid $cloud-white;
+    border-top: 8px solid $elevated-bg;
+    border-right: 8px solid $elevated-bg;
 
     background-color: transparent;
 
@@ -74,7 +74,7 @@ function close() {
   }
 
   .icon {
-    @include iconize-text;
+    @include iconize;
 
     display: block;
 
@@ -83,7 +83,7 @@ function close() {
     margin-top: 5px;
     margin-right: 12px;
 
-    color: $shadow;
+    color: $shadow-color;
 
     font-size: 32px;
   }
@@ -91,7 +91,7 @@ function close() {
   .title {
     display: block;
 
-    color: $black-font;
+    color: $text-primary;
   }
 
   .description {
@@ -99,7 +99,7 @@ function close() {
 
     margin-top: 3px;
 
-    color: $gray-font;
+    color: $text-secondary;
 
     font-size: 15px;
   }

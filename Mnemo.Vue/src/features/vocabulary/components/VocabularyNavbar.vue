@@ -77,13 +77,13 @@ function submitSector(startWord: string, endWord: string) {
 
   .tablet-button,
   .tablet-radio {
-    background-color: $plane-white;
+    background-color: $surface-primary;
 
     padding: 3px 9px 3px 9px;
 
     min-width: 35px;
     height: 26px;
-    color: $shadow;
+    color: $shadow-color;
 
     text-align: center;
     white-space: nowrap;
@@ -95,17 +95,19 @@ function submitSector(startWord: string, endWord: string) {
 
     flex-shrink: 0;
 
-    background-color: $plane-gray;
+    background-color: $surface-secondary;
 
     width: 45px;
 
     span {
-      @include iconize-text;
+      @include iconize;
 
       position: absolute;
 
       top: 2px;
       left: 10px;
+
+      font-size: 24px;
     }
   }
 
@@ -122,7 +124,7 @@ function submitSector(startWord: string, endWord: string) {
     .tablet-radio {
       cursor: pointer;
 
-      box-shadow: 5px 5px $shadow;
+      box-shadow: 5px 5px $shadow-color;
 
       border-radius: 12px;
 
@@ -132,17 +134,17 @@ function submitSector(startWord: string, endWord: string) {
 
       input:checked + span {
         opacity: 60%;
-        color: $black-font;
+        color: $text-primary;
       }
     }
 
     .disabled {
       cursor: default;
 
-      background-color: $plane-gray;
+      background-color: $surface-secondary;
 
       span {
-        color: $shadow !important;
+        color: $shadow-color !important;
       }
     }
   }

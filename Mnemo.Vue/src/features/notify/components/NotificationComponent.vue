@@ -38,7 +38,7 @@ const store = useNotificationStore()
   gap: 10px;
   margin: 0px auto;
 
-  max-width: $layoutWidth;
+  max-width: $layout-width;
 }
 
 .notification-enter-active {

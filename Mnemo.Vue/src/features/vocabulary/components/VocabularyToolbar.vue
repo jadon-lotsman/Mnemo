@@ -71,79 +71,81 @@ watch(
     @include lift();
 
     position: relative;
+    background-color: $surface-secondary;
 
-    color: $shadow;
-    background-color: $plane-gray;
+    color: $shadow-color;
 
     span {
-      @include iconize-text;
+      @include iconize;
 
       position: absolute;
 
       top: 8px;
       left: 8px;
+
+      font-size: 24px;
     }
   }
 
   .search-form {
-    position: relative;
-
     display: flex;
+    position: relative;
     justify-content: space-between;
-
-    background-color: $plane-gray;
-    box-shadow: 5px 5px 0px $shadow;
-    width: 100%;
 
     transition:
       transform 0.2s,
       box-shadow 0.2s ease;
 
-    border-radius: 12px;
-    margin-bottom: 10px;
-
     margin-right: 10px;
+    margin-bottom: 10px;
+    box-shadow: 5px 5px 0px $shadow-color;
+
+    border-radius: 12px;
+
+    background-color: $surface-secondary;
+    width: 100%;
 
     input {
-      border: 3px solid $plane-gray;
-      border-radius: 12px 0px 0px 12px;
+      border: 3px solid $surface-secondary;
       border-right: none;
-      background-color: $clear-white;
+      border-radius: 12px 0px 0px 12px;
+      background-color: $search-color;
 
       padding: 8px 12px;
       width: 100%;
+      font-weight: 500;
 
       font-size: 15px;
-      font-weight: 500;
     }
 
     button {
       transform: none !important;
-      box-shadow: none !important;
 
       margin-left: -10px;
+      box-shadow: none !important;
     }
 
     .clear-button {
-      @include iconize-text;
+      @include iconize;
 
       position: absolute;
-
-      right: 48px;
       top: 8px;
 
-      color: $shadow;
-      background-color: $plane-gray;
-
-      padding: 0px;
-      border-radius: 50%;
+      right: 48px;
 
       opacity: 70%;
+      border-radius: 50%;
+      background-color: $surface-secondary;
+      padding: 0px;
+
+      color: $shadow-color;
+
+      font-size: 24px;
     }
 
     &:focus-within {
-      box-shadow: 8px 8px 0px $shadow;
       transform: translateY(-3px);
+      box-shadow: 8px 8px 0px $shadow-color;
     }
   }
 }

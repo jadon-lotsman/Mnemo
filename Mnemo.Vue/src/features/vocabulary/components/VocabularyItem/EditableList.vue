@@ -107,22 +107,22 @@ watch(
   align-items: center;
 
   li {
-    word-break: break-all;
     text-wrap-mode: wrap;
     text-wrap-style: stable;
+    word-break: break-all;
   }
 
   button {
-    @include iconize-text;
-
-    color: $shadow;
-    background-color: transparent;
+    @include iconize;
+    margin-right: 5px;
+    margin-left: -5px;
 
     box-shadow: none;
+    background-color: transparent;
 
     padding: 0px;
-    margin-left: -5px;
-    margin-right: 5px;
+
+    color: $shadow-color;
 
     font-size: 21px;
   }
@@ -130,49 +130,51 @@ watch(
 
 .marked {
   li {
-    font-size: 16px;
     font-style: italic;
+    font-size: 16px;
 
     &::before {
-      content: '–';
       padding-right: 10px;
+      content: '–';
     }
   }
 }
 
 .add-form {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
 
   grid-column: 1/4;
-
-  color: $gray-font;
+  justify-content: space-between;
+  align-items: center;
   background-color: transparent;
+
+  color: $text-secondary;
 
   input {
     background-color: inherit;
 
     width: 100%;
+    font-style: italic;
 
     font-size: 16px;
-    font-style: italic;
   }
 
   button {
-    @include iconize-text;
-
-    color: $shadow;
-    background-color: inherit;
+    @include iconize;
 
     box-shadow: none;
+    background-color: inherit;
 
     padding: 4px;
+
+    color: $shadow-color;
+
+    font-size: 24px;
   }
 
   &::before {
-    content: '–';
     padding-right: 10px;
+    content: '–';
   }
 }
 </style>

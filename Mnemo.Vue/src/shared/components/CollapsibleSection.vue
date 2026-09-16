@@ -56,15 +56,17 @@ watch(
   width: 100%;
 
   .collapse-chevron {
-    @include iconize-text;
-
-    color: $gray-font;
-
-    transition: transform 0.1s ease;
+    @include iconize;
 
     position: absolute;
     top: -3px;
     left: -5px;
+
+    transition: transform 0.1s ease;
+
+    color: $text-secondary;
+
+    font-size: 24px;
 
     &--open {
       transform: rotate(90deg);
@@ -76,22 +78,22 @@ watch(
     justify-content: space-between;
 
     cursor: pointer;
-    user-select: none;
-
-    color: $gray-font;
     margin: 20px 0px 10px 0px;
     margin-left: 18px;
 
+    color: $text-secondary;
+
     font-size: 16px;
+    user-select: none;
 
     .left-text-slot {
-      font-size: inherit;
       font-weight: 400;
+      font-size: inherit;
     }
 
     .rught-text-slot {
-      font-size: inherit;
       font-weight: 300;
+      font-size: inherit;
     }
   }
 

@@ -25,7 +25,8 @@ li {
 
 body {
   margin: 0 auto;
-  max-width: $layoutWidth;
+  background-color: $layout-bg;
+  max-width: $layout-width;
   font-family: 'Inter', sans-serif;
 }
 
@@ -40,8 +41,8 @@ button {
 }
 
 ::selection {
-  background-color: $shadow;
-  color: $black-font;
+  background-color: $shadow-color;
+  color: $text-primary;
 }
 
 // Basic
@@ -50,46 +51,46 @@ button {
     transform 0.2s,
     box-shadow 0.2s ease;
 
-  box-shadow: 5px 5px 0px $shadow;
-  border: $plane-gray 3px solid;
+  box-shadow: 5px 5px 0px $shadow-color;
+  border: $surface-secondary 3px solid;
   border-radius: 12px;
 
   padding: 10px;
   width: 100%;
 
-  color: $black-font;
+  color: $text-primary;
 
   font-size: 16px;
 
   &:focus {
     transform: translateY(-3px);
-    box-shadow: 8px 8px 0px $shadow;
+    box-shadow: 8px 8px 0px $shadow-color;
   }
 }
 
 button {
-  --shadow-color: #{$shadow};
+  --shadow-color: #{$shadow-color};
 
   box-shadow: 5px 5px 0px var(--shadow-color);
   border-radius: 12px;
 
-  background-color: $plane-white;
+  background-color: $surface-primary;
 
   padding: 10px;
 
-  color: $black-font;
+  color: $text-primary;
 
   font-size: 16px;
 
   &:disabled {
     cursor: default;
 
-    background-color: $plane-gray;
-    color: $gray-font;
+    background-color: $surface-secondary;
+    color: $text-secondary;
   }
 
   &:active {
-    color: $gray-font;
+    color: $text-secondary;
   }
 }
 
@@ -102,7 +103,7 @@ button.danger {
   box-shadow: 5px 5px 0px var(--shadow-color);
 
   background-color: $danger-body;
-  color: $danger-font;
+  color: $danger-text;
 
   &:disabled {
     cursor: default;
@@ -136,12 +137,12 @@ button.danger {
     top: 8px;
     left: 8px;
 
-    color: $shadow;
+    color: $shadow-color;
   }
 }
 
 .part-of-speech {
-  color: $gray-font;
+  color: $text-secondary;
 
   font-weight: 300;
   text-transform: lowercase;

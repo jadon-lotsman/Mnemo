@@ -71,12 +71,12 @@ function invokeOption(item: ContextMenuOption) {
   z-index: 9999;
 
   backdrop-filter: blur(2px);
-  filter: drop-shadow(0px 0px 8px #bbbbbb4d) drop-shadow(5px 5px 0px $shadow);
+  filter: drop-shadow(0px 0px 8px #bbbbbb4d) drop-shadow(5px 5px 0px $shadow-color);
 
   will-change: transform, opacity;
 
   border-radius: 12px;
-  background-color: $cloud-white;
+  background-color: $elevated-bg;
 
   padding: 7px 6px 10px 6px;
   min-width: 220px;
@@ -98,26 +98,26 @@ function invokeOption(item: ContextMenuOption) {
       padding: 4px;
 
       .icon {
-        @include iconize-text;
+        @include iconize;
 
         margin-right: 12px;
         margin-left: 8px;
 
-        color: $shadow;
+        color: $shadow-color;
 
         font-size: 21px;
         line-height: 0.8;
       }
 
       &:hover {
-        background-color: $plane-gray;
+        background-color: $surface-secondary;
       }
     }
 
     .item.disabled {
       cursor: default;
 
-      color: $shadow;
+      color: $shadow-color;
 
       .icon {
         opacity: 65%;
@@ -134,7 +134,7 @@ function invokeOption(item: ContextMenuOption) {
       margin-top: 6px;
       margin-left: 10px;
 
-      color: $gray-font;
+      color: $text-secondary;
 
       font-size: 15px;
     }
@@ -154,11 +154,11 @@ function invokeOption(item: ContextMenuOption) {
 @mixin triangle-corner($v, $h) {
   .triangle {
     border: 8px solid transparent;
-    border-#{$v}: 8px solid $cloud-white;
+    border-#{$v}: 8px solid $elevated-bg;
     @if $h == left {
-      border-right: 8px solid $cloud-white;
+      border-right: 8px solid $elevated-bg;
     } @else {
-      border-left: 8px solid $cloud-white;
+      border-left: 8px solid $elevated-bg;
     }
     #{$v}: 0px;
     #{$h}: -12px;

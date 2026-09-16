@@ -232,7 +232,7 @@ watch(triggerRef, (newVal) => {
     padding-top: 5px;
     padding-bottom: 30px;
 
-    color: $gray-font;
+    color: $text-secondary;
 
     text-align: center;
   }

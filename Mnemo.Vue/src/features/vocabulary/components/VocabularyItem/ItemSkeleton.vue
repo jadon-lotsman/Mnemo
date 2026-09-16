@@ -32,27 +32,26 @@
 }
 
 .entry-skeelton {
-  cursor: default;
-
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  cursor: default;
+  margin-bottom: 20px;
+  box-shadow: 5px 5px 0px $shadow-color;
+  border-radius: 12px;
 
-  background-color: $plane-gray;
-  box-shadow: 5px 5px 0px $shadow;
+  background-color: $surface-secondary;
+  min-width: 370px;
 
   max-width: 470px;
-  min-width: 370px;
-  border-radius: 12px;
-  margin-bottom: 20px;
 
   .some-text {
-    height: 16px;
-    width: 80%;
-    background: $plane-gray;
+    animation: pulse 1.5s infinite ease-in-out;
     margin-bottom: 4px;
     border-radius: 4px;
-    animation: pulse 1.5s infinite ease-in-out;
+    background: $surface-secondary;
+    width: 80%;
+    height: 16px;
   }
 
   .list {
@@ -65,11 +64,11 @@
   header {
     display: grid;
     grid-template-columns: 30% 30% 40%;
-    background-color: $plane-white;
-
-    padding: 10px 15px;
 
     border-radius: 12px;
+    background-color: $surface-primary;
+
+    padding: 10px 15px;
   }
 
   footer {
