@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Mnemo.Contracts.Vocabulary;
 using Mnemo.Contracts.Vocabulary.Requests;
 using Mnemo.Data.Entities;
@@ -37,6 +39,13 @@ namespace Mnemo.Controllers
 
 
         [HttpGet]
+        public async Task<IActionResult> GetHeaders([FromQuery] int page, int pageSize)
+        {
+            var result = await _vocabularyService.PageUserHeadersAsync(UserId, page, pageSize);
+            return result.ToActionResult();
+        }
+
+        [HttpGet("public")]
         public async Task<IActionResult> GetAllPublic()
         {
             var vocabs = await _vocabularyQueries.GetPublishedAsync();
@@ -49,13 +58,6 @@ namespace Mnemo.Controllers
         {
             var isDescendingBoolean = isDescending == "true" ? true : false;
             var response = await _vocabularyService.GetVocabularySectorsAsync(UserId, guid, isDescendingBoolean);
-            return Ok(response);
-        }
-
-        [HttpGet("{guid}/statistics")]
-        public async Task<IActionResult> GetVocabularyStatistics(Guid guid)
-        {
-            var response = await _vocabularyService.GetVocabularyStatisticsAsync(UserId, guid);
             return Ok(response);
         }
 

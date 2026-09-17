@@ -2,8 +2,10 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Mnemo.Contracts;
 using Mnemo.Contracts.Entry;
 using Mnemo.Contracts.Entry.Requests;
+using Mnemo.Contracts.Vocabulary;
 using Mnemo.Contracts.Vocabulary.Requests;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
@@ -49,22 +51,66 @@ namespace Mnemo.Services.VocabularyService
         }
 
 
-        public async Task<VocabularyStatisticsResponse> GetVocabularyStatisticsAsync(int userId, Guid guid)
+        public async Task<RequestResult<PageValue<HeaderResponse>>> PageUserHeadersAsync(int userId, int page, int pageSize)
         {
-            var query = _entryQueries
-                .GetEntriesByVocabularyGuidQuery(userId, guid);
+            var messages = new List<string>();
+            if (page < 1) messages.Add($"Page must be >= 1");
+            if (pageSize < 1 || pageSize > 100) messages.Add($"PageSize must be in [1, 100])");
 
-            var totalEntries = await query
-                .CountAsync();
-            var totalTranslations = await query
-                .SumAsync(e => e.Translations.Count);
+            if (messages.Count > 0)
+                return RequestResult<PageValue<HeaderResponse>>.Failure(ErrorCode.InvalidData, string.Join("; ", messages));
+
+            
+            _logger.LogDebug("Paging vocabularies for user (UserId:{UserId}): page={Page}, size={Size}...", userId, page, pageSize);
 
 
-            return new VocabularyStatisticsResponse()
+            var orderedQuery = _vocabularyQueries.GetVocabByOwnerIdQuery(userId)
+                .OrderBy(v => v.Name);
+
+            var vocabsTotal = await orderedQuery.CountAsync();
+            int totalPages = vocabsTotal == 0 ? 1 : (int)Math.Ceiling(vocabsTotal / (double)pageSize);
+
+            if (vocabsTotal == 0)
+                return RequestResult<PageValue<HeaderResponse>>.Success(new PageValue<HeaderResponse>(page, pageSize, totalPages, []));
+
+
+            var headers = await orderedQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(v => new { v.Id, v.Name, v.Guid })
+                .ToListAsync();
+
+            var vocabIds = headers.Select(e => e.Id).ToList();
+
+            var entryCounts = await _context.VocabularyEntryLinks
+                .Where(l => vocabIds.Contains(l.VocabularyId))
+                .GroupBy(l => l.VocabularyId)
+                .Select(g => new { VocabId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.VocabId, x => x.Count);
+
+            var translationCounts = await _context.VocabularyEntryLinks
+                .Where(l => vocabIds.Contains(l.VocabularyId))
+                .GroupBy(l => l.VocabularyId)
+                .Select(g => new
+                {
+                    VocabId = g.Key,
+                    Total = g.Sum(l => l.VocabularyEntry.Translations.Count)
+                })
+                .ToDictionaryAsync(x => x.VocabId, x => x.Total);
+
+
+            var items = headers.Select(v => new HeaderResponse
             {
-                TotalEntries = totalEntries,
-                TotalTranslations = totalTranslations
-            };
+                Name = v.Name,
+                Guid = v.Guid,
+                EntriesCount = entryCounts.GetValueOrDefault(v.Id, 0),
+                TranslationsCount = translationCounts.GetValueOrDefault(v.Id, 0)
+            }).ToList();
+
+
+            var pageValue = new PageValue<HeaderResponse>(page, pageSize, totalPages, items);
+
+            return RequestResult<PageValue<HeaderResponse>>.Success(pageValue);
         }
 
         public async Task<List<VocabularySectorResponse>> GetVocabularySectorsAsync(int userId, Guid guid, bool isDescending)

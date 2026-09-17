@@ -16,6 +16,9 @@ namespace Mnemo.Data.Queries
 
 
         // Queries
+        public IQueryable<Vocabulary> GetVocabByOwnerIdQuery(int ownerId)
+            => _context.Vocabularies.Where(p => p.OwnerId == ownerId);
+
         public IQueryable<Vocabulary> GetVocabByIdQuery(int ownerId, int id)
             => _context.Vocabularies.Where(p => p.OwnerId == ownerId && p.Id == id);
 
