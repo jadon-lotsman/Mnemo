@@ -7,6 +7,7 @@ const {
   isVisible,
   menuX,
   menuY,
+  hasTriangle,
   isLeftAligned,
   isTopAligned,
   menuOptions,
@@ -15,6 +16,8 @@ const {
 } = useContextMenu()
 
 const triangleClass = computed(() => {
+  if (!hasTriangle.value) return 'no-triangle'
+
   const vertical = isTopAligned.value ? 'bottom' : 'top'
   const horizontal = isLeftAligned.value ? 'right' : 'left'
   return `triangle-${vertical}-${horizontal}`

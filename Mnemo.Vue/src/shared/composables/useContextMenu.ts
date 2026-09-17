@@ -5,7 +5,8 @@ import { useSelection } from '@/shared/composables/useSelection.ts'
 import { useEventListener } from '@vueuse/core'
 
 const MENU_WIDTH = 220
-const MENU_OFFSET = 12
+const MENU_ELEMENT_OFFSET = 6
+const MENU_MOUSE_OFFSET = 12
 const MENU_PADDING = 10
 const MENU_ITEM_HEIGHT = 30
 const MENU_FADE_DELAY = 120
@@ -13,6 +14,7 @@ const MENU_FADE_DELAY = 120
 const menuX = ref<number>(0)
 const menuY = ref<number>(0)
 const isVisible = ref<boolean>(false)
+const hasTriangle = ref<boolean>(true)
 const isLeftAligned = ref<boolean>(false)
 const isTopAligned = ref<boolean>(false)
 
@@ -27,7 +29,31 @@ export function useContextMenu() {
   const { hasActiveInput } = useActiveInput()
   const { hasSelection } = useSelection()
 
-  async function openMenu(event: MouseEvent, items: ContextMenuOption[], details: string[]) {
+  async function openContextByElement(
+    element: HTMLElement | null,
+    items: ContextMenuOption[],
+    details: string[] = [],
+  ) {
+    if (!element) return
+
+    const rect = element.getBoundingClientRect()
+
+    const mouseEvent = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      clientX: rect.left,
+      clientY: rect.bottom + MENU_ELEMENT_OFFSET,
+    })
+
+    await openContextByMouse(mouseEvent, items, details, false)
+  }
+
+  async function openContextByMouse(
+    event: MouseEvent,
+    items: ContextMenuOption[],
+    details: string[] = [],
+    needTriangle: boolean = true,
+  ) {
     if (hasActiveInput.value || hasSelection.value) return
     event.preventDefault()
     event.stopPropagation()
@@ -43,10 +69,11 @@ export function useContextMenu() {
     const scrollX = window.pageXOffset
     const scrollY = window.pageYOffset
 
-    const isFitsRight = event.clientX + MENU_WIDTH + MENU_OFFSET <= windowW
+    const horizOffset = needTriangle ? MENU_MOUSE_OFFSET : 0
+    const isFitsRight = event.clientX + MENU_WIDTH + horizOffset <= windowW
     const isFitsBottom = event.clientY + MENU_HEIGHT <= windowH
 
-    const x = event.pageX + (isFitsRight ? MENU_OFFSET : -MENU_WIDTH - MENU_OFFSET)
+    const x = event.pageX + (isFitsRight ? horizOffset : -MENU_WIDTH - horizOffset)
     const y = event.pageY + (isFitsBottom ? 0 : -MENU_HEIGHT)
 
     const minX = scrollX
@@ -57,6 +84,7 @@ export function useContextMenu() {
     menuX.value = Math.max(minX, Math.min(maxX, x))
     menuY.value = Math.max(minY, Math.min(maxY, y))
 
+    hasTriangle.value = needTriangle
     isLeftAligned.value = !isFitsRight
     isTopAligned.value = !isFitsBottom
 
@@ -93,9 +121,11 @@ export function useContextMenu() {
     menuOptions,
     menuDetails,
     isVisible,
+    hasTriangle,
     isLeftAligned,
     isTopAligned,
-    openMenu,
+    openContextByMouse,
+    openContextByElement,
     closeMenu,
   }
 }
