@@ -177,7 +177,7 @@ namespace Mnemo.Services.VocabularyService
             if (sectors.Any())
             {
                 sectors.First().StartWord = "a";
-                sectors.Last().EndWord = "z" + char.MaxValue;
+                sectors.Last().EndWord = "z";
 
                 if (isDescending)
                 {

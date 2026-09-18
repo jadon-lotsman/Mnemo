@@ -11,8 +11,8 @@ import type { PageValue } from '../types/PageValue'
 
 export const useVocabularyEntryStore = defineStore('entry', () => {
   const entries = ref<VocabularyEntry[]>([])
-
   const totalPages = ref<number>(1)
+
   const loadingPlaceholder = useLoadingPlaceholder()
 
   async function fetchPage(
@@ -23,15 +23,18 @@ export const useVocabularyEntryStore = defineStore('entry', () => {
     pageSize: number = 10,
   ) {
     try {
-      loadingPlaceholder.startLoading(page > 1)
+      if (entries.value.length == 0) loadingPlaceholder.startSkeleton()
+      else loadingPlaceholder.startLoading(page > 1)
 
       const result = await apiRequest<PageValue<VocabularyEntry>>(
         `/api/vocabularies/${guid}/entries/${startLetter}-${endLetter}?page=${page}&pageSize=${pageSize}`,
       )
 
-      console.log(result)
+      console.log(loadingPlaceholder.showSkeleton.value)
 
-      entries.value = entries.value.concat(result.items)
+      if (page === 1) entries.value = result.items
+      else entries.value = entries.value.concat(result.items)
+
       totalPages.value = result.totalPages
     } finally {
       loadingPlaceholder.stopLoading()

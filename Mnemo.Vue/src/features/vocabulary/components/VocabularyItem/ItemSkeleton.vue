@@ -45,12 +45,12 @@
   max-width: 470px;
 
   .some-text {
-    animation: pulse 1.5s infinite ease-in-out;
+    animation: pulse 1.2s infinite ease-in-out;
     margin-bottom: 4px;
     border-radius: 4px;
     background: $surface-secondary;
-    width: 80%;
-    height: 16px;
+    width: 75%;
+    height: 14px;
   }
 
   .list {
@@ -67,11 +67,11 @@
     border-radius: 12px;
     background-color: $surface-primary;
 
-    padding: 10px 15px;
+    padding: 8px 6px 6px 16px;
   }
 
   footer {
-    padding: 20px 15px;
+    padding: 17px;
   }
 }
 </style>

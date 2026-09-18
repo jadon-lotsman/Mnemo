@@ -26,10 +26,20 @@ const currentPage = ref<number>(1)
 useInfiniteScroll(
   autoscrollRef,
   async () => {
-    if (currentPage.value >= entryStore.totalPages) return
+    if (
+      props.letterRange == null ||
+      currentPage.value >= entryStore.totalPages ||
+      entryStore.loadingPlaceholder.isLoading
+    )
+      return
 
     currentPage.value++
-    await entryStore.fetchPage(props.header?.guid ?? '', 'a', 'z', currentPage.value)
+    await entryStore.fetchPage(
+      props.header?.guid ?? '',
+      props.letterRange?.startWord ?? '',
+      props.letterRange?.endWord ?? '',
+      currentPage.value,
+    )
   },
   { distance: 100 },
 )
@@ -69,18 +79,40 @@ async function onEntryDelete(id: number) {
   await entryStore.deleteEntry(props.header?.guid ?? null, id)
 }
 
+async function reloadPage() {
+  currentPage.value = 1
+
+  if (props.letterRange === null) return
+
+  await entryStore.fetchPage(
+    props.header?.guid ?? null,
+    props.letterRange?.startWord ?? '',
+    props.letterRange?.endWord ?? '',
+    currentPage.value,
+  )
+}
+
 watch(
   () => props.header,
-  () => {
-    entryStore.resetPages()
-    currentPage.value = 1
-    entryStore.fetchPage(props.header?.guid ?? null, 'a', 'z', currentPage.value)
+  async () => {
+    await entryStore.resetPages()
+    await reloadPage()
+  },
+)
+
+watch(
+  () => props.letterRange,
+  async () => {
+    await reloadPage()
   },
 )
 </script>
 
 <template>
-  <div class="list-container">
+  <div v-if="entryStore.loadingPlaceholder.showSkeleton" class="list-container">
+    <ItemSkeleton v-for="i in 5" :key="i" />
+  </div>
+  <div v-else class="list-container">
     <VocabularyItem
       v-for="entry in entryStore.entries"
       :key="entry.id"
@@ -92,10 +124,6 @@ watch(
     <span ref="autoscrollRef" class="more-placeholder" v-if="currentPage < entryStore.totalPages"
       >Loading entries...
     </span>
-
-    <div class="list-container" v-if="entryStore.loadingPlaceholder.showSkeleton">
-      <ItemSkeleton v-for="i in 5" :key="i" />
-    </div>
   </div>
 </template>
 

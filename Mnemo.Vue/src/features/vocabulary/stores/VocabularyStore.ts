@@ -7,9 +7,10 @@ import { useLoadingPlaceholder } from '@/shared/composables/useLoadingPlaceholde
 import type { VocabularyRange } from '../types/VocabularySector'
 
 export const useVocabularyStore = defineStore('vocabularies', () => {
-  const loadingPlaceholder = useLoadingPlaceholder()
-
   const headers = ref<VocabularyHeader[]>([])
+  const ranges = ref<VocabularyRange[]>([])
+
+  const loadingPlaceholder = useLoadingPlaceholder()
 
   async function fetchHeadersPage(page: number, pageSize: number = 10) {
     try {
@@ -22,18 +23,13 @@ export const useVocabularyStore = defineStore('vocabularies', () => {
         `/api/vocabularies?page=${page}&pageSize=${pageSize}`,
       )
 
-      console.log(result)
-
       headers.value?.push(...result.items)
     } finally {
       loadingPlaceholder.stopLoading()
     }
   }
 
-  async function fetchRanges(
-    guid: string,
-    isDescending: boolean = false,
-  ): Promise<VocabularyRange[]> {
+  async function fetchRanges(guid: string | null, isDescending: boolean) {
     try {
       loadingPlaceholder.startLoading()
 
@@ -41,7 +37,7 @@ export const useVocabularyStore = defineStore('vocabularies', () => {
         `/api/vocabularies/${guid}/sectors?isDescending=${isDescending}`,
       )
 
-      return result
+      ranges.value = result
     } finally {
       loadingPlaceholder.stopLoading()
     }
@@ -49,6 +45,8 @@ export const useVocabularyStore = defineStore('vocabularies', () => {
 
   return {
     headers,
+    ranges,
+    loadingPlaceholder,
     fetchHeadersPage,
     fetchRanges,
   }

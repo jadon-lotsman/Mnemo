@@ -6,6 +6,11 @@ export function useLoadingPlaceholder(delay: number = 300) {
 
   let skeletonTimer: ReturnType<typeof setTimeout> | null = null
 
+  function startSkeleton() {
+    isLoading.value = true
+    showSkeleton.value = true
+  }
+
   function startLoading(disableSkeleton: boolean = false) {
     isLoading.value = true
     showSkeleton.value = false
@@ -39,6 +44,7 @@ export function useLoadingPlaceholder(delay: number = 300) {
   return {
     isLoading,
     showSkeleton,
+    startSkeleton,
     startLoading,
     stopLoading,
   }

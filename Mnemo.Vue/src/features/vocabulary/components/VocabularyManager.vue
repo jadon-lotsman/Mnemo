@@ -6,6 +6,7 @@ import type { SelectorItem } from '@/shared/components/ItemSelector/SelectorItem
 import type { VocabularyHeader } from '../types/VocabularyHeader.ts'
 import VocabularyEntryList from './VocabularyEntryList.vue'
 import type { VocabularyRange } from '../types/VocabularySector.ts'
+import VocabularyRangeTabs from './VocabularyRangeTabs.vue'
 
 const selectedHeader = ref<SelectorItem<VocabularyHeader> | null>(null)
 const selectedRange = ref<VocabularyRange | null>(null)
@@ -50,13 +51,10 @@ async function onCreateButton() {
         @click-create="onCreateButton"
       />
 
-      <!-- <VocabularyRangeTabs
-        :is-loading="vocabulary.loadingPlaceholder.showSkeleton"
-        :tablets="vocabulary.sectors"
-        :disabled-tablets="searched.length > 0"
-        @refresh-sort="onSortSubmit"
-        @submit-sector="onSectorSubmit"
-      /> -->
+      <VocabularyRangeTabs
+        v-model:letter-range="selectedRange"
+        :header="selectedHeader?.value ?? null"
+      />
 
       <!-- <VocabularyItem v-if="templateEntry" :entry="templateEntry" @create="onEntryCreate" /> -->
 

@@ -1,149 +1,188 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { nextTick, ref, watch, type ComponentPublicInstance } from 'vue'
+import type { VocabularyRange } from '../types/VocabularySector'
+import { useVocabularyStore } from '../stores/VocabularyStore'
+import type { VocabularyHeader } from '../types/VocabularyHeader'
 
-defineProps<{
-  isLoading: boolean
+const props = defineProps<{
+  header: VocabularyHeader | null
+  disabled?: boolean
 }>()
 
-const emit = defineEmits<{
-  (e: 'refreshSort', isDescending: boolean): void
-  (e: 'submitSector', startWord: string, endWord: string): void
-}>()
+const vocabularyStore = useVocabularyStore()
+const indicatorReady = ref<boolean>(false)
 
-const sortTimeout = ref<boolean>(false)
 const isDescending = ref<boolean>(false)
-const pageStartWord = ref<string>('')
+const letterRange = defineModel<VocabularyRange | null>('letterRange', { default: null })
 
-function submitSort() {
-  if (sortTimeout.value) return
-  sortTimeout.value = true
-
+function toggleDescending() {
   isDescending.value = !isDescending.value
-  emit('refreshSort', isDescending.value)
-
-  setTimeout(() => {
-    sortTimeout.value = false
-  }, 1000)
 }
 
-function submitSector(startWord: string, endWord: string) {
-  pageStartWord.value = startWord
-  emit('submitSector', startWord, endWord)
+const tabRefs = ref<Record<string, HTMLElement | null>>({})
+function setTabRef(el: Element | ComponentPublicInstance | null, label: string) {
+  tabRefs.value[label] = el as HTMLElement | null
 }
+
+const indicatorX = ref(0)
+const indicatorW = ref(0)
+
+function moveIndicator(range: VocabularyRange | null) {
+  const el = tabRefs.value[range?.label ?? '']
+  if (!el) return
+
+  indicatorX.value = el.offsetLeft
+  indicatorW.value = el.offsetWidth
+
+  if (!indicatorReady.value) {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        indicatorReady.value = true
+      })
+    })
+  }
+}
+
+watch([() => props.header, () => isDescending.value], async () => {
+  await vocabularyStore.fetchRanges(props.header?.guid ?? null, isDescending.value)
+  await nextTick()
+
+  letterRange.value = vocabularyStore.ranges[0] ?? null
+})
+
+watch(
+  () => letterRange.value,
+  async () => {
+    await nextTick()
+
+    const current = vocabularyStore.ranges.find((t) => t.startWord === letterRange.value?.startWord)
+    if (current) moveIndicator(current)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
-  <div v-show="tablets.length > 0" class="navbar">
-    <button
-      class="tablet-button"
-      :class="{ flipped: isDescending }"
-      :disabled="sortTimeout || isLoading || disabledTablets"
-      @click="submitSort"
-    >
-      <span>sort</span>
-    </button>
+  <div class="nav-container">
+    <div class="ranges-container">
+      <div
+        class="indicator"
+        :class="{ ready: indicatorReady }"
+        :style="{ transform: `translateX(${indicatorX}px)`, width: `${indicatorW}px` }"
+      ></div>
 
-    <div class="tablet-container">
       <label
-        class="tablet-radio"
-        :class="{ disabled: isLoading || disabledTablets }"
-        v-for="tablet in tablets"
-        :key="tablet.label"
+        class="tab"
+        :class="{ disabled: disabled || vocabularyStore.loadingPlaceholder.isLoading }"
+        v-for="tab in vocabularyStore.ranges"
+        :key="tab.label"
+        :ref="(el) => setTabRef(el, tab.label)"
       >
-        <input
-          type="radio"
-          name="mode"
-          :disabled="isLoading || disabledTablets"
-          :checked="pageStartWord === tablet.startWord || tablet === tablets[0]"
-          @change="submitSector(tablet.startWord, tablet.endWord)"
-        />
-        <span>{{ tablet.label }}</span>
+        <input type="radio" name="range" v-model="letterRange" :value="tab" :disabled="disabled" />
+        <span>{{ tab.label }}</span>
       </label>
     </div>
+    <button
+      class="descending-button"
+      :class="{ flipped: isDescending }"
+      :disabled="disabled"
+      @click="toggleDescending"
+    >
+      sort
+    </button>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.navbar {
+.nav-container {
   display: flex;
+  justify-content: space-between;
 
-  gap: 8px;
+  margin: 15px 6px 12px 6px;
 
-  margin-bottom: 15px;
-  user-select: none;
+  border-bottom: 3px solid $surface-secondary;
+  border-radius: 2px;
 
-  .tablet-button,
-  .tablet-radio {
-    background-color: $surface-primary;
-
-    padding: 3px 9px 3px 9px;
-
-    min-width: 35px;
-    height: 26px;
-    color: $shadow-color;
-
-    text-align: center;
-    white-space: nowrap;
-  }
-
-  .tablet-button {
-    position: relative;
-    flex-grow: 0;
-
-    flex-shrink: 0;
-
-    background-color: $surface-secondary;
-
-    width: 45px;
-
-    span {
-      @include iconize;
-
-      position: absolute;
-
-      top: 2px;
-      left: 10px;
-
-      font-size: 24px;
-    }
-  }
-
-  .flipped span {
-    transform: scaleY(-1);
-  }
-
-  .tablet-container {
+  .ranges-container {
     display: flex;
+    position: relative;
     justify-content: start;
 
-    gap: 8px;
+    gap: 7px;
 
-    .tablet-radio {
+    .indicator {
+      position: absolute;
+
+      z-index: 0;
+
+      will-change: transform, width;
+
+      border-radius: 8px 8px 0px 0px;
+      background-color: $surface-secondary;
+
+      min-width: 25px;
+      height: 100%;
+
+      pointer-events: none;
+
+      &.ready {
+        transition:
+          transform 0.25s ease,
+          width 0.25s ease;
+      }
+    }
+
+    .tab {
+      position: relative;
+
+      z-index: 1;
+
       cursor: pointer;
 
-      box-shadow: 5px 5px $shadow-color;
+      background-color: transparent;
 
-      border-radius: 12px;
+      padding: 5px 7px 3px 7px;
+
+      color: $text-muted;
+
+      font-size: 16px;
 
       input {
         display: none;
       }
 
-      input:checked + span {
-        opacity: 60%;
-        color: $text-primary;
-      }
-    }
-
-    .disabled {
-      cursor: default;
-
-      background-color: $surface-secondary;
-
       span {
-        color: $shadow-color !important;
+        user-select: none;
+      }
+
+      &:has(input:checked) {
+        color: $text-secondary;
+
+        span {
+          display: inline-block;
+          transform: translateY(-2px);
+        }
+      }
+
+      &.disabled {
+        opacity: 0.5;
+        color: $text-secondary;
       }
     }
+  }
+
+  .descending-button {
+    @include iconize;
+
+    background-color: transparent;
+
+    padding-bottom: 2px;
+
+    font-size: 22px;
+  }
+
+  .descending-button.flipped {
+    transform: scaleY(-1);
   }
 }
 </style>
