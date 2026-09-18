@@ -46,10 +46,10 @@ namespace Mnemo.Controllers
             return Ok(entriesResponse);
         }
 
-        [HttpGet("/api/vocabulary/entries/{startLetter:alpha}-{endLetter:alpha}")]
-        public async Task<IActionResult> PageEntries(string startLetter, string endLetter, [FromQuery] int page, int pageSize)
+        [HttpGet("{startLetter:alpha}-{endLetter:alpha}")]
+        public async Task<IActionResult> PageEntries(Guid guid, string startLetter, string endLetter, [FromQuery] int page, int pageSize)
         {
-            var result = await _entryService.PageEntriesAsync(UserId, startLetter, endLetter, page, pageSize);
+            var result = await _entryService.PageEntriesAsync(UserId, guid, startLetter, endLetter, page, pageSize);
             return result.ToActionResult();
         }
 

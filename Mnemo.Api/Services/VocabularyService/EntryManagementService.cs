@@ -14,6 +14,7 @@ using Mnemo.Services.RepetitionService;
 using Mnemo.Shared;
 using Mnemo.Shared.Enums;
 using Mnemo.Shared.Extensions;
+using System.Diagnostics;
 
 namespace Mnemo.Services.VocabularyService
 {
@@ -51,11 +52,11 @@ namespace Mnemo.Services.VocabularyService
 
 
 
-        public async Task<RequestResult<PageValue<EntryResponse>>> PageEntriesAsync(int userId, string startLetter, string endLetter, int page, int pageSize)
+        public async Task<RequestResult<PageValue<EntryResponse>>> PageEntriesAsync(int userId, Guid guid, string startLetter, string endLetter, int page, int pageSize)
         {
             var messages = new List<string>();
             if (page < 1) messages.Add($"Page must be >= 1");
-            if (pageSize < 1 || pageSize > 100) messages.Add($"PageSize must be in [1, 100])");
+            if (pageSize < 1 || pageSize > 100) messages.Add($"PageSize must be in [1, 100]");
 
             if (messages.Count > 0)
                 return RequestResult<PageValue<EntryResponse>>.Failure(ErrorCode.InvalidData, string.Join("; ", messages));
@@ -69,9 +70,8 @@ namespace Mnemo.Services.VocabularyService
 
             _logger.LogDebug("Paging entries for user (UserId:{UserId}): letters [{Min}..{Max}], desc={Desc}, page={Page}, size={Size}...", userId, minLetter, maxLetter, isDescending, page, pageSize);
 
-
             var filteredQuery = _entryQueries
-                .GetEntriesByOwnerIdQuery(userId)
+                .GetEntriesByVocabularyGuidQuery(userId, guid)
                 .Where(e => string.Compare(e.Foreign, minLetter) >= 0 &&
                             string.Compare(e.Foreign, maxLetter) <= 0);
 
@@ -81,6 +81,10 @@ namespace Mnemo.Services.VocabularyService
 
             var letterRangeTotal = await orderedQuery.CountAsync();
             int totalPages = letterRangeTotal == 0 ? 1 : (int)Math.Ceiling(letterRangeTotal / (double)pageSize);
+
+            if (totalPages == 0)
+                return RequestResult<PageValue<EntryResponse>>.Success(new PageValue<EntryResponse>(page, pageSize, 1, []));
+
 
             var entries = await orderedQuery
                 .Skip((page - 1) * pageSize)
