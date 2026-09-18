@@ -106,6 +106,10 @@ watch(
   justify-content: start;
   align-items: center;
 
+  color: $text-secondary;
+
+  font-size: 15px;
+
   li {
     text-wrap-mode: wrap;
     text-wrap-style: stable;
@@ -131,7 +135,7 @@ watch(
 .marked {
   li {
     font-style: italic;
-    font-size: 16px;
+    font-size: 15px;
 
     &::before {
       padding-right: 10px;

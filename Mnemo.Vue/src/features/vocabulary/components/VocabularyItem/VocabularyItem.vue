@@ -201,7 +201,6 @@ function saveChanges() {
     box-shadow 0.2s ease;
 
   cursor: default;
-  margin-bottom: 20px;
   box-shadow: 5px 5px 0px $shadow-color;
   border-radius: 12px;
   background-color: $surface-secondary;
@@ -225,7 +224,7 @@ function saveChanges() {
     border-radius: 12px;
     background-color: $surface-primary;
 
-    padding: 10px 15px;
+    padding: 8px 6px 6px 16px;
 
     .foreign {
       grid-column: 1;
@@ -315,10 +314,10 @@ function saveChanges() {
   }
 
   footer {
-    padding: 15px;
+    padding: 12px 16px;
 
     &:empty {
-      padding: 10px;
+      padding: 8px;
     }
   }
 

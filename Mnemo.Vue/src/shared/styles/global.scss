@@ -23,16 +23,27 @@ li {
   list-style-type: none;
 }
 
+html {
+  background-color: $layout-bg;
+}
+
 body {
   margin: 0 auto;
-  background-color: $layout-bg;
+  padding: 0px 12px;
   max-width: $layout-width;
+  font-weight: 400px;
+  font-size: 16px;
   font-family: 'Inter', sans-serif;
 }
 
 input {
   outline: none;
+  color: $text-primary;
   font-family: 'Inter', sans-serif;
+
+  &::placeholder {
+    color: $text-muted;
+  }
 }
 
 button {
@@ -46,37 +57,12 @@ button {
 }
 
 // Basic
-.input {
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s ease;
-
-  box-shadow: 5px 5px 0px $shadow-color;
-  border: $surface-secondary 3px solid;
-  border-radius: 12px;
-
-  padding: 10px;
-  width: 100%;
-
-  color: $text-primary;
-
-  font-size: 16px;
-
-  &:focus {
-    transform: translateY(-3px);
-    box-shadow: 8px 8px 0px $shadow-color;
-  }
-}
-
 button {
   --shadow-color: #{$shadow-color};
 
-  box-shadow: 5px 5px 0px var(--shadow-color);
   border-radius: 12px;
 
   background-color: $surface-primary;
-
-  padding: 10px;
 
   color: $text-primary;
 
@@ -94,13 +80,21 @@ button {
   }
 }
 
-button.danger {
+.big-button {
+  @include lift();
+
+  box-shadow: 5px 5px 0px var(--shadow-color);
+
+  padding: 10px;
+
+  width: 100%;
+}
+
+.big-button.danger {
   --shadow-color: #{$danger-shadow};
 
   filter: drop-shadow(5px 5px 15px var(--shadow-color));
   will-change: filter;
-
-  box-shadow: 5px 5px 0px var(--shadow-color);
 
   background-color: $danger-body;
   color: $danger-text;
@@ -113,12 +107,6 @@ button.danger {
   &:active {
     color: $danger-shadow;
   }
-}
-
-.big-button {
-  @include lift();
-
-  width: 100%;
 }
 
 .small-button {
@@ -143,7 +131,8 @@ button.danger {
 
 .part-of-speech {
   color: $text-secondary;
-
   font-weight: 300;
+
+  font-size: 15px;
   text-transform: lowercase;
 }

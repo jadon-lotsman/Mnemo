@@ -73,7 +73,7 @@ function invokeOption(item: ContextMenuOption) {
 
   z-index: 9999;
 
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(8px);
   filter: drop-shadow(0px 0px 8px #bbbbbb4d) drop-shadow(5px 5px 0px $shadow-color);
 
   will-change: transform, opacity;

@@ -21,7 +21,8 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .calendar {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-  gap: 7px;
+  grid-template-columns: repeat(auto-fit, minmax(55px, 1fr));
+
+  gap: 5px;
 }
 </style>

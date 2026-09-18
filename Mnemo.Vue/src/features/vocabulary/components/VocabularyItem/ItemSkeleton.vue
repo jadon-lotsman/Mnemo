@@ -36,7 +36,6 @@
   flex-direction: column;
   align-items: stretch;
   cursor: default;
-  margin-bottom: 20px;
   box-shadow: 5px 5px 0px $shadow-color;
   border-radius: 12px;
 

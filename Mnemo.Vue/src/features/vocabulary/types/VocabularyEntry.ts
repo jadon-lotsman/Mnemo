@@ -1,5 +1,6 @@
 export interface VocabularyEntry {
   id: number
+  linkCount: number
   partOfSpeech?: string
   foreign: string
   transcription?: string

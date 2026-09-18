@@ -1,9 +1,34 @@
 @mixin iconize() {
+  color: $icon-color;
   font-style: normal;
   line-height: 1;
   font-family: 'Material Symbols Rounded';
-
+  letter-spacing: 0.5;
   user-select: none;
+}
+
+@mixin ellipsis($lines: 1) {
+  @if $lines == 1 {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  } @else {
+    display: -webkit-box;
+    -webkit-line-clamp: $lines;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// Использование
+.title {
+  @include ellipsis(1);
+}
+
+.description {
+  @include ellipsis(3);
 }
 
 @mixin lift($distance: -2px, $shadow-offset: 2px) {

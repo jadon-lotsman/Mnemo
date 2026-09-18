@@ -1,28 +1,26 @@
-<script setup lang="ts">
-import { ref } from 'vue'
+<script setup lang="ts" generic="T">
+import { ref, watch } from 'vue'
 import type { SelectorItem } from './SelectorItem'
 import { useContextMenu } from '@/shared/composables/useContextMenu'
 import type { ContextMenuOption } from '@/features/contextMenu/types/ContextMenuOption'
 
 const props = defineProps<{
+  modelValue: SelectorItem<T> | null
   icon: string
-  items: SelectorItem[]
+  items: SelectorItem<T>[]
 }>()
 
 const { openContextByElement } = useContextMenu()
 
-const selected = ref<SelectorItem | null>(props.items[0] ?? null)
 const selector = ref<HTMLElement | null>(null)
 
-const emit = defineEmits<{
-  (e: 'itemChanged', item: SelectorItem): void
+const emits = defineEmits<{
+  (e: 'update:modelValue', value: SelectorItem<T> | null): void
 }>()
 
-function selectItem(item: SelectorItem) {
-  if (selected.value == item) return
-
-  selected.value = item
-  emit('itemChanged', item)
+function selectItem(item: SelectorItem<T> | null) {
+  if (props.modelValue === item) return
+  emits('update:modelValue', item)
 }
 
 function openList() {
@@ -32,17 +30,24 @@ function openList() {
     action: () => selectItem(item),
   }))
 
-  contextMenuItems.push()
-
   openContextByElement(selector.value, contextMenuItems)
 }
+
+watch(
+  () => props.items,
+  (newItems) => {
+    if (newItems.length === 0) return
+    if (props.modelValue && newItems.some((i) => i.value === props.modelValue!.value)) return
+    selectItem(newItems[0] ?? null)
+  },
+)
 </script>
 
 <template>
   <div ref="selector" class="selector-container" @click="openList">
     <span class="icon">{{ icon }}</span>
     <div class="current-item">
-      <span class="label">{{ selected?.label || 'None' }}</span>
+      <span class="label">{{ modelValue?.label || 'None' }}</span>
       <span class="chevron">chevron_forward</span>
     </div>
   </div>
@@ -58,12 +63,12 @@ function openList() {
   cursor: pointer;
 
   margin-bottom: 6px;
-  padding-left: 4px;
+  padding-left: 3px;
 
   color: $text-secondary;
 
   .icon {
-    font-size: 18px;
+    font-size: 20px;
     @include iconize;
   }
 
@@ -72,8 +77,18 @@ function openList() {
     position: relative;
     align-items: center;
 
+    margin-top: 1px;
+
+    min-width: 0;
+
+    font-size: 16px;
+
     .label {
-      padding-right: 24px;
+      @include ellipsis;
+
+      padding-right: 22px;
+
+      min-width: 0;
     }
 
     .chevron {
@@ -87,7 +102,9 @@ function openList() {
       transform: rotate(90deg);
       margin-left: -3px;
 
-      font-size: 21px;
+      color: $text-muted;
+
+      font-size: 22px;
     }
   }
 }

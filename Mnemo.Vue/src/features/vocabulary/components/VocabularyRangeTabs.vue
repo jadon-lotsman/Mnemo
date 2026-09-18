@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { VocabularySector } from '../types/VocabularySector'
 
 defineProps<{
   isLoading: boolean
-  tablets: VocabularySector[]
-  disabledTablets: boolean
 }>()
 
 const emit = defineEmits<{
