@@ -2,6 +2,7 @@
 import { useContextMenu } from '@/shared/composables/useContextMenu'
 import type { ContextMenuOption } from '../types/ContextMenuOption'
 import { computed } from 'vue'
+import MenuItem from './MenuItem.vue'
 
 const {
   isVisible,
@@ -43,17 +44,14 @@ function invokeOption(item: ContextMenuOption) {
       >
         <div class="triangle"></div>
         <header>
-          <div v-for="contextItem in menuOptions" :key="contextItem.label">
-            <div
-              class="item"
-              :class="{ disabled: contextItem.disabled }"
-              @mousedown.prevent
-              @click="invokeOption(contextItem)"
-            >
-              <span class="icon">{{ contextItem.icon }}</span>
-              <span class="label">{{ contextItem.label }}</span>
-            </div>
-          </div>
+          <MenuItem
+            v-for="opt in menuOptions"
+            :key="opt.label"
+            :icon="opt.icon"
+            :label="opt.label"
+            :disabled="opt.disabled"
+            @click="invokeOption(opt)"
+          />
         </header>
         <footer v-if="menuDetails.length">
           <div class="descriptions">
