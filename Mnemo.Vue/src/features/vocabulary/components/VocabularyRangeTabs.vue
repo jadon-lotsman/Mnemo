@@ -43,12 +43,25 @@ function moveIndicator(range: VocabularyRange | null) {
   }
 }
 
-watch([() => props.header, () => isDescending.value], async () => {
-  await vocabularyStore.fetchRanges(props.header?.guid ?? null, isDescending.value)
-  await nextTick()
-
-  letterRange.value = vocabularyStore.ranges[0] ?? null
-})
+watch(
+  () => props.header,
+  async () => {
+    isDescending.value = false
+    await vocabularyStore.fetchRanges(props.header?.guid ?? null, isDescending.value)
+    letterRange.value = vocabularyStore.ranges[0] ?? null
+  },
+)
+watch(
+  () => isDescending.value,
+  async () => {
+    const oldIndex = vocabularyStore.ranges.findIndex(
+      (t) => t.startWord === letterRange.value?.startWord,
+    )
+    const newIndex = vocabularyStore.ranges.length - 1 - oldIndex
+    await vocabularyStore.fetchRanges(props.header?.guid ?? null, isDescending.value)
+    letterRange.value = vocabularyStore.ranges[newIndex] ?? vocabularyStore.ranges[0] ?? null
+  },
+)
 
 watch(
   () => letterRange.value,
@@ -78,7 +91,13 @@ watch(
         :key="tab.label"
         :ref="(el) => setTabRef(el, tab.label)"
       >
-        <input type="radio" name="range" v-model="letterRange" :value="tab" :disabled="disabled" />
+        <input
+          type="radio"
+          name="range"
+          v-model="letterRange"
+          :value="tab"
+          :disabled="disabled || vocabularyStore.loadingPlaceholder.isLoading"
+        />
         <span>{{ tab.label }}</span>
       </label>
     </div>
@@ -113,6 +132,7 @@ watch(
     .indicator {
       position: absolute;
 
+      opacity: 0;
       z-index: 0;
 
       will-change: transform, width;
@@ -126,6 +146,7 @@ watch(
       pointer-events: none;
 
       &.ready {
+        opacity: 1;
         transition:
           transform 0.25s ease,
           width 0.25s ease;
