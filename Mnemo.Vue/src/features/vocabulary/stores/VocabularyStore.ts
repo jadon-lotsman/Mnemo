@@ -10,6 +10,8 @@ export const useVocabularyStore = defineStore('vocabularies', () => {
   const headers = ref<VocabularyHeader[]>([])
   const ranges = ref<VocabularyRange[]>([])
 
+  const totalPages = ref<number>(1)
+
   const loadingPlaceholder = useLoadingPlaceholder()
 
   async function fetchHeadersPage(page: number, pageSize: number = 10) {
@@ -23,7 +25,10 @@ export const useVocabularyStore = defineStore('vocabularies', () => {
         `/api/vocabularies?page=${page}&pageSize=${pageSize}`,
       )
 
-      headers.value?.push(...result.items)
+      if (page === 1) headers.value = result.items
+      else headers.value = headers.value.concat(result.items)
+
+      totalPages.value = result.totalPages
     } finally {
       loadingPlaceholder.stopLoading()
     }

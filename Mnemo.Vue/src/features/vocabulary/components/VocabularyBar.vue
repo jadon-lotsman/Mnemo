@@ -45,8 +45,8 @@ watch(
   },
 )
 
-onMounted(() => {
-  vocabularyStore.fetchHeadersPage(1, 100)
+onMounted(async () => {
+  await vocabularyStore.fetchHeadersPage(1, 100)
 })
 </script>
 

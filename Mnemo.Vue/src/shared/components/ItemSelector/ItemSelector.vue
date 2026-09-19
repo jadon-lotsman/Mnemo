@@ -40,6 +40,7 @@ watch(
     if (props.modelValue && newItems.some((i) => i.value === props.modelValue!.value)) return
     selectItem(newItems[0] ?? null)
   },
+  { immediate: true },
 )
 </script>
 
