@@ -20,7 +20,7 @@ namespace Mnemo.Data.Queries
             => _context.VocabularyEntries.Where(e => e.OwnerId == ownerId);
 
         public IQueryable<VocabularyEntry> GetEntriesOfActiveVocabulariesByOwnerIdQuery(int ownerId)
-            => _context.VocabularyEntryLinks.Where(l => l.Vocabulary.OwnerId == ownerId && l.Vocabulary.IsActive).Select(l => l.VocabularyEntry);
+            => _context.VocabularyEntryLinks.Where(l => l.Vocabulary.OwnerId == ownerId && l.Vocabulary.IsActive).SelectMany(l => _context.VocabularyEntries.Where(e => e.Id == l.VocabularyEntryId));
 
         public IQueryable<VocabularyEntry> GetEntriesByVocabularyIdQuery(int ownerId, int vocabId)
             => _context.VocabularyEntryLinks.Where(l => l.Vocabulary.OwnerId == ownerId && l.VocabularyId == vocabId).Select(l => l.VocabularyEntry);
