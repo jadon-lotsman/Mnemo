@@ -1,4 +1,3 @@
-<!-- MenuItem.vue -->
 <script setup lang="ts">
 defineProps<{
   icon?: string
@@ -29,15 +28,22 @@ defineEmits<{ (e: 'click'): void }>()
 
   border-radius: 8px;
 
-  padding: 4px;
+  padding: 4px 8px 4px 4px;
 
   .icon {
     @include iconize;
-    margin-right: 12px;
-    margin-left: 8px;
+
+    margin-right: 8px;
+    margin-left: 4px;
+
     color: $shadow-color;
     font-size: 21px;
     line-height: 0.8;
+  }
+
+  .label {
+    @include ellipsis;
+    min-width: 0;
   }
 
   &:hover {
@@ -46,7 +52,9 @@ defineEmits<{ (e: 'click'): void }>()
 
   &.disabled {
     cursor: default;
-    color: $shadow-color;
+
+    color: $text-muted;
+
     .icon {
       opacity: 65%;
     }

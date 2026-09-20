@@ -1,19 +1,17 @@
 import type { ContextMenuOption } from '@/features/contextMenu/types/ContextMenuOption'
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import { useActiveInput } from '@/shared/composables/useActiveInput.ts'
 import { useSelection } from '@/shared/composables/useSelection.ts'
 import { useEventListener } from '@vueuse/core'
 
-const MENU_WIDTH = 220
 const MENU_ELEMENT_OFFSET = 6
 const MENU_MOUSE_OFFSET = 12
-const MENU_PADDING = 10
-const MENU_ITEM_HEIGHT = 30
 const MENU_FADE_DELAY = 120
 
 const menuX = ref<number>(0)
 const menuY = ref<number>(0)
 const isVisible = ref<boolean>(false)
+const isPositioned = ref(false)
 const hasTriangle = ref<boolean>(true)
 const isLeftAligned = ref<boolean>(false)
 const isTopAligned = ref<boolean>(false)
@@ -21,9 +19,7 @@ const isTopAligned = ref<boolean>(false)
 const menuOptions = ref<ContextMenuOption[]>([])
 const menuDetails = ref<string[]>([])
 
-function getMenuHeight(items: ContextMenuOption[], details: string[]) {
-  return MENU_PADDING + (items.length + details.length) * MENU_ITEM_HEIGHT
-}
+const menuRef = ref<HTMLElement | null>(null)
 
 export function useContextMenu() {
   const { hasActiveInput } = useActiveInput()
@@ -60,9 +56,23 @@ export function useContextMenu() {
 
     const wasOpened = isVisible.value
     isVisible.value = false
-    await setTimeout(() => (isVisible.value = true), wasOpened ? MENU_FADE_DELAY : 0)
+    isPositioned.value = false
 
-    const MENU_HEIGHT = getMenuHeight(items, details)
+    menuOptions.value = items
+    menuDetails.value = details
+    hasTriangle.value = needTriangle
+
+    await new Promise((r) => setTimeout(r, wasOpened ? MENU_FADE_DELAY : 0))
+
+    isVisible.value = true
+
+    await nextTick()
+
+    const el = menuRef.value
+    if (!el) return
+
+    const MENU_WIDTH = el.offsetWidth
+    const MENU_HEIGHT = el.offsetHeight
 
     const windowW = window.innerWidth
     const windowH = window.innerHeight
@@ -84,17 +94,15 @@ export function useContextMenu() {
     menuX.value = Math.max(minX, Math.min(maxX, x))
     menuY.value = Math.max(minY, Math.min(maxY, y))
 
-    hasTriangle.value = needTriangle
     isLeftAligned.value = !isFitsRight
     isTopAligned.value = !isFitsBottom
-
-    menuOptions.value = items
-    menuDetails.value = details
+    isPositioned.value = true
   }
 
   function closeMenu() {
     if (isVisible.value) {
       isVisible.value = false
+      isPositioned.value = false
       menuOptions.value = []
       menuDetails.value = []
     }
@@ -120,7 +128,9 @@ export function useContextMenu() {
     menuY,
     menuOptions,
     menuDetails,
+    menuRef,
     isVisible,
+    isPositioned,
     hasTriangle,
     isLeftAligned,
     isTopAligned,

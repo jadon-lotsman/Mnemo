@@ -6,6 +6,7 @@ import MenuItem from './MenuItem.vue'
 
 const {
   isVisible,
+  isPositioned,
   menuX,
   menuY,
   hasTriangle,
@@ -13,6 +14,7 @@ const {
   isTopAligned,
   menuOptions,
   menuDetails,
+  menuRef,
   closeMenu,
 } = useContextMenu()
 
@@ -37,8 +39,9 @@ function invokeOption(item: ContextMenuOption) {
     <Transition name="context-fade">
       <div
         v-if="isVisible"
+        ref="menuRef"
         class="context-menu"
-        :class="triangleClass"
+        :class="[triangleClass, { 'is-measuring': !isPositioned }]"
         :style="{ top: menuY + 'px', left: menuX + 'px' }"
         @click.stop
       >
@@ -71,16 +74,18 @@ function invokeOption(item: ContextMenuOption) {
 
   z-index: 9999;
 
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(2px);
   filter: drop-shadow(0px 0px 8px #bbbbbb4d) drop-shadow(5px 5px 0px $shadow-color);
 
-  will-change: transform, opacity;
+  will-change: transform, opacity, filter;
 
   border-radius: 12px;
   background-color: $elevated-bg;
 
   padding: 7px 6px 10px 6px;
+
   min-width: 220px;
+  max-width: 330px;
 
   user-select: none;
 
@@ -88,42 +93,6 @@ function invokeOption(item: ContextMenuOption) {
     display: flex;
     flex-direction: column;
     gap: 2px;
-
-    .item {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-
-      border-radius: 8px;
-
-      padding: 4px;
-
-      .icon {
-        @include iconize;
-
-        margin-right: 12px;
-        margin-left: 8px;
-
-        color: $shadow-color;
-
-        font-size: 21px;
-        line-height: 0.8;
-      }
-
-      &:hover {
-        background-color: $surface-secondary;
-      }
-    }
-
-    .item.disabled {
-      cursor: default;
-
-      color: $shadow-color;
-
-      .icon {
-        opacity: 65%;
-      }
-    }
   }
 
   footer {
@@ -142,6 +111,10 @@ function invokeOption(item: ContextMenuOption) {
   }
 }
 
+&.is-measuring {
+  visibility: hidden;
+}
+
 .triangle {
   display: block;
   position: absolute;
@@ -154,12 +127,12 @@ function invokeOption(item: ContextMenuOption) {
 
 @mixin triangle-corner($v, $h) {
   .triangle {
-    border: 8px solid transparent;
-    border-#{$v}: 8px solid $elevated-bg;
+    border: 7px solid transparent;
+    border-#{$v}: 7px solid $elevated-bg;
     @if $h == left {
-      border-right: 8px solid $elevated-bg;
+      border-right: 7px solid $elevated-bg;
     } @else {
-      border-left: 8px solid $elevated-bg;
+      border-left: 7px solid $elevated-bg;
     }
     #{$v}: 0px;
     #{$h}: -12px;
@@ -184,10 +157,14 @@ function invokeOption(item: ContextMenuOption) {
 }
 
 .context-fade-enter-active {
-  transition: all 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
 }
 .context-fade-leave-active {
-  transition: all 0.28s ease;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
 }
 .context-fade-enter-from,
 .context-fade-leave-to {
