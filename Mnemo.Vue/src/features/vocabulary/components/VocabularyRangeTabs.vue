@@ -149,7 +149,7 @@ watch(
         opacity: 1;
         transition:
           transform 0.25s ease,
-          width 0.25s ease;
+          width 0.15s linear;
       }
     }
 

@@ -51,7 +51,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="manager-container">
+  <div class="bar-container">
     <ItemSelector
       icon="book"
       v-model="selectedItem"
@@ -91,7 +91,13 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
-.manager-container {
+.bar-container {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  will-change: transform, box-shadow;
+
   margin-bottom: 15px;
   box-shadow: 5px 5px 0px $shadow-color;
 
@@ -99,6 +105,11 @@ onMounted(async () => {
   background-color: $surface-primary;
 
   padding: 8px 6px;
+
+  &:has(input:focus) {
+    transform: translateY(-3px);
+    box-shadow: 8px 8px 0px $shadow-color;
+  }
 
   .search-form {
     display: flex;
@@ -151,9 +162,8 @@ onMounted(async () => {
 
       position: absolute;
       top: 6px;
-      right: 44px;
+      right: 48px;
 
-      opacity: 70%;
       border-radius: 50%;
 
       background-color: $surface-secondary;

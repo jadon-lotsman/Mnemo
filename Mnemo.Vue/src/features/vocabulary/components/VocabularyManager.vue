@@ -40,7 +40,7 @@ async function onCreateButton() {
 </script>
 
 <template>
-  <div class="vocabulary-container">
+  <div class="manager-container">
     <CollapsibleSection title="Vocabulary">
       <template #subtitle> Add entry </template>
 
@@ -64,7 +64,7 @@ async function onCreateButton() {
 </template>
 
 <style lang="scss" scoped>
-.vocabulary-container {
+.manager-container {
   min-height: 100vh;
 }
 </style>
