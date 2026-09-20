@@ -30,8 +30,6 @@ export const useVocabularyEntryStore = defineStore('entry', () => {
         `/api/vocabularies/${guid}/entries/${startLetter}-${endLetter}?page=${page}&pageSize=${pageSize}`,
       )
 
-      console.log(loadingPlaceholder.showSkeleton.value)
-
       if (page === 1) entries.value = result.items
       else entries.value = entries.value.concat(result.items)
 

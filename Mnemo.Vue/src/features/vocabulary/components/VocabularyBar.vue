@@ -4,6 +4,7 @@ import ItemSelector from '@/shared/components/ItemSelector/ItemSelector.vue'
 import type { SelectorItem } from '@/shared/components/ItemSelector/SelectorItem'
 import { useVocabularyStore } from '../stores/VocabularyStore'
 import type { VocabularyHeader } from '../types/VocabularyHeader'
+import type { MenuConfig } from '@/features/contextMenu/types/MenuConfig'
 
 defineProps<{
   isLoading?: boolean
@@ -29,6 +30,43 @@ const selectorItems = computed<SelectorItem<VocabularyHeader>[]>(() =>
   })),
 )
 
+const menuConfig = computed<MenuConfig>(() => ({
+  modules: [
+    {
+      type: 'search',
+      placeholder: 'Search in my vocabularies...',
+      options: selectorItems.value.map((item) => ({
+        label: item.label,
+        icon: item.icon,
+        action: () => {
+          selectedItem.value = item
+          searchQuery.value = ''
+        },
+      })),
+    },
+    {
+      type: 'list',
+      options: [
+        {
+          label: 'Create vocabulary',
+          icon: 'add',
+          action: () => console.log('create vocabulary'),
+        },
+        {
+          label: 'Public vocabularies',
+          icon: 'public',
+          action: () => console.log('public vocabularies'),
+        },
+        {
+          label: 'Vocabulary settings',
+          icon: 'settings',
+          action: () => console.log('vocabulary settings'),
+        },
+      ],
+    },
+  ],
+}))
+
 const inputRef = ref<HTMLInputElement | null>(null)
 
 function submitSearch() {
@@ -45,6 +83,21 @@ watch(
   },
 )
 
+watch(
+  selectorItems,
+  (newItems) => {
+    if (newItems.length === 0) return
+    if (
+      selectedItem.value &&
+      newItems.some((i) => i.value.guid === selectedItem.value!.value.guid)
+    ) {
+      return
+    }
+    selectedItem.value = newItems[0] ?? null
+  },
+  { immediate: true },
+)
+
 onMounted(async () => {
   await vocabularyStore.fetchHeadersPage(1, 100)
 })
@@ -52,12 +105,7 @@ onMounted(async () => {
 
 <template>
   <div class="bar-container">
-    <ItemSelector
-      icon="book"
-      v-model="selectedItem"
-      :items="selectorItems"
-      @itemChanged="searchQuery = ''"
-    />
+    <ItemSelector icon="book" :selected="selectedItem" :config="menuConfig" />
 
     <form class="search-form" @submit.prevent="submitSearch">
       <input
@@ -81,12 +129,12 @@ onMounted(async () => {
       <button type="submit" class="search-button" :disabled="isLoading">search</button>
     </form>
 
-    <footer class="info-block">
+    <div class="info-block">
       <span
         >{{ selectedItem?.value.entriesCount ?? 0 }} entries,
         {{ selectedItem?.value.translationsCount ?? 0 }} translations</span
       >
-    </footer>
+    </div>
   </div>
 </template>
 

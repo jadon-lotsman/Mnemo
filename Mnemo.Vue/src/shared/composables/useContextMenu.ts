@@ -1,8 +1,8 @@
-import type { ContextMenuOption } from '@/features/contextMenu/types/ContextMenuOption'
 import { nextTick, ref } from 'vue'
 import { useActiveInput } from '@/shared/composables/useActiveInput.ts'
 import { useSelection } from '@/shared/composables/useSelection.ts'
 import { useEventListener } from '@vueuse/core'
+import type { MenuConfig } from '@/features/contextMenu/types/MenuConfig'
 
 const MENU_ELEMENT_OFFSET = 6
 const MENU_MOUSE_OFFSET = 12
@@ -16,20 +16,14 @@ const hasTriangle = ref<boolean>(true)
 const isLeftAligned = ref<boolean>(false)
 const isTopAligned = ref<boolean>(false)
 
-const menuOptions = ref<ContextMenuOption[]>([])
-const menuDetails = ref<string[]>([])
-
+const menuModules = ref<MenuConfig>()
 const menuRef = ref<HTMLElement | null>(null)
 
 export function useContextMenu() {
   const { hasActiveInput } = useActiveInput()
   const { hasSelection } = useSelection()
 
-  async function openContextByElement(
-    element: HTMLElement | null,
-    items: ContextMenuOption[],
-    details: string[] = [],
-  ) {
+  async function openContextByElement(element: HTMLElement | null, modules: MenuConfig) {
     if (!element) return
 
     const rect = element.getBoundingClientRect()
@@ -41,13 +35,12 @@ export function useContextMenu() {
       clientY: rect.bottom + MENU_ELEMENT_OFFSET,
     })
 
-    await openContextByMouse(mouseEvent, items, details, false)
+    await openContextByMouse(mouseEvent, modules, false)
   }
 
   async function openContextByMouse(
     event: MouseEvent,
-    items: ContextMenuOption[],
-    details: string[] = [],
+    modules: MenuConfig,
     needTriangle: boolean = true,
   ) {
     if (hasActiveInput.value || hasSelection.value) return
@@ -58,8 +51,7 @@ export function useContextMenu() {
     isVisible.value = false
     isPositioned.value = false
 
-    menuOptions.value = items
-    menuDetails.value = details
+    menuModules.value = modules
     hasTriangle.value = needTriangle
 
     await new Promise((r) => setTimeout(r, wasOpened ? MENU_FADE_DELAY : 0))
@@ -103,8 +95,7 @@ export function useContextMenu() {
     if (isVisible.value) {
       isVisible.value = false
       isPositioned.value = false
-      menuOptions.value = []
-      menuDetails.value = []
+      menuModules.value = undefined
     }
   }
 
@@ -126,8 +117,7 @@ export function useContextMenu() {
   return {
     menuX,
     menuY,
-    menuOptions,
-    menuDetails,
+    menuModules,
     menuRef,
     isVisible,
     isPositioned,

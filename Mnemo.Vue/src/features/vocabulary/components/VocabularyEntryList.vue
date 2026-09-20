@@ -3,13 +3,12 @@ import { ref, watch } from 'vue'
 import type { VocabularyHeader } from '../types/VocabularyHeader'
 import type { VocabularyRange } from '../types/VocabularySector'
 import type { PatchEntryRequest, VocabularyEntry } from '../types/VocabularyEntry'
-import type { ContextMenuOption } from '@/features/contextMenu/types/ContextMenuOption'
 import { useVocabularyEntryStore } from '../stores/VocabularyEntryStore'
 import { useContextMenu } from '@/shared/composables/useContextMenu'
-import { format } from 'date-fns'
 import ItemSkeleton from './VocabularyItem/ItemSkeleton.vue'
 import VocabularyItem from './VocabularyItem/VocabularyItem.vue'
 import { useInfiniteScroll } from '@vueuse/core'
+import { format } from 'date-fns'
 
 const props = defineProps<{
   header: VocabularyHeader | null
@@ -47,28 +46,26 @@ useInfiniteScroll(
 async function openContextMenu(event: MouseEvent, entry: VocabularyEntry) {
   if (entry.id < 0) return
 
-  const menuOptions: ContextMenuOption[] = [
-    // {
-    //   label: 'Pin/Unpin',
-    //   icon: 'keep',
-    //   action: () => console.log('pinned'),
-    // },
-    // {
-    //   label: 'Reset progress',
-    //   icon: 'replay',
-    //   action: () => console.log('reset'),
-    // },
-    {
-      label: 'Delete entry',
-      icon: 'close',
-      action: () => onEntryDelete(entry.id),
-    },
-  ]
-
   const creatingDate = format(new Date(entry.createdAt), 'd MMM, yyyy')
-  const menuDescriptions: string[] = [`Created at ${creatingDate}`]
 
-  await openContextByMouse(event, menuOptions, menuDescriptions)
+  await openContextByMouse(event, {
+    modules: [
+      {
+        type: 'list',
+        options: [
+          {
+            label: 'Delete entry',
+            icon: 'close',
+            action: () => onEntryDelete(entry.id),
+          },
+        ],
+      },
+      {
+        type: 'text',
+        text: `Created at ${creatingDate}`,
+      },
+    ],
+  })
 }
 
 async function onEntryPatch(id: number, bodyRequest: PatchEntryRequest) {

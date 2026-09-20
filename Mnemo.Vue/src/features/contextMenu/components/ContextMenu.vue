@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { useContextMenu } from '@/shared/composables/useContextMenu'
-import type { ContextMenuOption } from '../types/ContextMenuOption'
 import { computed } from 'vue'
-import MenuItem from './MenuItem.vue'
+import ModuleRender from './ModuleRender.vue'
 
 const {
   isVisible,
@@ -12,10 +11,8 @@ const {
   hasTriangle,
   isLeftAligned,
   isTopAligned,
-  menuOptions,
-  menuDetails,
+  menuModules,
   menuRef,
-  closeMenu,
 } = useContextMenu()
 
 const triangleClass = computed(() => {
@@ -25,13 +22,6 @@ const triangleClass = computed(() => {
   const horizontal = isLeftAligned.value ? 'right' : 'left'
   return `triangle-${vertical}-${horizontal}`
 })
-
-function invokeOption(item: ContextMenuOption) {
-  if (item.disabled) return
-
-  item.action()
-  closeMenu()
-}
 </script>
 
 <template>
@@ -46,21 +36,9 @@ function invokeOption(item: ContextMenuOption) {
         @click.stop
       >
         <div class="triangle"></div>
-        <header>
-          <MenuItem
-            v-for="opt in menuOptions"
-            :key="opt.label"
-            :icon="opt.icon"
-            :label="opt.label"
-            :disabled="opt.disabled"
-            @click="invokeOption(opt)"
-          />
-        </header>
-        <footer v-if="menuDetails.length">
-          <div class="descriptions">
-            <span v-for="info in menuDetails" :key="info">{{ info }}.</span>
-          </div>
-        </footer>
+        <div class="module-container">
+          <ModuleRender v-for="(mod, i) in menuModules?.modules" :key="i" :module="mod" />
+        </div>
       </div>
     </Transition>
   </Teleport>
@@ -89,25 +67,10 @@ function invokeOption(item: ContextMenuOption) {
 
   user-select: none;
 
-  header {
+  .module-container {
     display: flex;
     flex-direction: column;
     gap: 2px;
-  }
-
-  footer {
-    .descriptions {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-
-      margin-top: 6px;
-      margin-left: 10px;
-
-      color: $text-secondary;
-
-      font-size: 15px;
-    }
   }
 }
 

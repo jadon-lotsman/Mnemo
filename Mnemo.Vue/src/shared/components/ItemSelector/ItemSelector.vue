@@ -1,54 +1,29 @@
 <script setup lang="ts" generic="T">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import type { SelectorItem } from './SelectorItem'
 import { useContextMenu } from '@/shared/composables/useContextMenu'
-import type { ContextMenuOption } from '@/features/contextMenu/types/ContextMenuOption'
+import type { MenuConfig } from '@/features/contextMenu/types/MenuConfig'
 
 const props = defineProps<{
-  modelValue: SelectorItem<T> | null
+  selected: SelectorItem<T> | null
   icon: string
-  items: SelectorItem<T>[]
+  config: MenuConfig
 }>()
 
 const { openContextByElement } = useContextMenu()
 
 const selector = ref<HTMLElement | null>(null)
 
-const emits = defineEmits<{
-  (e: 'update:modelValue', value: SelectorItem<T> | null): void
-}>()
-
-function selectItem(item: SelectorItem<T> | null) {
-  if (props.modelValue === item) return
-  emits('update:modelValue', item)
-}
-
 function openList() {
-  const contextMenuItems: ContextMenuOption[] = props.items.map((item) => ({
-    label: item.label,
-    icon: item.icon,
-    action: () => selectItem(item),
-  }))
-
-  openContextByElement(selector.value, contextMenuItems)
+  openContextByElement(selector.value, props.config)
 }
-
-watch(
-  () => props.items,
-  (newItems) => {
-    if (newItems.length === 0) return
-    if (props.modelValue && newItems.some((i) => i.value === props.modelValue!.value)) return
-    selectItem(newItems[0] ?? null)
-  },
-  { immediate: true },
-)
 </script>
 
 <template>
   <div ref="selector" class="selector-container" @click="openList">
     <span class="icon">{{ icon }}</span>
-    <div class="current-item">
-      <span class="label">{{ modelValue?.label || 'None' }}</span>
+    <div class="selected-item">
+      <span class="label">{{ selected?.label || 'None' }}</span>
       <span class="chevron">chevron_forward</span>
     </div>
   </div>
@@ -73,7 +48,7 @@ watch(
     @include iconize;
   }
 
-  .current-item {
+  .selected-item {
     display: flex;
     position: relative;
     align-items: center;
