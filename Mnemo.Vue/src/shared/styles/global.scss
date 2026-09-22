@@ -24,6 +24,8 @@ li {
 }
 
 html {
+  --shadow-color: #{$shadow-color};
+
   background-color: $layout-bg;
 }
 
@@ -58,8 +60,6 @@ button {
 
 // Basic
 button {
-  --shadow-color: #{$shadow-color};
-
   border-radius: 12px;
 
   background-color: $surface-primary;
