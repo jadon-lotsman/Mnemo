@@ -38,6 +38,7 @@ const menuConfig = computed<MenuConfig>(() => ({
       options: selectorItems.value.map((item) => ({
         label: item.label,
         icon: item.icon,
+        selected: item.value.guid === selectedItem.value?.value.guid,
         action: () => {
           selectedItem.value = item
           searchQuery.value = ''
@@ -50,16 +51,19 @@ const menuConfig = computed<MenuConfig>(() => ({
         {
           label: 'Create vocabulary',
           icon: 'add',
+          disabled: true,
           action: () => console.log('create vocabulary'),
         },
         {
           label: 'Public vocabularies',
           icon: 'public',
+          disabled: true,
           action: () => console.log('public vocabularies'),
         },
         {
           label: 'Vocabulary settings',
           icon: 'settings',
+          disabled: true,
           action: () => console.log('vocabulary settings'),
         },
       ],

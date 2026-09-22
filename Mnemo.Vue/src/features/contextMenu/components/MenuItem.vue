@@ -2,6 +2,7 @@
 defineProps<{
   icon?: string
   label: string
+  selected?: boolean
   disabled?: boolean
 }>()
 
@@ -11,7 +12,7 @@ defineEmits<{ (e: 'click'): void }>()
 <template>
   <div
     class="menu-item"
-    :class="{ disabled }"
+    :class="[{ selected }, { disabled }]"
     @mousedown.prevent
     @click="!disabled && $emit('click')"
   >
@@ -36,7 +37,7 @@ defineEmits<{ (e: 'click'): void }>()
     margin-right: 8px;
     margin-left: 4px;
 
-    color: $shadow-color;
+    color: $icon-color;
     font-size: 21px;
     line-height: 0.8;
   }
@@ -46,17 +47,29 @@ defineEmits<{ (e: 'click'): void }>()
     min-width: 0;
   }
 
-  &:hover {
-    background-color: $surface-secondary;
+  &.selected {
+    &::after {
+      content: 'check';
+      @include iconize;
+
+      margin-left: auto;
+      color: $text-muted;
+      font-size: 20px;
+    }
   }
 
   &.disabled {
     cursor: default;
-
     color: $text-muted;
 
     .icon {
-      opacity: 65%;
+      color: $shadow-color;
+    }
+  }
+
+  &:not(.disabled) {
+    &:hover {
+      background-color: $surface-secondary;
     }
   }
 }

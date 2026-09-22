@@ -47,6 +47,7 @@ watch(
           :key="opt.label"
           :icon="opt.icon"
           :label="opt.label"
+          :selected="opt.selected"
           :disabled="opt.disabled"
           @click="emit('invoke', opt)"
         />
