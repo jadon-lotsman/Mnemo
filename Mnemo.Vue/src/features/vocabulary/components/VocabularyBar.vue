@@ -12,7 +12,6 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'submitSearch', query: string): void
-  (e: 'clickCreate'): void
 }>()
 
 const vocabularyStore = useVocabularyStore()
