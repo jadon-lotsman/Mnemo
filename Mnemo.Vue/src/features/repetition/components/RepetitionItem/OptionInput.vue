@@ -63,18 +63,16 @@ defineEmits<{
     }
 
     &::after {
-      @include iconize;
+      @include iconize(19px);
 
       position: absolute;
-      top: -3px;
-      left: -3px;
+      top: 0px;
+      left: 0px;
 
       opacity: 0%;
 
       content: 'check';
       color: $text-secondary;
-
-      font-size: 26px;
     }
   }
 

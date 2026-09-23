@@ -88,17 +88,15 @@ watch(
   text-align: right;
 
   .collapse-chevron {
-    @include iconize;
+    @include iconize(19px);
 
     position: absolute;
-    top: 0px;
-    left: 0px;
+    top: 2px;
+    left: 3px;
 
     transition: transform 0.1s ease;
 
     color: $icon-color;
-
-    font-size: 24px;
 
     &--open {
       transform: rotate(90deg);

@@ -56,17 +56,15 @@ watch(
   width: 100%;
 
   .collapse-chevron {
-    @include iconize;
+    @include iconize(19px);
 
     position: absolute;
-    top: -3px;
-    left: -5px;
+    top: 0px;
+    left: -2px;
 
     transition: transform 0.1s ease;
 
-    color: $text-secondary;
-
-    font-size: 24px;
+    color: $icon-color;
 
     &--open {
       transform: rotate(90deg);
@@ -79,7 +77,7 @@ watch(
 
     cursor: pointer;
     margin: 20px 0px 10px 0px;
-    margin-left: 18px;
+    margin-left: 19px;
 
     color: $text-secondary;
 

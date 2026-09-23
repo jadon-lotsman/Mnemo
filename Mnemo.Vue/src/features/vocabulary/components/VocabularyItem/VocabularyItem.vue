@@ -243,7 +243,7 @@ function saveChanges() {
         margin-right: 4px;
 
         .audio-button {
-          @include iconize;
+          @include iconize(19px);
 
           opacity: 65%;
 
@@ -253,7 +253,6 @@ function saveChanges() {
           padding: 0px;
 
           color: $shadow-color;
-          font-size: 24px;
 
           line-height: 0.8;
         }

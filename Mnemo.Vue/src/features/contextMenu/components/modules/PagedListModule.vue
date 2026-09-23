@@ -62,14 +62,12 @@ watch(
     position: relative;
 
     .icon {
-      @include iconize;
+      @include iconize(16px);
 
       position: absolute;
 
-      top: 6px;
-      left: 10px;
-
-      font-size: 20px;
+      top: 8px;
+      left: 12px;
     }
 
     input {

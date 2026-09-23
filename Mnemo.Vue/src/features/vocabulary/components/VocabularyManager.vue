@@ -102,13 +102,12 @@ async function onEntryCreate(bodyRequest: CreateEntryRequest) {
     padding: 0px;
 
     .icon {
-      @include iconize;
+      @include iconize(19px);
 
-      font-size: 21px;
+      margin-right: 3px;
     }
 
     .label {
-      margin-top: 2px;
       color: $icon-color;
 
       font-size: 15px;

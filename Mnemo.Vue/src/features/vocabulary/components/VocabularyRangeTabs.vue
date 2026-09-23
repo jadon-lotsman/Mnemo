@@ -126,8 +126,11 @@ watch(
     display: flex;
     position: relative;
     justify-content: start;
+    align-items: end;
 
     gap: 7px;
+
+    margin-bottom: -1px;
 
     .indicator {
       position: absolute;
@@ -193,13 +196,11 @@ watch(
   }
 
   .descending-button {
-    @include iconize;
+    @include iconize(18px);
+
+    margin-top: 5px;
 
     background-color: transparent;
-
-    padding-bottom: 2px;
-
-    font-size: 22px;
   }
 
   .descending-button.flipped {

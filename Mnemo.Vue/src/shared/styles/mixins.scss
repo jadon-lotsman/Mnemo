@@ -1,10 +1,33 @@
-@mixin iconize() {
+@mixin iconize($size, $weight: 400, $fill: 1, $grad: 0) {
+  display: inline-flex;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+
+  width: $size;
+  height: $size;
+
   color: $icon-color;
   font-style: normal;
+  font-weight: normal;
+  font-size: $size * 1.2;
   line-height: 1;
+
   font-family: 'Material Symbols Rounded';
-  letter-spacing: 0.5;
+  letter-spacing: normal;
   user-select: none;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  font-feature-settings: 'liga';
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+
+  font-variation-settings:
+    'FILL' #{$fill},
+    'wght' #{$weight},
+    'GRAD' #{$grad},
+    'opsz' #{$size};
 }
 
 @mixin ellipsis($lines: 1) {

@@ -199,7 +199,7 @@ onMounted(async () => {
     }
 
     .search-button {
-      @include iconize;
+      @include iconize(17px);
 
       position: absolute;
 
@@ -211,24 +211,19 @@ onMounted(async () => {
 
       width: 34px;
       height: 34px;
-
-      font-size: 20px;
     }
 
     .clear-button {
-      @include iconize;
+      @include iconize(20px);
 
       position: absolute;
-      top: 6px;
-      right: 48px;
+      top: 7px;
+      right: 44px;
 
       border-radius: 50%;
 
       background-color: $surface-secondary;
       color: $icon-color;
-
-      font-weight: 400;
-      font-size: 22px;
     }
   }
 

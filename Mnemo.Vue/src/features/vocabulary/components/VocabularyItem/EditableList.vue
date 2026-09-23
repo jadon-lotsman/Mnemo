@@ -117,8 +117,8 @@ watch(
   }
 
   button {
-    @include iconize;
-    margin-right: 5px;
+    @include iconize(16px);
+    margin-right: 6px;
     margin-left: -5px;
 
     box-shadow: none;
@@ -126,9 +126,7 @@ watch(
 
     padding: 0px;
 
-    color: $shadow-color;
-
-    font-size: 21px;
+    color: $icon-color;
   }
 }
 
@@ -155,25 +153,26 @@ watch(
   color: $text-secondary;
 
   input {
+    margin-top: 6px;
+    margin-bottom: 6px;
+
     background-color: inherit;
 
     width: 100%;
-    font-style: italic;
 
+    font-style: italic;
     font-size: 16px;
   }
 
   button {
-    @include iconize;
+    @include iconize(19px);
 
     box-shadow: none;
     background-color: inherit;
 
     padding: 4px;
 
-    color: $shadow-color;
-
-    font-size: 24px;
+    color: $icon-color;
   }
 
   &::before {

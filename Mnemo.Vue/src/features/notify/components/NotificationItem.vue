@@ -74,18 +74,16 @@ function close() {
   }
 
   .icon {
-    @include iconize;
+    @include iconize(25px);
 
     display: block;
 
-    opacity: 85%;
+    opacity: 80%;
 
-    margin-top: 5px;
-    margin-right: 12px;
+    margin-top: 2px;
+    margin-right: 17px;
 
-    color: $shadow-color;
-
-    font-size: 32px;
+    color: $icon-color;
   }
 
   .title {

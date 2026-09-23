@@ -44,8 +44,7 @@ function openList() {
   color: $text-secondary;
 
   .icon {
-    font-size: 20px;
-    @include iconize;
+    @include iconize(16px);
   }
 
   .selected-item {
@@ -68,19 +67,17 @@ function openList() {
     }
 
     .chevron {
-      @include iconize;
+      @include iconize(19px);
 
       position: absolute;
 
-      top: 0px;
+      top: 1px;
       right: 0px;
 
       transform: rotate(90deg);
       margin-left: -3px;
 
       color: $text-muted;
-
-      font-size: 22px;
     }
   }
 }

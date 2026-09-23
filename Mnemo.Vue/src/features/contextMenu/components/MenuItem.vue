@@ -32,14 +32,10 @@ defineEmits<{ (e: 'click'): void }>()
   padding: 4px 8px 4px 4px;
 
   .icon {
-    @include iconize;
+    @include iconize(16px);
 
-    margin-right: 8px;
-    margin-left: 4px;
-
-    color: $icon-color;
-    font-size: 21px;
-    line-height: 0.8;
+    margin-right: 12px;
+    margin-left: 8px;
   }
 
   .label {
@@ -50,11 +46,13 @@ defineEmits<{ (e: 'click'): void }>()
   &.selected {
     &::after {
       content: 'check';
-      @include iconize;
 
+      @include iconize(16px);
       margin-left: auto;
+
+      padding-left: 6px;
+
       color: $text-muted;
-      font-size: 20px;
     }
   }
 

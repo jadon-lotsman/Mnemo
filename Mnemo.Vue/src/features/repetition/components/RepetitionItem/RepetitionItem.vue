@@ -192,13 +192,12 @@ watch(
   }
 
   .icon {
-    @include iconize;
+    @include iconize(19px);
 
     display: block;
 
     color: $shadow-color;
 
-    font-size: 24px;
     line-height: 0.8;
   }
 }

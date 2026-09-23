@@ -32,7 +32,7 @@ const logout = () => {
 
 <style lang="scss" scoped>
 button {
-  @include iconize;
+  @include iconize(19px);
   @include lift();
 
   position: fixed;
@@ -41,7 +41,5 @@ button {
   background-color: $elevated-bg;
 
   color: $shadow-color;
-
-  font-size: 24px;
 }
 </style>
