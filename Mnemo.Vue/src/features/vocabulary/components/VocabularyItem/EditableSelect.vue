@@ -96,7 +96,7 @@ watch(
 
     transition: transform 0.1s ease;
 
-    color: $text-secondary;
+    color: $icon-color;
 
     font-size: 24px;
 

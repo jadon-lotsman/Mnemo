@@ -89,7 +89,7 @@ watch(
       :key="item"
     >
       <button v-if="isEditorMode" @click.stop="removeItem(item)">close</button>
-      <li>
+      <li :style="isEditorMode ? 'font-size: 16px' : ''">
         {{ capitalizeItems ? capitalize(item) : item }}
       </li>
     </div>

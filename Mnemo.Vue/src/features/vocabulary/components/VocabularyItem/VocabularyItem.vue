@@ -9,10 +9,10 @@ import EditableField from './EditableField.vue'
 import EditableList from './EditableList.vue'
 import EditableSelect from './EditableSelect.vue'
 import { PART_OF_SPEECH_OPTIONS } from '@/shared/constants/PartOfSpeech.ts'
-import { useAudioStore } from '../../../../shared/composables/useAudio.ts'
+import { useAudio } from '../../../../shared/composables/useAudio.ts'
 import { useSelection } from '@/shared/composables/useSelection.ts'
 
-const audio = useAudioStore()
+const audio = useAudio()
 
 const selectionChecker = useSelection()
 
@@ -315,6 +315,7 @@ function saveChanges() {
 
   footer {
     padding: 12px 16px;
+    padding-right: 6px;
 
     &:empty {
       padding: 8px;

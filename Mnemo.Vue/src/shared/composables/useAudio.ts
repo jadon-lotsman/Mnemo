@@ -3,7 +3,7 @@ import { ref } from 'vue'
 const currentAudio = ref<HTMLAudioElement | null>(null)
 const currentUrl = ref<string | null>(null)
 
-export function useAudioStore() {
+export function useAudio() {
   function playAudio(url: string) {
     stopAudio()
 
