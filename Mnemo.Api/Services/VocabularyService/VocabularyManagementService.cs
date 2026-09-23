@@ -2,6 +2,7 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using Mnemo.Contracts;
 using Mnemo.Contracts.Entry;
 using Mnemo.Contracts.Entry.Requests;
@@ -210,18 +211,21 @@ namespace Mnemo.Services.VocabularyService
                 return RequestResult<Vocabulary>.Failure(ErrorCode.UserNotFound);
             }
 
+            var linksToAdd = new List<VocabularyEntryLink>();
 
-            var linkResults = await _entryService.SetVocabularyLinksAsync(userId, null, request.Entries);
-
-            if (linkResults.IsAllFailure)
+            if (!request.Entries.IsNullOrEmpty())
             {
-                var messages = string.Join("; ", linkResults.FailedResults.Select(e => e.ErrorMessage));
-                var duplicationErrors = RequestResult<Vocabulary>.Failure(ErrorCode.DuplicateEntry, messages);
-                return duplicationErrors;
+                var linkResults = await _entryService.SetVocabularyLinksAsync(userId, null, request.Entries);
+
+                if (linkResults.IsAllFailure)
+                {
+                    var messages = string.Join("; ", linkResults.FailedResults.Select(e => e.ErrorMessage));
+                    var duplicationErrors = RequestResult<Vocabulary>.Failure(ErrorCode.DuplicateEntry, messages);
+                    return duplicationErrors;
+                }
+
+                linksToAdd = linkResults.SucceededResults.Select(r => r.Value!).ToList();
             }
-
-
-            var linksToAdd = linkResults.SucceededResults.Select(r => r.Value!).ToList();
 
             var vocab = _mapper.Map<Vocabulary>(request);
             vocab.OwnerId = userId;
