@@ -17,11 +17,8 @@ const selectedHeader = ref<SelectorItem<VocabularyHeader> | null>(null)
 const selectedRange = ref<VocabularyRange | null>(null)
 const searchQuery = ref<string>('')
 
-async function onSearchSubmit(query: string) {
-  const trimmed = query.trim()
-  if (!trimmed) {
-    return
-  }
+function onSearchSubmit(query: string) {
+  searchQuery.value = query
 }
 
 const templateEntry = ref<VocabularyEntry | undefined>(undefined)
@@ -65,7 +62,7 @@ async function onEntryCreate(bodyRequest: CreateEntryRequest) {
 
       <VocabularyBar
         v-model:selected="selectedHeader"
-        v-model:search-query="searchQuery"
+        :search-query="searchQuery"
         @submit-search="onSearchSubmit"
       />
 
@@ -81,7 +78,11 @@ async function onEntryCreate(bodyRequest: CreateEntryRequest) {
         @create="onEntryCreate"
       />
 
-      <VocabularyEntryList :header="selectedHeader?.value ?? null" :letter-range="selectedRange" />
+      <VocabularyEntryList
+        :header="selectedHeader?.value ?? null"
+        :letter-range="selectedRange"
+        :search-query="searchQuery"
+      />
     </CollapsibleSection>
   </div>
 </template>

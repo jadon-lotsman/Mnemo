@@ -13,6 +13,7 @@ import { format } from 'date-fns'
 const props = defineProps<{
   header: VocabularyHeader | null
   letterRange: VocabularyRange | null
+  searchQuery: string
 }>()
 
 const entryStore = useVocabularyEntryStore()
@@ -101,6 +102,14 @@ watch(
   () => props.letterRange,
   async () => {
     await reloadPage()
+  },
+)
+
+watch(
+  () => props.searchQuery,
+  async (newVal) => {
+    if (newVal === '') await reloadPage()
+    else await entryStore.searchEntries(props.header?.guid ?? null, props.searchQuery)
   },
 )
 </script>

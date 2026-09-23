@@ -6,8 +6,9 @@ import { useVocabularyStore } from '../stores/VocabularyStore'
 import type { VocabularyHeader } from '../types/VocabularyHeader'
 import type { MenuConfig } from '@/features/contextMenu/types/MenuConfig'
 
-defineProps<{
+const props = defineProps<{
   isLoading?: boolean
+  searchQuery: string
 }>()
 
 const emit = defineEmits<{
@@ -19,7 +20,8 @@ const vocabularyStore = useVocabularyStore()
 const selectedItem = defineModel<SelectorItem<VocabularyHeader> | null>('selected', {
   default: null,
 })
-const searchQuery = defineModel<string>('searchQuery', { default: '' })
+
+const inputQuery = ref(props.searchQuery)
 
 const selectorItems = computed<SelectorItem<VocabularyHeader>[]>(() =>
   vocabularyStore.headers.map((h) => ({
@@ -28,6 +30,11 @@ const selectorItems = computed<SelectorItem<VocabularyHeader>[]>(() =>
     value: h,
   })),
 )
+
+function selectVocabulary(item: SelectorItem<VocabularyHeader>) {
+  selectedItem.value = item
+  clearSearch()
+}
 
 const menuConfig = computed<MenuConfig>(() => ({
   modules: [
@@ -38,10 +45,7 @@ const menuConfig = computed<MenuConfig>(() => ({
         label: item.label,
         icon: item.icon,
         selected: item.value.guid === selectedItem.value?.value.guid,
-        action: () => {
-          selectedItem.value = item
-          searchQuery.value = ''
-        },
+        action: () => selectVocabulary(item),
       })),
     },
     {
@@ -67,21 +71,27 @@ const menuConfig = computed<MenuConfig>(() => ({
         },
       ],
     },
+    { type: 'text', text: 'Coming soon' },
   ],
 }))
 
 const inputRef = ref<HTMLInputElement | null>(null)
 
 function submitSearch() {
-  emit('submitSearch', searchQuery.value)
+  emit('submitSearch', inputQuery.value)
+  inputRef.value?.blur()
+}
+
+function clearSearch() {
+  inputQuery.value = ''
+  submitSearch()
 }
 
 watch(
-  () => searchQuery.value,
+  () => inputQuery.value,
   (newVal, oldVal) => {
     if (oldVal && newVal === '') {
-      submitSearch()
-      inputRef.value?.blur()
+      clearSearch()
     }
   },
 )
@@ -90,12 +100,9 @@ watch(
   selectorItems,
   (newItems) => {
     if (newItems.length === 0) return
-    if (
-      selectedItem.value &&
-      newItems.some((i) => i.value.guid === selectedItem.value!.value.guid)
-    ) {
+    if (selectedItem.value && newItems.some((i) => i.value.guid === selectedItem.value!.value.guid))
       return
-    }
+
     selectedItem.value = newItems[0] ?? null
   },
   { immediate: true },
@@ -113,18 +120,18 @@ onMounted(async () => {
     <form class="search-form" @submit.prevent="submitSearch">
       <input
         ref="inputRef"
-        v-model="searchQuery"
+        v-model="inputQuery"
         type="search"
         :disabled="isLoading"
         :placeholder="isLoading ? 'Loading...' : 'Search entries...'"
       />
 
       <button
+        v-if="inputQuery !== ''"
         class="clear-button"
-        v-if="searchQuery !== ''"
         type="button"
         :disabled="isLoading"
-        @click="searchQuery = ''"
+        @click="clearSearch"
       >
         close_small
       </button>

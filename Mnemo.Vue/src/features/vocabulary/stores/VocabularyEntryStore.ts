@@ -44,10 +44,16 @@ export const useVocabularyEntryStore = defineStore('entry', () => {
     totalPages.value = 1
   }
 
-  async function searchEntries(guid: string | null, query: string): Promise<VocabularyEntry[]> {
+  async function searchEntries(guid: string | null, query: string) {
     try {
       loadingPlaceholder.startLoading()
-      return await apiRequest<VocabularyEntry[]>(`/api/vocabularies/${guid}/entries?query=${query}`)
+
+      await resetPages()
+      const result = await apiRequest<VocabularyEntry[]>(
+        `/api/vocabularies/${guid}/entries?query=${query}`,
+      )
+
+      entries.value = result
     } finally {
       loadingPlaceholder.stopLoading()
     }
