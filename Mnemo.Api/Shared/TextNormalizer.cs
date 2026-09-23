@@ -7,6 +7,12 @@ namespace Mnemo.Shared
         private static string NormalizeCore(string? str)
             => str?.RemoveMultispaces().ToLowerInvariant() ?? string.Empty;
 
+        public static string NormalizeName(string? str)
+            => str?.RemoveMultispaces().CapitalizeAll() ?? string.Empty;
+
+        public static string NormalizeDescription(string? str)
+            => str?.RemoveMultispaces().Capitalize().AddEndPointIfNeeded() ?? string.Empty;
+
         public static string NormalizeForeign(string? str)
             => NormalizeCore(str);
 
