@@ -71,7 +71,6 @@ const menuConfig = computed<MenuConfig>(() => ({
         },
       ],
     },
-    { type: 'text', text: 'Coming soon' },
   ],
 }))
 

@@ -67,6 +67,28 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 button {
-  margin-top: 20px;
+  margin-top: 15px;
+}
+
+.input {
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s ease;
+  box-shadow: 5px 5px 0px $shadow-color;
+
+  border: $surface-secondary 3px solid;
+
+  border-radius: 12px;
+  padding: 10px;
+
+  width: 100%;
+  color: $text-primary;
+
+  font-size: 15px;
+
+  &:focus {
+    transform: translateY(-3px);
+    box-shadow: 8px 8px 0px $shadow-color;
+  }
 }
 </style>
