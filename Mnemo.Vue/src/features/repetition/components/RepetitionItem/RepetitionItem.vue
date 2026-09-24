@@ -121,30 +121,28 @@ watch(
 
 <style lang="scss" scoped>
 .task {
-  max-width: 470px;
-  min-width: 370px;
   margin-bottom: 20px;
+  min-width: 370px;
+  max-width: 470px;
 
   .body {
-    background-color: $plane-white;
-    box-shadow: 5px 5px 0px $shadow;
+    box-shadow: 5px 5px 0px $shadow-color;
     border-radius: 12px;
+    background-color: $surface-primary;
 
     header {
-      position: relative;
-
       display: flex;
-      justify-content: space-between;
+      position: relative;
       flex-direction: row;
+      justify-content: space-between;
       padding: 12px 15px;
 
       .prompt {
-        position: relative;
-
         display: flex;
+        position: relative;
         justify-content: start;
 
-        color: $gray-font;
+        color: $text-secondary;
 
         font-size: 16px;
 
@@ -154,7 +152,7 @@ watch(
         }
 
         .bold {
-          color: $black-font;
+          color: $text-primary;
         }
       }
 
@@ -166,8 +164,8 @@ watch(
     }
 
     footer {
-      padding: 0px 15px;
       margin-bottom: 18px;
+      padding: 0px 15px;
 
       .option-input {
         display: flex;
@@ -177,30 +175,29 @@ watch(
     }
 
     .big-button {
-      background-color: $plane-gray;
+      background-color: $surface-secondary;
     }
   }
 
   .correct {
-    position: relative;
     display: block;
-
-    color: $gray-font;
+    position: relative;
 
     margin-top: 15px;
     padding: 2px 8px;
+
+    color: $text-secondary;
 
     font-size: 16px;
   }
 
   .icon {
-    @include iconize-text;
+    @include iconize(19px);
 
     display: block;
 
-    color: $shadow;
+    color: $shadow-color;
 
-    font-size: 24px;
     line-height: 0.8;
   }
 }

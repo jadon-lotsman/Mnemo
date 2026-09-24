@@ -106,6 +106,7 @@ namespace Mnemo
             services.AddScoped<AccountQueries>();
             services.AddScoped<TaskQueries>();
             services.AddScoped<StateQueries>();
+            services.AddScoped<VocabularyEntryQueries>();
             services.AddScoped<VocabularyQueries>();
 
             // DI Services
@@ -113,6 +114,7 @@ namespace Mnemo
             services.AddScoped<RepetitionTaskService>();
             services.AddScoped<StateManagementService>();
             services.AddScoped<QualityCalculationService>();
+            services.AddScoped<EntryManagementService>();
             services.AddScoped<VocabularyManagementService>();
 
             // DI Enrichment

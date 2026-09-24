@@ -1,10 +1,57 @@
-@mixin iconize-text() {
-  user-select: none;
+@mixin iconize($size, $weight: 400, $fill: 1, $grad: 0) {
+  display: inline-flex;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
 
-  line-height: 1;
-  font-size: 24px;
-  font-family: 'Material Symbols Rounded';
+  width: $size;
+  height: $size;
+
+  color: $icon-color;
   font-style: normal;
+  font-weight: normal;
+  font-size: $size * 1.2;
+  line-height: 1;
+
+  font-family: 'Material Symbols Rounded';
+  letter-spacing: normal;
+  user-select: none;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  font-feature-settings: 'liga';
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+
+  font-variation-settings:
+    'FILL' #{$fill},
+    'wght' #{$weight},
+    'GRAD' #{$grad},
+    'opsz' #{$size};
+}
+
+@mixin ellipsis($lines: 1) {
+  @if $lines == 1 {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  } @else {
+    display: -webkit-box;
+    -webkit-line-clamp: $lines;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// Использование
+.title {
+  @include ellipsis(1);
+}
+
+.description {
+  @include ellipsis(3);
 }
 
 @mixin lift($distance: -2px, $shadow-offset: 2px) {
@@ -14,6 +61,6 @@
 
   &:hover {
     transform: translateY($distance);
-    box-shadow: ($shadow-offset + 5px) ($shadow-offset + 5px) 0px $shadow;
+    box-shadow: ($shadow-offset + 5px) ($shadow-offset + 5px) 0px var(--shadow-color);
   }
 }

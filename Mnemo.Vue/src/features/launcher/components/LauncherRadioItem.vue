@@ -31,14 +31,14 @@ defineEmits<{
 
   cursor: pointer;
 
-  box-shadow: 5px 5px 0px $shadow;
-
-  user-select: none;
+  box-shadow: 5px 5px 0px $shadow-color;
 
   border-radius: 12px;
+
+  background-color: $surface-primary;
   padding: 10px;
 
-  background-color: $plane-white;
+  user-select: none;
 
   input {
     display: none;
@@ -46,49 +46,47 @@ defineEmits<{
 
   .title {
     display: flex;
-    color: $black-font;
-
-    font-size: 16px;
-    padding-bottom: 20px;
 
     position: relative;
+    padding-bottom: 20px;
+    color: $text-primary;
+
+    font-size: 16px;
 
     &::before {
-      content: '';
       display: block;
-
-      background-color: $plane-gray;
+      margin-right: 10px;
 
       border-radius: 4px;
-      margin-right: 10px;
+
+      background-color: $surface-secondary;
 
       width: 20px;
       height: 20px;
+      content: '';
     }
 
     &::after {
-      @include iconize-text;
+      @include iconize(19px);
 
-      content: 'check';
-      color: $gray-font;
+      position: absolute;
+      top: 0px;
+      left: 0px;
 
       opacity: 0%;
 
-      position: absolute;
-      top: -3px;
-      left: -3px;
+      content: 'check';
 
-      font-size: 26px;
+      color: $text-secondary;
     }
   }
 
   .description {
-    color: $gray-font;
-
-    font-size: 14px;
+    max-width: 90%;
+    color: $text-secondary;
     font-weight: 400;
 
-    max-width: 80%;
+    font-size: 14px;
   }
 
   input:checked + .title::after {

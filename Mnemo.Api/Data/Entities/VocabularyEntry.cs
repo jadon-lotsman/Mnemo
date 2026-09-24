@@ -1,41 +1,56 @@
-﻿using Mnemo.Contracts.Vocabulary;
+﻿using Mnemo.Contracts.Entry;
 using Mnemo.Shared.Enums;
 
 namespace Mnemo.Data.Entities
 {
-    public class VocabularyEntry
+    public class VocabularyEntry : VocabularyDefinition
     {
         public int Id { get; set; }
-
-        public PartOfSpeech? PartOfSpeech { get; set; }
-        public string Foreign { get; set; }
-        public string? Transcription { get; set; }
-        public string? TranscriptionAudioUrl { get; set; }
-        public List<string> Examples { get; set; }
-        public List<string> Translations { get; set; }
-        public List<string> Synonyms { get; set; }
-        public List<string> Antonyms { get; set; }
         public EnrichmentStatus EnrichmentStatus { get; set; }
         public DateTime LastEnrichmentAt { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
 
-        public int UserId { get; set; }
-        public User User { get; set; }
+        public int OwnerId { get; set; }
+        public User Owner { get; set; }
+        public int? MergedFromId { get; set; }
+        public Vocabulary? MergedFrom { get; set; }
         public RepetitionState? RepetitionState { get; set; }
+        public List<VocabularyEntryLink> VocabularyLinks { get; set; }
 
 
         public VocabularyEntry()
         {
-            Examples = new List<string>();
-            Translations = new List<string>();
-            Synonyms = new List<string>();
-            Antonyms = new List<string>();
-            EnrichmentStatus = EnrichmentStatus.Pending;
-            LastEnrichmentAt = DateTime.UtcNow;
             CreatedAt = DateTime.UtcNow;
+            UpdatedAt = CreatedAt;
+            LastEnrichmentAt = CreatedAt;
+            EnrichmentStatus = EnrichmentStatus.Pending;
         }
 
+
+        public static VocabularyEntry CreateFromDefinition(VocabularyDefinition source)
+        {
+            return new VocabularyEntry
+            {
+                Foreign = source.Foreign,
+                Transcription = source.Transcription,
+                AudioUrl = source.AudioUrl,
+                PartOfSpeech = source.PartOfSpeech,
+                CEFR = source.CEFR,
+
+                Examples = new List<string>(source.Examples),
+                Translations = new List<string>(source.Translations),
+                Synonyms = new List<string>(source.Synonyms),
+                Antonyms = new List<string>(source.Antonyms),
+
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastEnrichmentAt = DateTime.UtcNow,
+                EnrichmentStatus = EnrichmentStatus.Pending,
+                RepetitionState = null
+            };
+        }
 
         public bool SetMeta(EnrichResponse enrich)
         {
@@ -48,8 +63,8 @@ namespace Mnemo.Data.Entities
             {
                 Transcription = enrich.Transcription;
 
-                if (TranscriptionAudioUrl == null && enrich.TranscriptionAudioUrl != null)
-                    TranscriptionAudioUrl = enrich.TranscriptionAudioUrl;
+                if (AudioUrl == null && enrich.AudioUrl != null)
+                    AudioUrl = enrich.AudioUrl;
 
                 isEnriched = true;
             }
@@ -73,7 +88,7 @@ namespace Mnemo.Data.Entities
         public void ResetAllMeta()
         {
             Transcription = null;
-            TranscriptionAudioUrl = null;
+            AudioUrl = null;
             Synonyms.Clear();
             Antonyms.Clear();
             EnrichmentStatus = EnrichmentStatus.Pending;
@@ -81,7 +96,7 @@ namespace Mnemo.Data.Entities
 
         public void ResetAudio()
         {
-            TranscriptionAudioUrl = null;
+            AudioUrl = null;
             EnrichmentStatus = EnrichmentStatus.Pending;
         }
     }

@@ -28,25 +28,25 @@ function showPlannedForeigns() {
 
 <style lang="scss" scoped>
 .day {
-  position: relative;
-
-  cursor: default;
-  user-select: none;
-
   display: flex;
+  position: relative;
   flex-direction: column;
   justify-content: center;
-  text-align: center;
-  box-shadow: 5px 5px 0px $shadow;
+  cursor: default;
 
-  color: $shadow;
-  background-color: $plane-white;
-
-  height: 65px;
-  max-width: 60px;
+  box-shadow: 5px 5px 0px $shadow-color;
   border-radius: 12px;
 
+  background-color: $surface-primary;
+
+  max-width: 60px;
+  height: 65px;
+
+  color: $shadow-color;
+
   font-size: 16px;
+  user-select: none;
+  text-align: center;
 
   .important-mark {
     position: absolute;
@@ -54,10 +54,10 @@ function showPlannedForeigns() {
     top: 6px;
     right: 12px;
 
-    color: $black-font;
+    color: $text-primary;
+    font-weight: 200;
 
     font-size: 18px;
-    font-weight: 200;
   }
 
   &--planned {
@@ -65,7 +65,7 @@ function showPlannedForeigns() {
 
     cursor: pointer;
 
-    color: $black-font;
+    color: $text-primary;
   }
 }
 </style>

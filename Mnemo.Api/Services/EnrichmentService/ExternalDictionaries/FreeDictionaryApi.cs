@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.Caching.Memory;
-using Mnemo.Contracts.Vocabulary;
+using Mnemo.Contracts.Entry;
 using Mnemo.Shared;
 using Mnemo.Shared.Enums;
 using System.Text.Json;
@@ -73,7 +73,7 @@ namespace Mnemo.Services.EnrichmentService.ExternalDictionaries
                 var enrichResponse = new EnrichResponse()
                 {
                     Transcription = phonetic?.Text,
-                    TranscriptionAudioUrl = phonetic?.Audio,
+                    AudioUrl = phonetic?.Audio,
                     Synonyms = meaning?.Synonyms?.ToArray(),
                     Antonyms = meaning?.Antonyms?.ToArray(),
                 };

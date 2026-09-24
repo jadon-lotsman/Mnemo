@@ -89,7 +89,7 @@ watch(
       :key="item"
     >
       <button v-if="isEditorMode" @click.stop="removeItem(item)">close</button>
-      <li>
+      <li :style="isEditorMode ? 'font-size: 16px' : ''">
         {{ capitalizeItems ? capitalize(item) : item }}
       </li>
     </div>
@@ -106,73 +106,78 @@ watch(
   justify-content: start;
   align-items: center;
 
+  color: $text-secondary;
+
+  font-size: 15px;
+
   li {
-    word-break: break-all;
     text-wrap-mode: wrap;
     text-wrap-style: stable;
+    word-break: break-all;
   }
 
   button {
-    @include iconize-text;
-
-    color: $shadow;
-    background-color: transparent;
+    @include iconize(16px);
+    margin-right: 6px;
+    margin-left: -5px;
 
     box-shadow: none;
+    background-color: transparent;
 
     padding: 0px;
-    margin-left: -5px;
-    margin-right: 5px;
 
-    font-size: 21px;
+    color: $icon-color;
   }
 }
 
 .marked {
   li {
-    font-size: 16px;
     font-style: italic;
+    font-size: 15px;
 
     &::before {
-      content: '–';
       padding-right: 10px;
+      content: '–';
     }
   }
 }
 
 .add-form {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
 
   grid-column: 1/4;
-
-  color: $gray-font;
+  justify-content: space-between;
+  align-items: center;
   background-color: transparent;
 
+  color: $text-secondary;
+
   input {
+    margin-top: 6px;
+    margin-bottom: 6px;
+
     background-color: inherit;
 
     width: 100%;
 
-    font-size: 16px;
     font-style: italic;
+    font-size: 16px;
   }
 
   button {
-    @include iconize-text;
-
-    color: $shadow;
-    background-color: inherit;
+    @include iconize(19px);
 
     box-shadow: none;
+    background-color: inherit;
 
     padding: 4px;
+
+    color: $icon-color;
   }
 
   &::before {
-    content: '–';
     padding-right: 10px;
+    content: '–';
   }
 }
 </style>

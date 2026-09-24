@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Mnemo.Shared.Extensions
@@ -20,6 +21,13 @@ namespace Mnemo.Shared.Extensions
             letters[0] = char.ToUpper(letters[0]);
 
             return string.Join("", letters);
+        }
+
+        public static string CapitalizeAll(this string str)
+        {
+            if (string.IsNullOrWhiteSpace(str)) return str;
+
+            return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(str);
         }
 
         public static string RemoveMultispaces(this string str)

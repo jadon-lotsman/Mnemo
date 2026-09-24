@@ -29,75 +29,75 @@ function close() {
 
 <style lang="scss" scoped>
 .notification {
-  position: relative;
-
   display: flex;
+  position: relative;
   align-items: start;
 
-  pointer-events: all;
-
-  box-shadow: 5px 5px 0px $shadow;
-
-  border-radius: 0px 12px 12px 12px;
-  background-color: $cloud-white;
-
-  filter: drop-shadow(0px 0px 8px #bbbbbb4d);
   backdrop-filter: blur(2px);
+  filter: drop-shadow(0px 0px 8px #bbbbbb4d);
 
-  margin-left: 15px;
+  will-change: transform, opacity;
+
   margin-right: 12px;
+  margin-left: 15px;
 
-  max-width: $layoutWidth;
-  width: fit-content;
-  max-width: 400px;
-  min-width: 250px;
+  box-shadow: 5px 5px 0px $shadow-color;
+  border-radius: 0px 12px 12px 12px;
+
+  background-color: $elevated-bg;
+
   padding: 10px 15px;
   padding-right: 25px;
 
+  width: fit-content;
+  min-width: 250px;
+  max-width: $layout-width;
+
+  pointer-events: all;
+
   &::after {
-    content: '';
-
     position: absolute;
-
-    width: 0;
-    height: 0;
-    border: 8px solid transparent;
-    border-top: 8px solid $cloud-white;
-    border-right: 8px solid $cloud-white;
 
     top: 0px;
     left: -12px;
 
+    border: 8px solid transparent;
+    border-top: 8px solid $elevated-bg;
+    border-right: 8px solid $elevated-bg;
+
     background-color: transparent;
+
+    width: 0;
+    height: 0;
+
+    content: '';
   }
 
   .icon {
-    @include iconize-text;
+    @include iconize(25px);
 
     display: block;
 
-    opacity: 85%;
+    opacity: 80%;
 
-    color: $shadow;
+    margin-top: 2px;
+    margin-right: 17px;
 
-    margin-right: 12px;
-    margin-top: 5px;
-
-    font-size: 32px;
+    color: $icon-color;
   }
 
   .title {
     display: block;
 
-    color: $black-font;
+    color: $text-primary;
   }
 
   .description {
     display: block;
 
-    color: $gray-font;
-
     margin-top: 3px;
+
+    color: $text-secondary;
 
     font-size: 15px;
   }

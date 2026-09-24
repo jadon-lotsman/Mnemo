@@ -5,12 +5,12 @@ import { useNotify } from '@/shared/composables/useNotify'
 import { apiRequest } from '@/shared/utils/ApiRequest'
 import CollapsibleSection from '@/shared/components/CollapsibleSection.vue'
 import { ROUTE_NAMES } from '@/shared/constants/RouteConst'
-import { useLoadingPlaceholer } from '@/shared/composables/useLoadingPlaceholder'
+import { useLoadingPlaceholder } from '@/shared/composables/useLoadingPlaceholder'
 
 const route = useRoute()
 const router = useRouter()
 const notify = useNotify()
-const loadingPlaceholder = useLoadingPlaceholer()
+const loadingPlaceholder = useLoadingPlaceholder()
 
 const username = ref<string>('')
 const buttonText = computed(() => (loadingPlaceholder.showSkeleton.value ? 'Logining...' : 'Login'))
@@ -51,7 +51,13 @@ onMounted(() => {
 <template>
   <CollapsibleSection title="Login">
     <form @submit.prevent="login">
-      <input class="input" type="text" placeholder="Username..." v-model="username" />
+      <input
+        class="input"
+        autocapitalize="none"
+        type="text"
+        placeholder="Username..."
+        v-model="username"
+      />
       <button class="big-button" type="submit" :disabled="loadingPlaceholder.isLoading.value">
         {{ buttonText }}
       </button>
@@ -60,11 +66,29 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-input {
-  text-transform: none;
+button {
+  margin-top: 15px;
 }
 
-button {
-  margin-top: 20px;
+.input {
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s ease;
+  box-shadow: 5px 5px 0px $shadow-color;
+
+  border: $surface-secondary 3px solid;
+
+  border-radius: 12px;
+  padding: 10px;
+
+  width: 100%;
+  color: $text-primary;
+
+  font-size: 15px;
+
+  &:focus {
+    transform: translateY(-3px);
+    box-shadow: 8px 8px 0px $shadow-color;
+  }
 }
 </style>

@@ -3,6 +3,7 @@ using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
 using Mnemo.Shared;
 using Mnemo.Shared.Enums;
+using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Services.AccountService
 {
@@ -26,15 +27,16 @@ namespace Mnemo.Services.AccountService
             if (await _accountQueries.ExistsByUsernameAsync(username))
                 return RequestResult<bool>.Failure(ErrorCode.UsernameTaken, $"Username '{username}' Is Taken");
 
-            //if (string.IsNullOrWhiteSpace(password))
-            //    return RequestResult<bool>.Failure("INVALID_PASSWORD");
-
 
             var user = new User
             {
                 Username = username,
-                RegisteredAt = DateTime.UtcNow
             };
+            user.Vocabularies.Add(new Vocabulary()
+            {
+                Name = $"{username.Capitalize()}'s Vocabulary",
+            });
+
 
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();

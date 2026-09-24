@@ -1,86 +1,131 @@
-import type { ContextMenuItem } from '@/features/contextMenu/types/ContextMenuItem'
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { nextTick, ref } from 'vue'
 import { useActiveInput } from '@/shared/composables/useActiveInput.ts'
 import { useSelection } from '@/shared/composables/useSelection.ts'
+import { useEventListener } from '@vueuse/core'
+import type { MenuConfig } from '@/features/contextMenu/types/MenuConfig'
+
+const MENU_ELEMENT_OFFSET = 6
+const MENU_MOUSE_OFFSET = 12
+const MENU_FADE_DELAY = 120
+
+const menuX = ref<number>(0)
+const menuY = ref<number>(0)
+const isVisible = ref<boolean>(false)
+const isPositioned = ref(false)
+const hasTriangle = ref<boolean>(true)
+const isLeftAligned = ref<boolean>(false)
+const isTopAligned = ref<boolean>(false)
+
+const menuModules = ref<MenuConfig>()
+const menuRef = ref<HTMLElement | null>(null)
 
 export function useContextMenu() {
-  const isOpen = ref(false)
-  const x = ref(0)
-  const y = ref(0)
-  const items = ref<ContextMenuItem[]>([])
-  const descriptions = ref<string[]>([])
+  const { hasActiveInput } = useActiveInput()
+  const { hasSelection } = useSelection()
 
-  const inputChecker = useActiveInput()
-  const selectionChecker = useSelection()
+  async function openContextByElement(element: HTMLElement | null, modules: MenuConfig) {
+    if (!element) return
 
-  const MENU_WIDTH = 230
-  const MENU_ITEM_HEIGHT = 40
+    const rect = element.getBoundingClientRect()
 
-  async function open(event: MouseEvent, menuItems: ContextMenuItem[], menuDescriptions: string[]) {
-    if (inputChecker.hasActiveInput.value || selectionChecker.hasSelection.value) return
+    const mouseEvent = new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      clientX: rect.left,
+      clientY: rect.bottom + MENU_ELEMENT_OFFSET,
+    })
 
+    await openContextByMouse(mouseEvent, modules, false)
+  }
+
+  async function openContextByMouse(
+    event: MouseEvent,
+    modules: MenuConfig,
+    needTriangle: boolean = true,
+  ) {
+    if (hasActiveInput.value || hasSelection.value) return
     event.preventDefault()
     event.stopPropagation()
 
-    isOpen.value = false
+    const wasOpened = isVisible.value
+    isVisible.value = false
+    isPositioned.value = false
+
+    menuModules.value = modules
+    hasTriangle.value = needTriangle
+
+    await new Promise((r) => setTimeout(r, wasOpened ? MENU_FADE_DELAY : 0))
+
+    isVisible.value = true
+
     await nextTick()
 
-    items.value = menuItems
-    descriptions.value = menuDescriptions
-    isOpen.value = true
+    const el = menuRef.value
+    if (!el) return
 
-    const cursorX = event.clientX
-    const cursorY = event.clientY
-    const maxX = window.innerWidth - MENU_WIDTH
-    const maxY = window.innerHeight - (menuItems.length * MENU_ITEM_HEIGHT + 20)
+    const MENU_WIDTH = el.offsetWidth
+    const MENU_HEIGHT = el.offsetHeight
 
-    x.value = Math.min(cursorX, maxX)
-    y.value = Math.min(cursorY, maxY)
+    const windowW = window.innerWidth
+    const windowH = window.innerHeight
+    const scrollX = window.pageXOffset
+    const scrollY = window.pageYOffset
+
+    const horizOffset = needTriangle ? MENU_MOUSE_OFFSET : 0
+    const isFitsRight = event.clientX + MENU_WIDTH + horizOffset <= windowW
+    const isFitsBottom = event.clientY + MENU_HEIGHT <= windowH
+
+    const x = event.pageX + (isFitsRight ? horizOffset : -MENU_WIDTH - horizOffset)
+    const y = event.pageY + (isFitsBottom ? 0 : -MENU_HEIGHT)
+
+    const minX = scrollX
+    const maxX = scrollX + windowW - MENU_WIDTH
+    const minY = scrollY
+    const maxY = scrollY + windowH - MENU_HEIGHT
+
+    menuX.value = Math.max(minX, Math.min(maxX, x))
+    menuY.value = Math.max(minY, Math.min(maxY, y))
+
+    isLeftAligned.value = !isFitsRight
+    isTopAligned.value = !isFitsBottom
+    isPositioned.value = true
   }
 
-  async function close() {
-    isOpen.value = false
-    items.value = []
-    descriptions.value = []
-  }
-
-  function handleGlobalClick(event: MouseEvent) {
-    if (!isOpen.value) return
-
-    const menuElement = document.querySelector('.context-menu')
-    if (menuElement && !menuElement.contains(event.target as Node)) {
-      event.preventDefault()
-      close()
+  function closeMenu() {
+    if (isVisible.value) {
+      isVisible.value = false
+      isPositioned.value = false
+      menuModules.value = undefined
     }
   }
 
-  function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape' && isOpen.value) {
-      close()
-    }
+  useEventListener(window, 'click', handleOutsideClick)
+  useEventListener(window, 'contextmenu', handleOutsideClick)
+  useEventListener(window, 'keydown', handleEscape)
+  useEventListener(window, 'resize', closeMenu)
+  useEventListener(window, 'scroll', closeMenu)
+
+  function handleOutsideClick(event: MouseEvent) {
+    const menu = document.querySelector('.context-menu')
+    if (menu && !menu.contains(event.target as Node)) closeMenu()
   }
 
-  onMounted(() => {
-    window.addEventListener('click', handleGlobalClick)
-    window.addEventListener('scroll', close)
-    window.addEventListener('contextmenu', handleGlobalClick)
-    window.addEventListener('keydown', handleKeydown)
-  })
-
-  onUnmounted(() => {
-    window.removeEventListener('click', handleGlobalClick)
-    window.removeEventListener('scroll', close)
-    window.removeEventListener('contextmenu', handleGlobalClick)
-    window.removeEventListener('keydown', handleKeydown)
-  })
+  function handleEscape(event: KeyboardEvent) {
+    if (event.key === 'Escape') closeMenu()
+  }
 
   return {
-    isOpen,
-    x,
-    y,
-    items,
-    descriptions,
-    open,
-    close,
+    menuX,
+    menuY,
+    menuModules,
+    menuRef,
+    isVisible,
+    isPositioned,
+    hasTriangle,
+    isLeftAligned,
+    isTopAligned,
+    openContextByMouse,
+    openContextByElement,
+    closeMenu,
   }
 }

@@ -76,16 +76,16 @@ function emitChanges() {
 
 .sentence-input {
   display: flex;
-  justify-content: start;
   flex-direction: column;
+  justify-content: start;
 
   .splitter {
-    background-color: $plane-gray;
-
-    height: 3px;
     margin-top: 5px;
 
     border-radius: 1px;
+    background-color: $surface-secondary;
+
+    height: 3px;
   }
 
   footer {
@@ -95,32 +95,31 @@ function emitChanges() {
   footer,
   header {
     display: flex;
-    justify-content: start;
     flex-direction: row;
     flex-wrap: wrap;
+    justify-content: start;
 
     gap: 5px;
 
     min-height: 10px;
 
     .part {
-      cursor: pointer;
-
-      user-select: none;
-
       display: flex;
       align-items: center;
+      cursor: pointer;
 
-      background-color: $plane-gray;
+      border-radius: 8px;
+
+      background-color: $surface-secondary;
 
       padding: 3px 6px;
       height: 25px;
 
-      border-radius: 8px;
+      font-size: 16px;
 
       line-height: 1;
 
-      font-size: 16px;
+      user-select: none;
     }
   }
 }

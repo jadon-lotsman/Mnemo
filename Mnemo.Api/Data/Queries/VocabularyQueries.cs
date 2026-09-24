@@ -16,42 +16,34 @@ namespace Mnemo.Data.Queries
 
 
         // Queries
-        public IQueryable<VocabularyEntry> GetByUserIdQuery(int userId)
-            => _context.Entries.Where(e => e.User.Id == userId);
+        public IQueryable<Vocabulary> GetVocabByOwnerIdQuery(int ownerId)
+            => _context.Vocabularies.Where(p => p.OwnerId == ownerId);
+
+        public IQueryable<Vocabulary> GetVocabByIdQuery(int ownerId, int id)
+            => _context.Vocabularies.Where(p => p.OwnerId == ownerId && p.Id == id);
+
+        public IQueryable<Vocabulary> GetVocabByGuidSecuredQuery(int ownerId, Guid guid)
+            => _context.Vocabularies.Where(p => p.Guid == guid && (p.Visibility != Visibility.Private || p.OwnerId == ownerId));
 
 
         // Getters
-        public async Task<bool> ExistsByIdAsync(int userId, int id)
-            => await GetByUserIdQuery(userId).AnyAsync(e => e.Id == id);
+        public async Task<bool> ExistsByIdAsync(int ownerId, Guid guid)
+            => await GetVocabByGuidSecuredQuery(ownerId, guid).AnyAsync();
 
-        public async Task<bool> ExistsByKeysAsync(int userId, string foreign, PartOfSpeech? partOfSpeech)
-            => await GetByUserIdQuery(userId).AnyAsync(e => e.Foreign == foreign && e.PartOfSpeech == partOfSpeech);
+        public async Task<Vocabulary?> GetByGuidAsync(int ownerId, Guid guid)
+            => await GetVocabByGuidSecuredQuery(ownerId, guid).FirstOrDefaultAsync();
 
-        public async Task<bool> HasAlternativePartOfSpeechAsync(int userId, string foreign, PartOfSpeech? partOfSpeech)
-            => await GetByUserIdQuery(userId).AnyAsync(e => e.Foreign == foreign && e.PartOfSpeech != partOfSpeech);
+        public async Task<int?> GetIdByGuidAsync(int ownerId, Guid guid)
+            => await GetVocabByGuidSecuredQuery(ownerId, guid).Select(v => v.Id).FirstOrDefaultAsync();
 
 
-        public async Task<VocabularyEntry?> GetByIdAsync(int userId, int id)
-            => await GetByUserIdQuery(userId).FirstOrDefaultAsync(e => e.Id == id);
+        public async Task<bool> ExistsByIdAsync(int ownerId, int id)
+            => await GetVocabByIdQuery(ownerId, id).AnyAsync();
 
-        public async Task<Dictionary<int, VocabularyEntry>> GetDictByIdsAsync(int userId, IEnumerable<int> ids)
-        {
-            var list = await GetByUserIdQuery(userId)
-                .Where(e => ids.Contains(e.Id))
-                .ToListAsync();
+        public async Task<Vocabulary?> GetByIdAsync(int ownerId, int id)
+            => await GetVocabByIdQuery(ownerId, id).FirstOrDefaultAsync();
 
-            return list.ToDictionary(e => e.Id);
-        }
-
-        public async Task<List<VocabularyEntry>> GetByQueryAsync(int userId, string query, int limit = 20)
-        {
-            query = query.ToLower();
-
-            return await GetByUserIdQuery(userId)
-                .Where(e => e.Foreign.Contains(query) || e.Translations.Any(t => t.Contains(query)))
-                .OrderBy(e => e.Id)
-                .Take(limit)
-                .ToListAsync();
-        }
+        public async Task<List<Vocabulary>> GetPublishedAsync()
+            => await _context.Vocabularies.Where(p => p.Visibility == Visibility.Public).ToListAsync();
     }
 }

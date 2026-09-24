@@ -1,9 +1,10 @@
 export interface VocabularyEntry {
   id: number
+  linkCount: number
   partOfSpeech?: string
   foreign: string
   transcription?: string
-  transcriptionAudioUrl?: string
+  audioUrl?: string
   examples: string[]
   translations: string[]
   synonyms: string[]

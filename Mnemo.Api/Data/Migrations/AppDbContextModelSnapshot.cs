@@ -38,20 +38,15 @@ namespace Mnemo.Data.Migrations
                     b.Property<int>("RepetitionInterval")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int>("VocabularyEntryId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
                     b.HasIndex("VocabularyEntryId")
                         .IsUnique();
 
-                    b.ToTable("RepetitionStates", (string)null);
+                    b.ToTable("RepetitionStates");
                 });
 
             modelBuilder.Entity("Mnemo.Data.Entities.RepetitionTask", b =>
@@ -72,6 +67,9 @@ namespace Mnemo.Data.Migrations
                     b.Property<int>("OrderIndex")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Prompt")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -79,9 +77,6 @@ namespace Mnemo.Data.Migrations
                     b.Property<string>("UserAnswer")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER");
 
                     b.Property<int>("VocabularyEntryId")
                         .HasColumnType("INTEGER");
@@ -93,9 +88,9 @@ namespace Mnemo.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("OwnerId");
 
-                    b.ToTable("RepetitionTasks", (string)null);
+                    b.ToTable("RepetitionTasks");
 
                     b.HasDiscriminator<string>("task_type").HasValue("RepetitionTask");
 
@@ -117,7 +112,44 @@ namespace Mnemo.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Mnemo.Data.Entities.Vocabulary", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("Guid")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Vocabularies");
                 });
 
             modelBuilder.Entity("Mnemo.Data.Entities.VocabularyEntry", b =>
@@ -129,6 +161,12 @@ namespace Mnemo.Data.Migrations
                     b.Property<string>("Antonyms")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<string>("AudioUrl")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("CEFR")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
@@ -147,6 +185,12 @@ namespace Mnemo.Data.Migrations
                     b.Property<DateTime>("LastEnrichmentAt")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("MergedFromId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("PartOfSpeech")
                         .HasColumnType("INTEGER");
 
@@ -157,21 +201,40 @@ namespace Mnemo.Data.Migrations
                     b.Property<string>("Transcription")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("TranscriptionAudioUrl")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Translations")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER");
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("MergedFromId");
 
-                    b.ToTable("Entries", (string)null);
+                    b.HasIndex("OwnerId", "MergedFromId");
+
+                    b.HasIndex("OwnerId", "Foreign", "PartOfSpeech");
+
+                    b.ToTable("VocabularyEntries");
+                });
+
+            modelBuilder.Entity("Mnemo.Data.Entities.VocabularyEntryLink", b =>
+                {
+                    b.Property<int>("VocabularyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("VocabularyEntryId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("VocabularyId", "VocabularyEntryId");
+
+                    b.HasIndex("VocabularyEntryId");
+
+                    b.ToTable("VocabularyEntryLinks");
                 });
 
             modelBuilder.Entity("Mnemo.Data.Entities.OptionRepetitionTask", b =>
@@ -216,7 +279,7 @@ namespace Mnemo.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.ToTable("RepetitionTasks", null, t =>
+                    b.ToTable("RepetitionTasks", t =>
                         {
                             t.Property("CorrectOrder")
                                 .HasColumnName("SyllableReorderRepetitionTask_CorrectOrder");
@@ -252,10 +315,6 @@ namespace Mnemo.Data.Migrations
 
             modelBuilder.Entity("Mnemo.Data.Entities.RepetitionState", b =>
                 {
-                    b.HasOne("Mnemo.Data.Entities.User", null)
-                        .WithMany("RepetitionStates")
-                        .HasForeignKey("UserId");
-
                     b.HasOne("Mnemo.Data.Entities.VocabularyEntry", "VocabularyEntry")
                         .WithOne("RepetitionState")
                         .HasForeignKey("Mnemo.Data.Entities.RepetitionState", "VocabularyEntryId")
@@ -267,38 +326,79 @@ namespace Mnemo.Data.Migrations
 
             modelBuilder.Entity("Mnemo.Data.Entities.RepetitionTask", b =>
                 {
-                    b.HasOne("Mnemo.Data.Entities.User", "User")
+                    b.HasOne("Mnemo.Data.Entities.User", "Owner")
                         .WithMany("RepetitionTasks")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("Mnemo.Data.Entities.Vocabulary", b =>
+                {
+                    b.HasOne("Mnemo.Data.Entities.User", "Owner")
+                        .WithMany("Vocabularies")
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("Mnemo.Data.Entities.VocabularyEntry", b =>
                 {
-                    b.HasOne("Mnemo.Data.Entities.User", "User")
-                        .WithMany("VocabularyEntries")
-                        .HasForeignKey("UserId")
+                    b.HasOne("Mnemo.Data.Entities.Vocabulary", "MergedFrom")
+                        .WithMany()
+                        .HasForeignKey("MergedFromId");
+
+                    b.HasOne("Mnemo.Data.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("MergedFrom");
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("Mnemo.Data.Entities.VocabularyEntryLink", b =>
+                {
+                    b.HasOne("Mnemo.Data.Entities.VocabularyEntry", "VocabularyEntry")
+                        .WithMany("VocabularyLinks")
+                        .HasForeignKey("VocabularyEntryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Mnemo.Data.Entities.Vocabulary", "Vocabulary")
+                        .WithMany("EntryLinks")
+                        .HasForeignKey("VocabularyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vocabulary");
+
+                    b.Navigation("VocabularyEntry");
                 });
 
             modelBuilder.Entity("Mnemo.Data.Entities.User", b =>
                 {
-                    b.Navigation("RepetitionStates");
-
                     b.Navigation("RepetitionTasks");
 
-                    b.Navigation("VocabularyEntries");
+                    b.Navigation("Vocabularies");
+                });
+
+            modelBuilder.Entity("Mnemo.Data.Entities.Vocabulary", b =>
+                {
+                    b.Navigation("EntryLinks");
                 });
 
             modelBuilder.Entity("Mnemo.Data.Entities.VocabularyEntry", b =>
                 {
                     b.Navigation("RepetitionState");
+
+                    b.Navigation("VocabularyLinks");
                 });
 #pragma warning restore 612, 618
         }

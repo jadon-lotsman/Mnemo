@@ -15,10 +15,11 @@ namespace Mnemo.Services.RepetitionService
         private readonly ILogger<RepetitionTaskService> _logger;
         private readonly IOptions<SM2Options> _sm2;
         private readonly AppDbContext _context;
-        private readonly TaskQueries _taskQueries;
 
         private readonly AccountQueries _accountQueries;
+        private readonly VocabularyQueries _vocabularyQueries;
 
+        private readonly TaskQueries _taskQueries;
         private readonly StateManagementService _stateService;
         private readonly QualityCalculationService _qualityService;
 
@@ -31,6 +32,7 @@ namespace Mnemo.Services.RepetitionService
             IOptions<SM2Options> sm2,
             AppDbContext context,
             AccountQueries accountQueries,
+            VocabularyQueries vocabularyQueries,
             TaskQueries taskQueries,
             StateManagementService stateService,
             QualityCalculationService qualityService,
@@ -43,8 +45,9 @@ namespace Mnemo.Services.RepetitionService
             _context = context;
 
             _accountQueries = accountQueries;
-            _taskQueries = taskQueries;
+            _vocabularyQueries = vocabularyQueries;
 
+            _taskQueries = taskQueries;
             _stateService = stateService;
             _qualityService = qualityService;
 
@@ -97,9 +100,7 @@ namespace Mnemo.Services.RepetitionService
                 return RequestResult<List<RepetitionTask>>.Failure(ErrorCode.InvalidData);
             }
 
-
             var tasks = await strategy.GetTasksAsync(userId);
-
             if (!tasks.Any())
             {
                 _logger.LogWarning("Repetition strategy returns an empty result for user (UserId:{UserId})", userId);
@@ -245,7 +246,6 @@ namespace Mnemo.Services.RepetitionService
             _logger.LogInformation("Attempting to submit task (TaskId:{TaskId}) answer for user (UserId:{UserId})", taskId, userId);
 
             var task = await _taskQueries.GetTaskByIdAsync(userId, taskId);
-
             if (task == null)
             {
                 _logger.LogWarning("Task (TaskId:{TaskId}) not found for user (UserId:{UserId})", taskId, userId);

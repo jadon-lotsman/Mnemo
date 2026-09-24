@@ -1,52 +1,44 @@
 <script setup lang="ts">
-import type { ContextMenuItem } from '../types/ContextMenuItem'
+import { useContextMenu } from '@/shared/composables/useContextMenu'
+import { computed } from 'vue'
+import ModuleRender from './ModuleRender.vue'
 
-const props = defineProps<{
-  isOpen: boolean
-  x: number
-  y: number
-  items: ContextMenuItem[]
-  descriptions: string[]
-}>()
+const {
+  isVisible,
+  isPositioned,
+  menuX,
+  menuY,
+  hasTriangle,
+  isLeftAligned,
+  isTopAligned,
+  menuModules,
+  menuRef,
+} = useContextMenu()
 
-const emit = defineEmits<{
-  (e: 'close'): void
-}>()
+const triangleClass = computed(() => {
+  if (!hasTriangle.value) return 'no-triangle'
 
-function handleItemClick(item: ContextMenuItem) {
-  if (item.disabled) return
-  item.action()
-  emit('close')
-}
+  const vertical = isTopAligned.value ? 'bottom' : 'top'
+  const horizontal = isLeftAligned.value ? 'right' : 'left'
+  return `triangle-${vertical}-${horizontal}`
+})
 </script>
 
 <template>
   <Teleport to="body">
     <Transition name="context-fade">
       <div
-        v-if="isOpen"
+        v-if="isVisible"
+        ref="menuRef"
         class="context-menu"
-        :style="{ top: y + 'px', left: 12 + x + 'px' }"
+        :class="[triangleClass, { 'is-measuring': !isPositioned }]"
+        :style="{ top: menuY + 'px', left: menuX + 'px' }"
         @click.stop
       >
-        <header>
-          <div v-for="contextItem in props.items" :key="contextItem.label">
-            <div
-              class="item"
-              :class="{ disable: contextItem.disabled }"
-              @mousedown.prevent
-              @click="handleItemClick(contextItem)"
-            >
-              <span class="icon">{{ contextItem.icon }}</span>
-              <span class="label">{{ contextItem.label }}</span>
-            </div>
-          </div>
-        </header>
-        <footer>
-          <div class="descriptions">
-            <span v-for="descr in descriptions" :key="descr">{{ descr }}.</span>
-          </div>
-        </footer>
+        <div class="triangle"></div>
+        <div class="module-container">
+          <ModuleRender v-for="(mod, i) in menuModules?.modules" :key="i" :module="mod" />
+        </div>
       </div>
     </Transition>
   </Teleport>
@@ -54,111 +46,92 @@ function handleItemClick(item: ContextMenuItem) {
 
 <style lang="scss" scoped>
 .context-menu {
-  position: fixed;
-  user-select: none;
-
   display: flex;
+  position: absolute;
   flex-direction: column;
-
-  background-color: $cloud-white;
-  border-radius: 0px 12px 12px 12px;
-
-  box-shadow: 5px 5px 0px $shadow;
-
-  filter: drop-shadow(0px 0px 8px #bbbbbb4d);
-  backdrop-filter: blur(2px);
-
-  min-width: 220px;
-  padding: 8px 6px 10px 6px;
 
   z-index: 9999;
 
-  header {
+  backdrop-filter: blur(2px);
+  filter: drop-shadow(0px 0px 8px #bbbbbb4d) drop-shadow(5px 5px 0px $shadow-color);
+
+  will-change: transform, opacity, filter;
+
+  border-radius: 12px;
+  background-color: $elevated-bg;
+
+  padding: 7px 6px 10px 6px;
+
+  min-width: 220px;
+  max-width: 330px;
+
+  user-select: none;
+
+  .module-container {
     display: flex;
     flex-direction: column;
-
     gap: 2px;
-
-    &::after {
-      content: '';
-
-      position: absolute;
-
-      width: 0;
-      height: 0;
-      border: 8px solid transparent;
-      border-top: 8px solid $cloud-white;
-      border-right: 8px solid $cloud-white;
-
-      top: 0px;
-      left: -12px;
-
-      background-color: transparent;
-    }
-
-    .item {
-      cursor: pointer;
-
-      display: flex;
-      align-items: center;
-
-      border-radius: 8px;
-
-      padding: 4px;
-
-      .icon {
-        @include iconize-text;
-
-        color: $shadow;
-        opacity: 85%;
-
-        margin-left: 8px;
-        margin-right: 12px;
-
-        font-size: 21px;
-        line-height: 0.8;
-      }
-
-      &:hover {
-        background-color: $plane-gray;
-      }
-    }
-
-    .item.disable {
-      cursor: default;
-
-      color: $shadow;
-
-      .icon {
-        opacity: 65%;
-      }
-    }
-  }
-
-  footer {
-    .descriptions {
-      display: flex;
-      flex-direction: column;
-
-      gap: 3px;
-
-      color: $gray-font;
-
-      margin-top: 5px;
-      margin-left: 12px;
-
-      font-size: 15px;
-    }
   }
 }
 
-.context-fade-enter-active,
+&.is-measuring {
+  visibility: hidden;
+}
+
+.triangle {
+  display: block;
+  position: absolute;
+
+  background-color: transparent;
+
+  width: 0;
+  height: 0;
+}
+
+@mixin triangle-corner($v, $h) {
+  .triangle {
+    border: 7px solid transparent;
+    border-#{$v}: 7px solid $elevated-bg;
+    @if $h == left {
+      border-right: 7px solid $elevated-bg;
+    } @else {
+      border-left: 7px solid $elevated-bg;
+    }
+    #{$v}: 0px;
+    #{$h}: -12px;
+  }
+}
+
+.triangle-top-left {
+  border-top-left-radius: 0 !important;
+  @include triangle-corner(top, left);
+}
+.triangle-top-right {
+  border-top-right-radius: 0 !important;
+  @include triangle-corner(top, right);
+}
+.triangle-bottom-left {
+  border-bottom-left-radius: 0 !important;
+  @include triangle-corner(bottom, left);
+}
+.triangle-bottom-right {
+  border-bottom-right-radius: 0 !important;
+  @include triangle-corner(bottom, right);
+}
+
+.context-fade-enter-active {
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
+}
 .context-fade-leave-active {
-  transition: all 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
 }
 .context-fade-enter-from,
 .context-fade-leave-to {
-  opacity: 0%;
   transform: scale(0.97);
+  opacity: 0%;
 }
 </style>

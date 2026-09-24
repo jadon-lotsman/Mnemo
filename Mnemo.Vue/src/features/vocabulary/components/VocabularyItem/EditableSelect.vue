@@ -88,15 +88,15 @@ watch(
   text-align: right;
 
   .collapse-chevron {
-    @include iconize-text;
+    @include iconize(19px);
 
-    color: $gray-font;
+    position: absolute;
+    top: 2px;
+    left: 3px;
 
     transition: transform 0.1s ease;
 
-    position: absolute;
-    top: 0px;
-    left: 0px;
+    color: $icon-color;
 
     &--open {
       transform: rotate(90deg);
@@ -106,13 +106,13 @@ watch(
   .select {
     position: relative;
 
-    user-select: none;
-
-    background-color: $plane-gray;
-
     border-radius: 12px;
 
+    background-color: $surface-secondary;
+
     width: 65px;
+
+    user-select: none;
 
     .select-input {
       padding: 3px 10px;
@@ -123,11 +123,11 @@ watch(
 
       border-radius: 0px 0px 12px 12px;
 
-      width: 65px;
-
-      background-color: $plane-gray;
+      background-color: $surface-secondary;
 
       padding: 2px 10px;
+
+      width: 65px;
     }
 
     &--open {

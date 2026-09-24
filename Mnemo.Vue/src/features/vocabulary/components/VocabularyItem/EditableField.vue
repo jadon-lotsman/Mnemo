@@ -36,16 +36,16 @@ watch(
 
 <style lang="scss" scoped>
 .editable-wrapper {
-  word-break: break-all;
   text-wrap-mode: wrap;
   text-wrap-style: stable;
+  word-break: break-all;
 
   input {
-    color: $black-font;
     background-color: transparent;
+    width: 100%;
 
     height: 20px;
-    width: 100%;
+    color: $text-primary;
 
     font-size: 16px;
     line-height: 1;

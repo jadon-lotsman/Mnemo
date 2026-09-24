@@ -10,7 +10,7 @@ namespace Mnemo.Services.RepetitionService.Strategies
 {
     public class FastRepetitionTaskStrategy : RepetitionTaskStrategy
     {
-        private readonly VocabularyQueries _vocabularyQueries;
+        private readonly VocabularyEntryQueries _entryQueries;
 
         public FastRepetitionTaskStrategy(
             IOptions<RepetitionOptions> options,
@@ -18,18 +18,19 @@ namespace Mnemo.Services.RepetitionService.Strategies
             ILogger<FastRepetitionTaskStrategy> logger,
             RepetitionTaskFactory factory,
             ITaskTypeProvider typeProvider,
-            VocabularyQueries vocabularyQueries) : base(options, sm2, logger, factory, typeProvider)
+            VocabularyEntryQueries entryQueries) : base(options, sm2, logger, factory, typeProvider)
         {
-            _vocabularyQueries = vocabularyQueries;
+            _entryQueries = entryQueries;
         }
 
 
-        protected override async Task<IQueryable<VocabularyEntry>> GetEntriesQuery(int userId, int take)
+        protected override async Task<IQueryable<VocabularyEntry>> GetTargetEntriesQuery(int userId, int take)
         {
-            var priorityEntriesQuery = _vocabularyQueries
-                .GetByUserIdQuery(userId)
-                .Include(e => e.RepetitionState)
-                .NotDueEntries()
+            var query = _entryQueries
+                .GetEntriesOfActiveVocabulariesByOwnerIdQuery(userId)
+                .NotDueEntries();
+
+            var priorityEntriesQuery = query
                 .NotRepeatedTodayEntries()
                 .GetRandomEntries(take);
 
@@ -39,10 +40,7 @@ namespace Mnemo.Services.RepetitionService.Strategies
             {
                 var existingIds = priorityEntriesQuery.Select(e => e.Id).ToArray();
 
-                var randomEntries = _vocabularyQueries
-                    .GetByUserIdQuery(userId)
-                    .Include(e => e.RepetitionState)
-                    .NotDueEntries()
+                var randomEntries = query
                     .GetRandomEntries(take - existingIds.Length, existingIds);
 
                 mixQuery = mixQuery.Concat(randomEntries);

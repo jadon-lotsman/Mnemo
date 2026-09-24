@@ -1,0 +1,115 @@
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Mnemo.Contracts.Vocabulary;
+using Mnemo.Contracts.Vocabulary.Requests;
+using Mnemo.Data.Entities;
+using Mnemo.Data.Queries;
+using Mnemo.Services.VocabularyService;
+using Mnemo.Shared.Enums;
+using Mnemo.Shared.Extensions;
+using System.Security.Claims;
+
+namespace Mnemo.Controllers
+{
+    [ApiController]
+    [Authorize]
+    [Route("api/vocabularies")]
+    public class VocabulariesController : ControllerBase
+    {
+        private readonly IMapper _mapper;
+        private readonly VocabularyQueries _vocabularyQueries;
+        private readonly VocabularyManagementService _vocabularyService;
+
+
+        public VocabulariesController(
+            IMapper mapper,
+            VocabularyQueries vocabularyQueries,
+            VocabularyManagementService vocabularyService)
+        {
+            _mapper = mapper;
+            _vocabularyQueries = vocabularyQueries;
+            _vocabularyService = vocabularyService;
+        }
+
+        private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetHeaders([FromQuery] int page, int pageSize)
+        {
+            var result = await _vocabularyService.PageUserHeadersAsync(UserId, page, pageSize);
+            return result.ToActionResult();
+        }
+
+        [HttpGet("public")]
+        public async Task<IActionResult> GetAllPublic()
+        {
+            var vocabs = await _vocabularyQueries.GetPublishedAsync();
+            var vocabsResponse = _mapper.Map<List<VocabularyResponse>>(vocabs);
+            return Ok(vocabsResponse);
+        }
+
+        [HttpGet("{guid}/sectors")]
+        public async Task<IActionResult> GetVocabularySectors(Guid guid, [FromQuery] string isDescending)
+        {
+            var isDescendingBoolean = isDescending == "true" ? true : false;
+            var response = await _vocabularyService.GetVocabularySectorsAsync(UserId, guid, isDescendingBoolean);
+            return Ok(response);
+        }
+
+        [HttpGet("{guid}")]
+        public async Task<IActionResult> GetVocabularyByGuid([FromRoute] Guid guid)
+        {
+            var vocab = await _vocabularyQueries.GetByGuidAsync(UserId, guid);
+
+            if (vocab == null)
+                return NotFound();
+
+            var vocabResponse = _mapper.Map<VocabularyResponse>(vocab);
+            return Ok(vocabResponse);
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> CreateVocabulary([FromBody] CreateVocabularyRequest request)
+        {
+            var result = await _vocabularyService.CreateVocabularyAsync(UserId, request);
+            return result.ToActionResult<Vocabulary, VocabularyResponse>(_mapper, StatusCodes.Status201Created);
+        }
+
+        [HttpPost("merge")]
+        public async Task<IActionResult> MergeVocabulary(Guid target, Guid source)
+        {
+            var result = await _vocabularyService.MergeVocabularyAsync(UserId, target, source);
+            return result.ToActionResult<Vocabulary, VocabularyResponse>(_mapper);
+        }
+
+        [HttpDelete("{guid}/guid")]
+        public async Task<IActionResult> RevokeVocabularyGuid(Guid guid)
+        {
+            var result = await _vocabularyService.RevokeVocabularyGuidAsync(UserId, guid);
+
+            if (!result.IsSuccess)
+            {
+                return result.ErrorCode switch
+                {
+                    ErrorCode.VocabularyNotFound => NotFound(new { message = result.ErrorMessage }),
+                    _ => StatusCode(500, new { message = result.ErrorMessage })
+                };
+            }
+
+            return Ok(new { newGuid = result.Value });
+        }
+
+        [HttpDelete("{guid}")]
+        public async Task<IActionResult> DeleteVocabulary(Guid guid)
+        {
+            var result = await _vocabularyService.RemoveVocabularyByGuidAsync(UserId, guid);
+            return result.ToActionResult(StatusCodes.Status204NoContent);
+        }
+    }
+}

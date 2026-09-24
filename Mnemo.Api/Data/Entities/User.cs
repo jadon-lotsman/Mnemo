@@ -8,20 +8,16 @@
         public DateTime RegisteredAt { get; set; }
 
 
+        public List<Vocabulary> Vocabularies { get; set; }
         public List<RepetitionTask> RepetitionTasks { get; set; }
-        public List<RepetitionState> RepetitionStates { get; set; }
-        public List<VocabularyEntry> VocabularyEntries { get; set; }
 
 
-        public User() { }
-
-        public User(string username)
+        public User()
         {
-            Username = username;
             RegisteredAt = DateTime.UtcNow;
 
-            RepetitionStates = new List<RepetitionState>();
-            VocabularyEntries = new List<VocabularyEntry>();
+            Vocabularies = new List<Vocabulary>();
+            RepetitionTasks = new List<RepetitionTask>();
         }
     }
 }

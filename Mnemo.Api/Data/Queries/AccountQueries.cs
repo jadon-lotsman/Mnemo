@@ -14,18 +14,26 @@ namespace Mnemo.Data.Queries
         }
 
 
+        // Queries
+        public IQueryable<User> GetByIdQuery(int userId)
+            => _context.Users.Where(u => u.Id == userId);
+
+        public IQueryable<User> GetByUsernameQuery(string username)
+            => _context.Users.Where(u => u.Username == username);
+
+
         // Getters
         public async Task<bool> ExistsByIdAsync(int userId)
-            => await _context.Users.AnyAsync(u => u.Id == userId);
-
-        public async Task<bool> ExistsByUsernameAsync(string username)
-            => await _context.Users.AnyAsync(u => u.Username == username);
-
+            => await GetByIdQuery(userId).AnyAsync();
 
         public async Task<User?> GetByIdAsync(int userId)
-            => await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            => await GetByIdQuery(userId).FirstOrDefaultAsync();
+
+
+        public async Task<bool> ExistsByUsernameAsync(string username)
+            => await GetByUsernameQuery(username).AnyAsync();
 
         public async Task<User?> GetByUsernameAsync(string username)
-            => await _context.Users.FirstOrDefaultAsync(u => string.Equals(u.Username, username));
+            => await GetByUsernameQuery(username).FirstOrDefaultAsync();
     }
 }

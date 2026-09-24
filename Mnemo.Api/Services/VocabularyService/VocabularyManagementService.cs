@@ -2,12 +2,15 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Mnemo.Contracts;
+using Mnemo.Contracts.Entry;
+using Mnemo.Contracts.Entry.Requests;
 using Mnemo.Contracts.Vocabulary;
 using Mnemo.Contracts.Vocabulary.Requests;
 using Mnemo.Data;
 using Mnemo.Data.Entities;
 using Mnemo.Data.Queries;
-using Mnemo.Services.RepetitionService;
 using Mnemo.Shared;
 using Mnemo.Shared.Enums;
 using Mnemo.Shared.Extensions;
@@ -17,59 +20,103 @@ namespace Mnemo.Services.VocabularyService
     public class VocabularyManagementService
     {
         private readonly ILogger<VocabularyManagementService> _logger;
-        private readonly IValidator<CreateEntryRequest> _createValidator;
-        private readonly IValidator<PatchEntryRequest> _patchValidator;
+        private readonly IValidator<CreateVocabularyRequest> _createVocabularyValidator;
         private readonly IMapper _mapper;
-        private readonly IOptions<SM2Options> _sm2;
         private readonly AppDbContext _context;
         private readonly AccountQueries _accountQueries;
+        private readonly VocabularyEntryQueries _entryQueries;
         private readonly VocabularyQueries _vocabularyQueries;
+        private readonly EntryManagementService _entryService;
+
+
 
 
         public VocabularyManagementService(
             ILogger<VocabularyManagementService> logger,
-            IValidator<CreateEntryRequest> createValidator,
-            IValidator<PatchEntryRequest> patchValidator,
+            IValidator<CreateVocabularyRequest> createVocabularyValidator,
             IMapper mapper,
-            IOptions<SM2Options> sm2,
             AppDbContext context,
             AccountQueries accountQueries,
-            VocabularyQueries vocabularyQueries)
+            VocabularyEntryQueries entryQueries,
+            VocabularyQueries vocabularyQueries,
+            EntryManagementService entryService)
         {
             _logger = logger;
-            _createValidator = createValidator;
-            _patchValidator = patchValidator;
+            _createVocabularyValidator = createVocabularyValidator;
             _mapper = mapper;
-            _sm2 = sm2;
             _context = context;
             _accountQueries = accountQueries;
+            _entryQueries = entryQueries;
             _vocabularyQueries = vocabularyQueries;
+            _entryService = entryService;
         }
 
 
-
-        public async Task<VocabularyStatisticsResponse> GetVocabularyStatisticsAsync(int userId)
+        public async Task<RequestResult<PageValue<HeaderResponse>>> PageUserHeadersAsync(int userId, int page, int pageSize)
         {
-            var query = _vocabularyQueries
-                .GetByUserIdQuery(userId);
+            var messages = new List<string>();
+            if (page < 1) messages.Add($"Page must be >= 1");
+            if (pageSize < 1 || pageSize > 100) messages.Add($"PageSize must be in [1, 100])");
 
-            var totalEntries = await query
-                .CountAsync();
+            if (messages.Count > 0)
+                return RequestResult<PageValue<HeaderResponse>>.Failure(ErrorCode.InvalidData, string.Join("; ", messages));
 
-            var totalTranslations = await query
-                .SumAsync(e => e.Translations.Count);
+            
+            _logger.LogDebug("Paging vocabularies for user (UserId:{UserId}): page={Page}, size={Size}...", userId, page, pageSize);
 
 
-            return new VocabularyStatisticsResponse()
+            var orderedQuery = _vocabularyQueries.GetVocabByOwnerIdQuery(userId)
+                .OrderBy(v => v.Name);
+
+            var vocabsTotal = await orderedQuery.CountAsync();
+            int totalPages = vocabsTotal == 0 ? 1 : (int)Math.Ceiling(vocabsTotal / (double)pageSize);
+
+            if (vocabsTotal == 0)
+                return RequestResult<PageValue<HeaderResponse>>.Success(new PageValue<HeaderResponse>(page, pageSize, totalPages, []));
+
+
+            var headers = await orderedQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(v => new { v.Id, v.Name, v.Guid })
+                .ToListAsync();
+
+            var vocabIds = headers.Select(e => e.Id).ToList();
+
+            var entryCounts = await _context.VocabularyEntryLinks
+                .Where(l => vocabIds.Contains(l.VocabularyId))
+                .GroupBy(l => l.VocabularyId)
+                .Select(g => new { VocabId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.VocabId, x => x.Count);
+
+            var translationCounts = await _context.VocabularyEntryLinks
+                .Where(l => vocabIds.Contains(l.VocabularyId))
+                .GroupBy(l => l.VocabularyId)
+                .Select(g => new
+                {
+                    VocabId = g.Key,
+                    Total = g.Sum(l => l.VocabularyEntry.Translations.Count)
+                })
+                .ToDictionaryAsync(x => x.VocabId, x => x.Total);
+
+
+            var items = headers.Select(v => new HeaderResponse
             {
-                TotalEntries = totalEntries,
-                TotalTranslations = totalTranslations
-            };
+                Name = v.Name,
+                Guid = v.Guid,
+                EntriesCount = entryCounts.GetValueOrDefault(v.Id, 0),
+                TranslationsCount = translationCounts.GetValueOrDefault(v.Id, 0)
+            }).ToList();
+
+
+            var pageValue = new PageValue<HeaderResponse>(page, pageSize, totalPages, items);
+
+            return RequestResult<PageValue<HeaderResponse>>.Success(pageValue);
         }
 
-        public async Task<List<VocabularySectorResponse>> GetVocabularySectorsAsync(int userId, bool isDescending)
+        public async Task<List<VocabularySectorResponse>> GetVocabularySectorsAsync(int userId, Guid guid, bool isDescending)
         {
-            var query = _vocabularyQueries.GetByUserIdQuery(userId);
+            var query = _entryQueries.GetEntriesByVocabularyGuidQuery(userId, guid);
             int minSectorSize = Math.Max(10, query.Count() / 7);
 
             var groupQuery = query
@@ -131,7 +178,7 @@ namespace Mnemo.Services.VocabularyService
             if (sectors.Any())
             {
                 sectors.First().StartWord = "a";
-                sectors.Last().EndWord = "z" + char.MaxValue;
+                sectors.Last().EndWord = "z";
 
                 if (isDescending)
                 {
@@ -146,200 +193,150 @@ namespace Mnemo.Services.VocabularyService
             return sectors;
         }
 
-        public async Task<VocabularyPageResponse> GetVocabularyPageAsync(int userId, string startWord, string endWord, int page, int pageSize)
+        public async Task<RequestResult<Vocabulary>> CreateVocabularyAsync(int userId, CreateVocabularyRequest request)
         {
-            bool isDescending = string.Compare(endWord, startWord) < 0;
+            _logger.LogInformation("Creating a vocabulary for user (UserId:{UserId})...", userId);
 
-            string minWord, maxWord;
-            if (isDescending)
-            {
-                minWord = endWord;
-                maxWord = startWord;
-            }
-            else
-            {
-                minWord = startWord;
-                maxWord = endWord;
-            }
-
-
-            var filteredQuery = _vocabularyQueries
-                .GetByUserIdQuery(userId)
-                .Where(e => string.Compare(e.Foreign, minWord) >= 0 &&
-                            string.Compare(e.Foreign, maxWord) <= 0);
-
-            IOrderedQueryable<VocabularyEntry> orderedQuery;
-            if (isDescending)
-            {
-                orderedQuery = filteredQuery
-                    .OrderByDescending(e => e.Foreign)
-                    .ThenByDescending(e => e.PartOfSpeech);
-            }
-            else
-            {
-                orderedQuery = filteredQuery
-                    .OrderBy(e => e.Foreign)
-                    .ThenBy(e => e.PartOfSpeech);
-            }
-
-            var totalSectorEntries = await orderedQuery.CountAsync();
-            int totalPages = (int)Math.Ceiling(totalSectorEntries / (decimal)pageSize);
-
-            var entries = await orderedQuery
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var entriesResponse = _mapper.Map<EntryResponse[]>(entries);
-
-            return new VocabularyPageResponse
-            {
-                Entries = entriesResponse,
-                hasMore = page < totalPages,
-                SectorEntries = totalSectorEntries,
-            };
-        }
-
-
-        public async Task<RequestResult<VocabularyEntry>> CreateEntryAsync(int userId, CreateEntryRequest request)
-        {
-            _logger.LogInformation("Attempting to create vocabulary entry for user (UserId:{UserId}): Foreign:{Foreign}, PartOfSpeech:{PartOfSpeech}", userId, request.Foreign, request.PartOfSpeech ?? "without(null)");
-
-            var validationResult = await _createValidator.ValidateAsync(request);
+            var validationResult = await _createVocabularyValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
             {
                 var messages = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-                _logger.LogWarning("CreateEntryRequest (UserId:{UserId}) is not valid: {messages}", userId, messages);
-                return RequestResult<VocabularyEntry>.Failure(ErrorCode.InvalidData, messages);
+                _logger.LogWarning("CreateVocabularyRequest (UserId:{UserId}) is not valid: {messages}", userId, messages);
+                return RequestResult<Vocabulary>.Failure(ErrorCode.InvalidData, string.Join("; ", messages));
             }
-
 
             if (!await _accountQueries.ExistsByIdAsync(userId))
             {
                 _logger.LogWarning("User (UserId:{UserId}) not found", userId);
-                return RequestResult<VocabularyEntry>.Failure(ErrorCode.UserNotFound);
+                return RequestResult<Vocabulary>.Failure(ErrorCode.UserNotFound);
             }
 
+            var linksToAdd = new List<VocabularyEntryLink>();
 
-            var entry = _mapper.Map<VocabularyEntry>(request);
-
-            if (await _vocabularyQueries.ExistsByKeysAsync(userId, entry.Foreign, entry.PartOfSpeech))
+            if (!request.Entries.IsNullOrEmpty())
             {
-                _logger.LogWarning("Duplicate entry for user (UserId:{UserId}): Foreign:{Foreign}, PartOfSpeech:{PartOfSpeech}", userId, entry.Foreign, entry.PartOfSpeech?.ToString() ?? "without(null)");
-                return RequestResult<VocabularyEntry>.Failure(ErrorCode.DuplicateEntry, "Entry already exists");
+                var linkResults = await _entryService.SetVocabularyLinksAsync(userId, null, request.Entries);
+
+                if (linkResults.IsAllFailure)
+                {
+                    var messages = string.Join("; ", linkResults.FailedResults.Select(e => e.ErrorMessage));
+                    var duplicationErrors = RequestResult<Vocabulary>.Failure(ErrorCode.DuplicateEntry, messages);
+                    return duplicationErrors;
+                }
+
+                linksToAdd = linkResults.SucceededResults.Select(r => r.Value!).ToList();
             }
 
+            var vocab = _mapper.Map<Vocabulary>(request);
+            vocab.OwnerId = userId;
+            vocab.EntryLinks = linksToAdd;
 
-            entry.UserId = userId;
-            entry.RepetitionState = new RepetitionState()
-            {
-                EasinessFactor = _sm2.Value.InitEF,
-                RepetitionInterval = _sm2.Value.MinInterval
-            };
 
-            await _context.Entries.AddAsync(entry);
+            await _context.Vocabularies.AddAsync(vocab);
             await _context.SaveChangesAsync();
-            _logger.LogInformation("Created vocabulary entry (EntryId:{EntryId}) for user (UserId:{UserId})", entry.Id, userId);
+            _logger.LogInformation("Successfully created vocabulary (Guid:{Guid}) for user (UserId:{UserId})!", vocab.Guid, userId);
 
-            return RequestResult<VocabularyEntry>.Success(entry);
+            return RequestResult<Vocabulary>.Success(vocab);
         }
 
-        public async Task<RequestResult<VocabularyEntry>> PatchEntryAsync(int userId, int entryId, PatchEntryRequest request)
+        public async Task<RequestResult<Vocabulary>> MergeVocabularyAsync(int userId, Guid targetGuid, Guid sourceGuid)
         {
-            _logger.LogInformation("Patching entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
+            _logger.LogInformation("Starting merge vocabulary (TargetGuid:{TargetGuid}) with vocabulary (SourceGuid:{SourceGuid}) for user (UserId:{UserId})", targetGuid, sourceGuid, userId);
 
-            var validationResult = await _patchValidator.ValidateAsync(request);
-            if (!validationResult.IsValid)
+            if (!await _vocabularyQueries.ExistsByIdAsync(userId, sourceGuid))
             {
-                var messages = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-                _logger.LogWarning("PatchEntryRequest (EntryId:{EntryId}) is not valid: {messages}", entryId, messages);
-                return RequestResult<VocabularyEntry>.Failure(ErrorCode.InvalidData, string.Join("; ", messages));
+                _logger.LogWarning("Source vocabulary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})", sourceGuid, userId);
+                return RequestResult<Vocabulary>.Failure(ErrorCode.VocabularyNotFound);
+            }
+
+            var targetVocab = await _vocabularyQueries.GetByGuidAsync(userId, targetGuid);
+            if (targetVocab == null)
+            {
+                _logger.LogWarning("Target vocabulary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})", targetGuid, userId);
+                return RequestResult<Vocabulary>.Failure(ErrorCode.VocabularyNotFound);
             }
 
 
-            var currentEntry = await _vocabularyQueries.GetByIdAsync(userId, entryId);
-            if (currentEntry == null)
+            var entries = await _entryQueries.GetEntriesByVocabularyGuidQuery(userId, sourceGuid).ToListAsync();
+            var linkResults = await _entryService.SetVocabularyLinksAsync(userId, targetVocab.Id, entries);
+
+
+            var messages = string.Join("; ", linkResults.FailedResults.Select(e => e.ErrorMessage));
+            var duplicationErrors = RequestResult<Vocabulary>.Failure(ErrorCode.DuplicateEntry, messages);
+
+            if (linkResults.IsAllFailure)
+                return duplicationErrors;
+
+
+            var linksToAdd = linkResults.SucceededResults.Select(r => r.Value!);
+
+            targetVocab.EntryLinks.AddRange(linksToAdd);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Successfully merged (TargetGuid:{TargetGuid}) with vocabulary (SourceGuid:{SourceGuid}) for user (UserId:{UserId})", targetGuid, sourceGuid, userId);
+
+            return RequestResult<Vocabulary>.Success(targetVocab);
+        }
+
+        public async Task<RequestResult<Vocabulary>> PatchVocabularyAsync(int userId, Guid guid, PatchVocabularyRequest request)
+        {
+            _logger.LogInformation("Attempting to patch a vocabulary for user (UserId:{UserId})", userId);
+
+            var currentVocab = await _vocabularyQueries.GetByGuidAsync(userId, guid);
+            if (currentVocab == null)
             {
-                _logger.LogWarning("Entry (EntryId:{EntryId}) not found for user (UserId:{UserId})", entryId, userId);
-                return RequestResult<VocabularyEntry>.Failure(ErrorCode.EntryNotFound);
+                _logger.LogWarning("Vocabulary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})", guid, userId);
+                return RequestResult<Vocabulary>.Failure(ErrorCode.VocabularyNotFound);
             }
 
-
-            PartOfSpeech? newPartOfSpeech = null;
-            if (request.PartOfSpeech != null)
-                newPartOfSpeech = Enum.Parse<PartOfSpeech>(request.PartOfSpeech, true);
-
-            string? newForeign = null;
-            if (request.Foreign != null)
-                newForeign = TextNormalizer.NormalizeForeign(request.Foreign);
-
-            string? newTranscription = null;
-            if (request.Transcription != null)
-                newTranscription = TextNormalizer.NormalizeTranscription(request.Transcription);
-
-            bool foreignUpdated = (newForeign != null && newForeign != currentEntry.Foreign);
-            bool partOfSpeechUpdated = (newPartOfSpeech != null && newPartOfSpeech.Value != currentEntry.PartOfSpeech);
-            bool transcriptionUpdated = (newTranscription != null && newTranscription != currentEntry.Transcription);
-
-            bool needDuplicateCheck = foreignUpdated || partOfSpeechUpdated;
-
-
-            if (needDuplicateCheck)
-            {
-                var checkForeign = newForeign ?? currentEntry.Foreign;
-                var checkPartOfSpeech = newPartOfSpeech ?? currentEntry.PartOfSpeech;
-
-                if (await _vocabularyQueries.ExistsByKeysAsync(currentEntry.UserId, checkForeign, checkPartOfSpeech))
-                {
-                    _logger.LogWarning("Duplicate check failed for entry (EntryId:{EntryId})", entryId);
-                    return RequestResult<VocabularyEntry>.Failure(ErrorCode.DuplicateEntry, "Entry already exists");
-                }
-            }
-
-
-            if (foreignUpdated || partOfSpeechUpdated)
-            {
-                currentEntry.ResetAllMeta();
-                _logger.LogDebug("All metadata reset and set as {Status}: (EntryId:{EntryId}) for user (UserId:{UserId})", currentEntry.EnrichmentStatus, entryId, userId);
-            }
-            else if (transcriptionUpdated)
-            {
-                currentEntry.ResetAudio();
-                _logger.LogDebug("Audio reset and set as {Status}: (EntryId:{EntryId}) for user (UserId:{UserId})", currentEntry.EnrichmentStatus, entryId, userId);
-            }
-
-
-            var isPatched = currentEntry.TryPatch(request);
-
+            var isPatched = currentVocab.TryPatch(request);
             if (!isPatched)
             {
-                _logger.LogError("TryPatch failed for entry (EntryId:{EntryId}): Invalid Data", entryId);
-                return RequestResult<VocabularyEntry>.Failure(ErrorCode.InvalidData, "Failed to apply patch");
+                _logger.LogError("TryPatch failed for vocabulary (Guid:{Guid}): Invalid Data", guid);
+                return RequestResult<Vocabulary>.Failure(ErrorCode.InvalidData, "Failed to apply patch");
             }
 
 
             await _context.SaveChangesAsync();
-            _logger.LogInformation("Successfully patched entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
+            _logger.LogInformation("Successfully patched vocabulary (Guid:{Guid}) for user (UserId:{UserId})", guid, userId);
 
-            return RequestResult<VocabularyEntry>.Success(currentEntry);
+            return RequestResult<Vocabulary>.Success(currentVocab);
         }
 
-        public async Task<RequestResult<bool>> RemoveEntryByIdAsync(int userId, int entryId)
+        public async Task<RequestResult<Guid>> RevokeVocabularyGuidAsync(int userId, Guid guid)
         {
-            _logger.LogInformation("Attempting to delete entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
+            _logger.LogInformation("Attempting to revoke guid for vocabulary (Guid:{Guid}) for user (UserId:{UserId})", guid, userId);
 
-            var currentEntry = await _vocabularyQueries.GetByIdAsync(userId, entryId);
-
-            if (currentEntry == null)
+            var currentVocab = await _vocabularyQueries.GetByGuidAsync(userId, guid);
+            if (currentVocab == null)
             {
-                _logger.LogWarning("Entry (EntryId:{EntryId}) not found for user (UserId:{UserId})", entryId, userId);
-                return RequestResult<bool>.Failure(ErrorCode.EntryNotFound);
+                _logger.LogWarning("Vocabulary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})", guid, userId);
+                return RequestResult<Guid>.Failure(ErrorCode.VocabularyNotFound);
             }
 
 
-            _context.Entries.Remove(currentEntry);
+            var newGuid = Guid.NewGuid();
+            currentVocab.Guid = newGuid;
             await _context.SaveChangesAsync();
-            _logger.LogInformation("Successfully deleted entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
+            _logger.LogInformation("Successfully revoked guid for vocabulary (Guid:{Guid}) for user (UserId:{UserId})", guid, userId);
+
+            return RequestResult<Guid>.Success(newGuid);
+        }
+
+        public async Task<RequestResult<bool>> RemoveVocabularyByGuidAsync(int userId, Guid guid)
+        {
+            _logger.LogInformation("Attempting to delete vocabulary (Guid:{Guid}) for user (UserId:{UserId})", guid, userId);
+
+            var currentVocab = await _vocabularyQueries.GetByGuidAsync(userId, guid);
+            if (currentVocab == null)
+            {
+                _logger.LogWarning("Vocabulary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})", guid, userId);
+                return RequestResult<bool>.Failure(ErrorCode.VocabularyNotFound);
+            }
+
+
+            _context.Vocabularies.Remove(currentVocab);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Successfully deleted vocabulary (Guid:{Guid}) for user (UserId:{UserId})", guid, userId);
 
             return RequestResult<bool>.Success(true);
         }

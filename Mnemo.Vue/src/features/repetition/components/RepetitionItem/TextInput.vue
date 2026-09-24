@@ -31,13 +31,12 @@ defineEmits<{
 
 <style lang="scss" scoped>
 .text-input {
-  background-color: $plane-gray;
-  color: $black-font;
-
   border-radius: 8px;
+  background-color: $surface-secondary;
   padding: 7px 10px;
 
   width: 100%;
+  color: $text-primary;
 
   font-size: 15px;
 }

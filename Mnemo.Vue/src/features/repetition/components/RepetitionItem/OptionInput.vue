@@ -46,36 +46,33 @@ defineEmits<{
   }
 
   div {
+    display: flex;
     position: relative;
 
-    display: flex;
-
     &::before {
-      content: '';
       display: block;
-
-      background-color: $plane-gray;
+      margin-right: 10px;
 
       border-radius: 4px;
-      margin-right: 10px;
+
+      background-color: $surface-secondary;
 
       width: 20px;
       height: 20px;
+      content: '';
     }
 
     &::after {
-      @include iconize-text;
+      @include iconize(19px);
 
-      content: 'check';
-      color: $gray-font;
+      position: absolute;
+      top: 0px;
+      left: 0px;
 
       opacity: 0%;
 
-      position: absolute;
-      top: -3px;
-      left: -3px;
-
-      font-size: 26px;
+      content: 'check';
+      color: $text-secondary;
     }
   }
 
