@@ -19,6 +19,31 @@ const isTopAligned = ref<boolean>(false)
 const menuModules = ref<MenuConfig>()
 const menuRef = ref<HTMLElement | null>(null)
 
+interface OpenAt {
+  clientX: number
+  clientY: number
+  modules: MenuConfig
+  needTriangle: boolean
+}
+
+function getViewport() {
+  const vv = window.visualViewport
+  if (vv) {
+    return {
+      pageLeft: vv.pageLeft,
+      pageTop: vv.pageTop,
+      width: vv.width,
+      height: vv.height,
+    }
+  }
+  return {
+    pageLeft: window.scrollX,
+    pageTop: window.scrollY,
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }
+}
+
 export function useContextMenu() {
   const { hasActiveInput } = useActiveInput()
   const { hasSelection } = useSelection()
@@ -28,25 +53,28 @@ export function useContextMenu() {
 
     const rect = element.getBoundingClientRect()
 
-    const mouseEvent = new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
+    await openAt({
       clientX: rect.left,
       clientY: rect.bottom + MENU_ELEMENT_OFFSET,
+      modules,
+      needTriangle: false,
     })
-
-    await openContextByMouse(mouseEvent, modules, false)
   }
 
-  async function openContextByMouse(
-    event: MouseEvent,
-    modules: MenuConfig,
-    needTriangle: boolean = true,
-  ) {
+  async function openContextByMouse(event: MouseEvent, modules: MenuConfig, needTriangle = true) {
     if (hasActiveInput.value || hasSelection.value) return
     event.preventDefault()
     event.stopPropagation()
 
+    await openAt({
+      clientX: event.clientX,
+      clientY: event.clientY,
+      modules,
+      needTriangle,
+    })
+  }
+
+  async function openAt({ clientX, clientY, modules, needTriangle }: OpenAt) {
     const wasOpened = isVisible.value
     isVisible.value = false
     isPositioned.value = false
@@ -55,9 +83,7 @@ export function useContextMenu() {
     hasTriangle.value = needTriangle
 
     await new Promise((r) => setTimeout(r, wasOpened ? MENU_FADE_DELAY : 0))
-
     isVisible.value = true
-
     await nextTick()
 
     const el = menuRef.value
@@ -66,26 +92,21 @@ export function useContextMenu() {
     const MENU_WIDTH = el.offsetWidth
     const MENU_HEIGHT = el.offsetHeight
 
-    const windowW = window.innerWidth
-    const windowH = window.innerHeight
-    const scrollX = window.pageXOffset
-    const scrollY = window.pageYOffset
+    const vp = getViewport()
 
     const horizOffset = needTriangle ? MENU_MOUSE_OFFSET : 0
-    const isFitsRight = event.clientX + MENU_WIDTH + horizOffset <= windowW
-    const isFitsBottom = event.clientY + MENU_HEIGHT <= windowH
 
-    const x = event.pageX + (isFitsRight ? horizOffset : -MENU_WIDTH - horizOffset)
-    const y = event.pageY + (isFitsBottom ? 0 : -MENU_HEIGHT)
+    const isFitsRight = clientX + MENU_WIDTH + horizOffset <= vp.width
+    const isFitsBottom = clientY + MENU_HEIGHT <= vp.height
 
-    const minX = scrollX
-    const maxX = scrollX + windowW - MENU_WIDTH
-    const minY = scrollY
-    const maxY = scrollY + windowH - MENU_HEIGHT
+    let clientMenuX = clientX + (isFitsRight ? horizOffset : -MENU_WIDTH - horizOffset)
+    let clientMenuY = clientY + (isFitsBottom ? 0 : -MENU_HEIGHT)
 
-    menuX.value = Math.max(minX, Math.min(maxX, x))
-    menuY.value = Math.max(minY, Math.min(maxY, y))
+    clientMenuX = Math.max(0, Math.min(vp.width - MENU_WIDTH, clientMenuX))
+    clientMenuY = Math.max(0, Math.min(vp.height - MENU_HEIGHT, clientMenuY))
 
+    menuX.value = clientMenuX + vp.pageLeft
+    menuY.value = clientMenuY + vp.pageTop
     isLeftAligned.value = !isFitsRight
     isTopAligned.value = !isFitsBottom
     isPositioned.value = true
