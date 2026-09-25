@@ -36,8 +36,10 @@ const triangleClass = computed(() => {
         @click.stop
       >
         <div class="triangle"></div>
-        <div class="module-container">
-          <ModuleRender v-for="(mod, i) in menuModules?.modules" :key="i" :module="mod" />
+        <div class="menu-body">
+          <div class="module-container">
+            <ModuleRender v-for="(mod, i) in menuModules?.modules" :key="i" :module="mod" />
+          </div>
         </div>
       </div>
     </Transition>
@@ -46,41 +48,53 @@ const triangleClass = computed(() => {
 
 <style lang="scss" scoped>
 .context-menu {
-  display: flex;
   position: absolute;
-  flex-direction: column;
 
   z-index: 9999;
 
-  backdrop-filter: blur(2px);
-  filter: drop-shadow(0px 0px 8px #bbbbbb4d) drop-shadow(5px 5px 0px $shadow-color);
-
-  will-change: transform, opacity, filter;
-
-  border-radius: 12px;
-  background-color: $elevated-bg;
-
-  padding: 7px 6px 10px 6px;
-
-  min-width: 220px;
-  max-width: 330px;
-
-  user-select: none;
-
-  .module-container {
+  .menu-body {
     display: flex;
+    position: relative;
     flex-direction: column;
-    gap: 2px;
+
+    z-index: 2;
+
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+
+    will-change: transform, opacity;
+
+    box-shadow: 5px 5px 0px $shadow-color;
+
+    border-radius: 12px;
+
+    background-color: $elevated-bg;
+
+    padding: 7px 6px 10px 6px;
+    min-width: 220px;
+    max-width: 330px;
+
+    user-select: none;
+
+    .module-container {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+  }
+
+  &.is-measuring {
+    visibility: hidden;
+    pointer-events: none;
   }
 }
 
-&.is-measuring {
-  visibility: hidden;
-}
-
 .triangle {
-  display: block;
   position: absolute;
+
+  z-index: 1;
+
+  filter: drop-shadow(5px 5px 0 $shadow-color);
 
   background-color: transparent;
 
@@ -90,40 +104,57 @@ const triangleClass = computed(() => {
 
 @mixin triangle-corner($v, $h) {
   .triangle {
-    border: 7px solid transparent;
-    border-#{$v}: 7px solid $elevated-bg;
+    border: 6px solid transparent;
+    border-#{$v}: 6px solid $elevated-bg;
     @if $h == left {
-      border-right: 7px solid $elevated-bg;
+      border-right: 6px solid $elevated-bg;
     } @else {
-      border-left: 7px solid $elevated-bg;
+      border-left: 6px solid $elevated-bg;
     }
     #{$v}: 0px;
-    #{$h}: -12px;
+    #{$h}: -11px;
   }
 }
 
 .triangle-top-left {
-  border-top-left-radius: 0 !important;
+  .triangle {
+    filter: none;
+  }
+  .menu-body {
+    border-top-left-radius: 0 !important;
+  }
+
   @include triangle-corner(top, left);
 }
 .triangle-top-right {
-  border-top-right-radius: 0 !important;
+  .triangle {
+    z-index: 3;
+  }
+  .menu-body {
+    border-top-right-radius: 0 !important;
+  }
+
   @include triangle-corner(top, right);
 }
 .triangle-bottom-left {
-  border-bottom-left-radius: 0 !important;
+  .menu-body {
+    border-bottom-left-radius: 0 !important;
+  }
+
   @include triangle-corner(bottom, left);
 }
 .triangle-bottom-right {
-  border-bottom-right-radius: 0 !important;
+  .triangle {
+    z-index: 3;
+  }
+  .menu-body {
+    border-bottom-right-radius: 0 !important;
+  }
+
   @include triangle-corner(bottom, right);
 }
 
-.context-fade-enter-active {
-  transition:
-    transform 0.18s ease,
-    opacity 0.18s ease;
-}
+.context-fade-enter-active,
 .context-fade-leave-active {
   transition:
     transform 0.18s ease,

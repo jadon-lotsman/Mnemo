@@ -5,7 +5,7 @@ import { useEventListener } from '@vueuse/core'
 import type { MenuConfig } from '@/features/contextMenu/types/MenuConfig'
 
 const MENU_ELEMENT_OFFSET = 6
-const MENU_MOUSE_OFFSET = 12
+const MENU_MOUSE_OFFSET = 11
 const MENU_FADE_DELAY = 120
 
 const menuX = ref<number>(0)

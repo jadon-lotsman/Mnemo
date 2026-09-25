@@ -33,8 +33,8 @@ function close() {
   position: relative;
   align-items: start;
 
+  -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
-  filter: drop-shadow(0px 0px 8px #bbbbbb4d);
 
   will-change: transform, opacity;
 
@@ -59,11 +59,11 @@ function close() {
     position: absolute;
 
     top: 0px;
-    left: -12px;
+    left: -11px;
 
-    border: 8px solid transparent;
-    border-top: 8px solid $elevated-bg;
-    border-right: 8px solid $elevated-bg;
+    border: 6px solid transparent;
+    border-top: 6px solid $elevated-bg;
+    border-right: 6px solid $elevated-bg;
 
     background-color: transparent;
 
