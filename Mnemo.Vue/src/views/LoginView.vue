@@ -15,8 +15,8 @@ const loadingPlaceholder = useLoadingPlaceholder()
 const username = ref<string>('')
 const buttonText = computed(() => (loadingPlaceholder.showSkeleton.value ? 'Logining...' : 'Login'))
 
-const login = async function () {
-  if (username.value.trim() == '') {
+async function login(username: string) {
+  if (username.trim() == '') {
     notify.failure('Username cannot be empty.')
     return
   }
@@ -26,7 +26,7 @@ const login = async function () {
 
     const result = await apiRequest<{ token: string }>('/api/account/login', {
       method: 'POST',
-      body: JSON.stringify({ username: username.value }),
+      body: JSON.stringify({ username: username }),
     })
 
     if (!result.token) {
@@ -50,7 +50,7 @@ onMounted(() => {
 
 <template>
   <CollapsibleSection title="Login">
-    <form @submit.prevent="login">
+    <form @submit.prevent="login(username)">
       <input
         class="input"
         autocapitalize="none"
@@ -62,6 +62,11 @@ onMounted(() => {
         {{ buttonText }}
       </button>
     </form>
+
+    <div class="guest-container">
+      <span>Don't have a username?</span>
+      <span class="guest-text" @click="login('jadon')">Login as Guest</span>
+    </div>
   </CollapsibleSection>
 </template>
 
@@ -89,6 +94,28 @@ button {
   &:focus {
     transform: translateY(-3px);
     box-shadow: 8px 8px 0px $shadow-color;
+  }
+}
+
+.guest-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 6px;
+
+  margin-top: 30px;
+
+  color: $text-muted;
+
+  .guest-text {
+    cursor: pointer;
+
+    color: $text-secondary;
+
+    font-size: 16px;
+
+    text-decoration: underline;
   }
 }
 </style>
