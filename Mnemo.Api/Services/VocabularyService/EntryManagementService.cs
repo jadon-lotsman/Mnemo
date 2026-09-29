@@ -70,21 +70,24 @@ namespace Mnemo.Services.VocabularyService
 
             _logger.LogDebug("Paging entries for user (UserId:{UserId}): letters [{Min}..{Max}], desc={Desc}, page={Page}, size={Size}...", userId, minLetter, maxLetter, isDescending, page, pageSize);
 
+            var lowerBound = minLetter.Substring(0, 1);
+            var upperBound = maxLetter.Substring(0, 1) + char.MaxValue;
+
             var filteredQuery = _entryQueries
                 .GetEntriesByVocabularyGuidQuery(userId, guid)
-                .Where(e => string.Compare(e.Foreign, minLetter) >= 0 &&
-                            string.Compare(e.Foreign, maxLetter) <= 0);
+                .Where(e => string.Compare(e.Foreign, lowerBound) >= 0 &&
+                            string.Compare(e.Foreign, upperBound) <= 0);
+
+            var letterRangeTotal = await filteredQuery.CountAsync();
+            int totalPages = letterRangeTotal == 0 ? 1 : (int)Math.Ceiling(letterRangeTotal / (double)pageSize);
+
+            if (letterRangeTotal == 0)
+                return RequestResult<PageValue<EntryResponse>>.Success(new PageValue<EntryResponse>(page, pageSize, 1, []));
+
 
             var orderedQuery = isDescending
                 ? filteredQuery.OrderByDescending(e => e.Foreign).ThenByDescending(e => e.PartOfSpeech)
                 : filteredQuery.OrderBy(e => e.Foreign).ThenBy(e => e.PartOfSpeech);
-
-            var letterRangeTotal = await orderedQuery.CountAsync();
-            int totalPages = letterRangeTotal == 0 ? 1 : (int)Math.Ceiling(letterRangeTotal / (double)pageSize);
-
-            if (totalPages == 0)
-                return RequestResult<PageValue<EntryResponse>>.Success(new PageValue<EntryResponse>(page, pageSize, 1, []));
-
 
             var entries = await orderedQuery
                 .Skip((page - 1) * pageSize)
