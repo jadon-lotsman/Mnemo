@@ -39,9 +39,9 @@ namespace Mnemo
             // Add MemoryCache
             services.AddMemoryCache();
 
-            // Add SQLite AppDbContext
+            // Add PostgreSQL context
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
 
             // Add Validators
             services.AddValidatorsFromAssemblyContaining<Program>();
@@ -143,22 +143,45 @@ namespace Mnemo
 
         public void Configure(WebApplication app, IWebHostEnvironment env)
         {
-            using var scope = app.Services.CreateScope();
-            scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
-
-
+            app.UseHttpsRedirection();
             if (env.IsDevelopment())
             {
+                using var scope = app.Services.CreateScope();
+                scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
+
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
-            app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
+        }
+
+        public void CheckConfiguration(IConfiguration config)
+        {
+            var messages = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(config.GetConnectionString("DefaultConnection")))
+                messages.Add("ConnectionStrings:DefaultConnection is not configured");
+
+            var jwt = config.GetSection("Jwt");
+            var key = jwt["Key"];
+
+            if (string.IsNullOrWhiteSpace(key))
+                messages.Add("Jwt:Key is not configured");
+            else if (Encoding.UTF8.GetByteCount(key) < 32)
+                messages.Add($"Jwt:Key is too short ({Encoding.UTF8.GetByteCount(key)} bytes). Requires >= 32.");
+
+            if (string.IsNullOrWhiteSpace(jwt["Issuer"]))
+                messages.Add("Jwt:Issuer is not configured");
+
+            if (string.IsNullOrWhiteSpace(jwt["Audience"]))
+                messages.Add("Jwt:Audience is not configured");
+
+            if (messages.Count > 0)
+                throw new InvalidOperationException("Invalid configuration:\n" + string.Join("\n", messages.Select(e => " - " + e)));
         }
     }
 }

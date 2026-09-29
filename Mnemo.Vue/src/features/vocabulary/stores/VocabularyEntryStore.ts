@@ -27,7 +27,7 @@ export const useVocabularyEntryStore = defineStore('entry', () => {
       else loadingPlaceholder.startLoading(page > 1)
 
       const result = await apiRequest<PageValue<VocabularyEntry>>(
-        `/api/vocabularies/${guid}/entries/${startLetter}-${endLetter}?page=${page}&pageSize=${pageSize}`,
+        `/api/vocabularies/${guid}/entries/${startLetter[0]}-${endLetter[0]}?page=${page}&pageSize=${pageSize}`,
       )
 
       if (page === 1) entries.value = result.items
