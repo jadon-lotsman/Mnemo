@@ -11,7 +11,7 @@ It's an independent project, driven by enthusiasm and a genuine desire to provid
 
 ### Features
 
-- **Personal Dictionary:** Users have a private personal dictionary for their vocabulary with the option to exchange entries as vocabulary packs. Management is based on optimistic updating and a smooth UI/UX.
+- **Personal Dictionary:** Users have private vocabulary collections you can make public or share via link. Management is based on optimistic updating and a smooth UI/UX.
 - **Spaced Repetition System:** Mnemo uses a modified SM2 algorithm that combines automatic quality scoring with manual feedback adjustment. In this way, it's an improved classical spaced repetition algorithm.
 - **Progress Tracking:** A visual calendar tells you about planned entries.
 - **Adaptive Exercises:** Mnemo scales the difficulty down, giving you simpler exercises until you're confident again.
@@ -24,37 +24,81 @@ It's an independent project, driven by enthusiasm and a genuine desire to provid
 
 ## Getting Started
 
-If you want **to try Mnemo** without installing anything, it's **[available here](https://mnemvocab.ru)**.  
-Join our _[Telegram channel](https://t.me/mnemvocab)_ for news and updates.
+If you want to try Mnemo without installing anything -> [Available here](https://mnemvocab.ru).  
+You can also follow our _[Telegram](https://t.me/mnemvocab)_ for news and updates.
 
-### > Docker (Recommended)
+### > Run with Docker (Recommended)
 
-**Prerequisite:** Docker and Docker Compose must be installed on your system.
+**Prerequisite:** Docker and Docker Compose must be installed on your machine.
 
 ```bash
 git clone https://github.com/jadon-lotsman/Mnemo
 cd Mnemo
 cp .env.example .env
-nano .env   # Edit .env to set your own JWT_KEY
+nano .env   # Set database connection and JWT settings
 docker compose up --build
 ```
 
-Database file is stored in `./data/dev.db` (default).
+Database is persisted in the pgdata Docker volume.
+To wipe it:
 
-### > Partially running
+```bash
+docker compose down -v
+```
 
-**Prerequisites:** .NET 8 SDK, dotnet-ef (optional, for migrations) for backend and Node.js 22 for frontend.
+### > Running locally for development
 
-Start Backend:
+**Prerequisites:** .NET 8 SDK, Node.js 22, dotnet-ef (optional, for migrations) and Docker (for PostgreSQL image).
+
+#### Configure `.env`:
+
+The `db` container reads its configuration from `.env`.
+
+```bash
+cp .env.example .env
+nano .env   # Set connection
+```
+
+#### Configure `appsettings.Development.json`:
+
+The backend does **not** read `.env`, it reads `appsettings.Development.json` config. The database name and credentials in both files must match.
+
+Copy `appsettings.json` as a template, uncomment `ConnectionStrings` and `Jwt` sections, and replace the placeholder values.
 
 ```bash
 cd Mnemo.Api
-cp appsettings.Example.json appsettings.json
-dotnet ef database update
+cp appsettings.json appsettings.Development.json
+nano appsettings.Development.json
+```
+
+#### Start the database:
+
+```bash
+# From the repo root
+docker compose up -d db
+```
+
+If you have a native PostgreSQL running locally, skip this step and point
+`ConnectionStrings:DefaultConnection` to your instance.
+
+#### Start backend:
+
+Available at `http://localhost:5000`.
+
+```bash
+cd Mnemo.Api
 dotnet run
 ```
 
-Start Frontend:
+Migrations are applied automatically on startup in Development. To apply them manually:
+
+```bash
+dotnet ef database update
+```
+
+#### Start frontend:
+
+Available at `http://localhost:5173`.
 
 ```bash
 cd Mnemo.Vue
@@ -69,12 +113,12 @@ Mnemo is built as a full-stack application:
 - **Frontend:** Vue.js (Composition API), TypeScript.
 - **Backend:** C#, ASP.NET Core, EF Core.
 - **Tooling & Validation:** AutoMapper, FluentValidation, JWT Bearer.
-- **Infrastructure:** Docker, Nginx, SQLite with EF migrations.
-- **External:** Free Dictionary API to enrichment.
+- **Infrastructure:** Docker, Nginx, PostgreSQL with EF migrations.
+- **External:** Free Dictionary API for enrichment.
 
 Successful architectural solutions, in my opinion:
 
-- **Polymorphic Task Factory:** Different task types are generated via factory pattern. Each type have own class.
+- **Polymorphic Task Factory:** Different task types are generated via factory pattern. Each type has its own class
 - **Eliminated the `RepetitionSession` Entity:** It was just a container with no business logic - users never needed more than one session.
 - **Atomic Background Enrichment:** Batch enrichment with entries capture and fixed N+1 `SaveChanges()`.
 
