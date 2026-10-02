@@ -1,6 +1,6 @@
 ## What is Mnemo?
 
-Mnemo (pron. "(m)ˈnimə") is a vocabulary tool built on spaced repetition that offers a friendly environment for language learning.
+Mnemo (pron. "(m)ˈnimə") is a vocabulary tool built on spaced repetition that offers a friendly environment for language learning.  
 It's an independent project, driven by enthusiasm and a genuine desire to provide a pressure-free, self-paced experience.
 
 <div align="center">
@@ -24,8 +24,8 @@ It's an independent project, driven by enthusiasm and a genuine desire to provid
 
 ## Getting Started
 
-If you want to try Mnemo without installing anything -> [Available here](https://mnemvocab.ru).  
-You can also follow our _[Telegram](https://t.me/mnemvocab)_ for news and updates.
+Try Mnemo live on _[mnemvocab.ru](https://mnemvocab.ru)_.  
+Follow the telegram channel (_[@mnemvocab](https://t.me/mnemvocab)_) for news and updates.
 
 ### > Run with Docker (Recommended)
 
@@ -35,15 +35,22 @@ You can also follow our _[Telegram](https://t.me/mnemvocab)_ for news and update
 git clone https://github.com/jadon-lotsman/Mnemo
 cd Mnemo
 cp .env.example .env
-nano .env   # Set database connection and JWT settings
+nano .env   # Set database credentials, JWT settings
 docker compose up --build
 ```
 
-Database is persisted in the pgdata Docker volume.
-To wipe it:
+Database is persisted in the `pgdata` Docker volume. To wipe it:
 
 ```bash
 docker compose down -v
+```
+
+#### Production docker profile
+
+Edge nginx and certbot containers are behind the `prod` profile, so they do not start locally.
+
+```bash
+docker compose -f docker-compose.yml --profile prod up -d --build
 ```
 
 ### > Running locally for development
@@ -83,7 +90,7 @@ If you have a native PostgreSQL running locally, skip this step and point
 
 #### Start backend:
 
-Available at `http://localhost:5000`.
+Available at `http://localhost:8080`.
 
 ```bash
 cd Mnemo.Api
