@@ -7,6 +7,7 @@ namespace Mnemo
             var builder = WebApplication.CreateBuilder(args);
             var startup = new Startup(builder.Configuration);
 
+            startup.CheckConfiguration(builder.Configuration);
             startup.ConfigureServices(builder.Services);
 
             var app = builder.Build();

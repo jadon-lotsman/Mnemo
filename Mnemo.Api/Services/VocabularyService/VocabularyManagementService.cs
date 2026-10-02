@@ -175,7 +175,28 @@ namespace Mnemo.Services.VocabularyService
                 index++;
             }
 
-            if (sectors.Any())
+            if (!sectors.Any())
+            {
+                if (isDescending)
+                {
+                    sectors.Add(new VocabularySectorResponse()
+                    {
+                        StartWord = "z",
+                        EndWord = "a",
+                        Count = 0
+                    });
+                }
+                else
+                {
+                    sectors.Add(new VocabularySectorResponse()
+                    {
+                        StartWord = "a",
+                        EndWord = "z",
+                        Count = 0
+                    });
+                }
+            }
+            else
             {
                 sectors.First().StartWord = "a";
                 sectors.Last().EndWord = "z";

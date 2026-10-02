@@ -1,0 +1,12 @@
+services:
+  db:
+    ports:
+      - "5432:5432"
+
+  api:
+    ports:
+      - "8080:8080"  
+           
+  vue:
+    ports:
+      - "80:80"
