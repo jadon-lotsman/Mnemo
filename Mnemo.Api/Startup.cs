@@ -143,7 +143,6 @@ namespace Mnemo
 
         public void Configure(WebApplication app, IWebHostEnvironment env)
         {
-            app.UseHttpsRedirection();
             if (env.IsDevelopment())
             {
                 using var scope = app.Services.CreateScope();
@@ -151,6 +150,10 @@ namespace Mnemo
 
                 app.UseSwagger();
                 app.UseSwaggerUI();
+            }
+            else
+            {
+                app.UseHttpsRedirection();
             }
 
             app.UseAuthentication();
