@@ -20,6 +20,7 @@ namespace Mnemo.Services.VocabularyService
     public class VocabularyManagementService
     {
         private readonly ILogger<VocabularyManagementService> _logger;
+        private readonly IValidator<CreateEntryRequest> _createEntryValidator;
         private readonly IValidator<CreateVocabularyRequest> _createVocabularyValidator;
         private readonly IMapper _mapper;
         private readonly AppDbContext _context;
@@ -33,6 +34,7 @@ namespace Mnemo.Services.VocabularyService
 
         public VocabularyManagementService(
             ILogger<VocabularyManagementService> logger,
+            IValidator<CreateEntryRequest> createEntryValidator,
             IValidator<CreateVocabularyRequest> createVocabularyValidator,
             IMapper mapper,
             AppDbContext context,
@@ -42,6 +44,7 @@ namespace Mnemo.Services.VocabularyService
             EntryManagementService entryService)
         {
             _logger = logger;
+            _createEntryValidator = createEntryValidator;
             _createVocabularyValidator = createVocabularyValidator;
             _mapper = mapper;
             _context = context;
@@ -218,40 +221,38 @@ namespace Mnemo.Services.VocabularyService
         {
             _logger.LogInformation("Creating a vocabulary for user (UserId:{UserId})...", userId);
 
-            var validationResult = await _createVocabularyValidator.ValidateAsync(request);
-            if (!validationResult.IsValid)
-            {
-                var messages = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-                _logger.LogWarning("CreateVocabularyRequest (UserId:{UserId}) is not valid: {messages}", userId, messages);
-                return RequestResult<Vocabulary>.Failure(ErrorCode.InvalidData, string.Join("; ", messages));
-            }
-
             if (!await _accountQueries.ExistsByIdAsync(userId))
             {
                 _logger.LogWarning("User (UserId:{UserId}) not found", userId);
                 return RequestResult<Vocabulary>.Failure(ErrorCode.UserNotFound);
             }
 
-            var linksToAdd = new List<VocabularyEntryLink>();
+            var validationRequest = await _createVocabularyValidator.ValidateAsync(request);
 
-            if (!request.Entries.IsNullOrEmpty())
+            if (!validationRequest.IsValid)
             {
-                var linkResults = await _entryService.SetVocabularyLinksAsync(userId, null, request.Entries);
-
-                if (linkResults.IsAllFailure)
-                {
-                    var messages = string.Join("; ", linkResults.FailedResults.Select(e => e.ErrorMessage));
-                    var duplicationErrors = RequestResult<Vocabulary>.Failure(ErrorCode.DuplicateEntry, messages);
-                    return duplicationErrors;
-                }
-
-                linksToAdd = linkResults.SucceededResults.Select(r => r.Value!).ToList();
+                var messages = string.Join("; ", validationRequest.Errors.Select(e => e.ErrorMessage));
+                _logger.LogWarning("CreateVocabularyRequest (UserId:{UserId}) is not valid: {messages}", userId, messages);
+                return RequestResult<Vocabulary>.Failure(ErrorCode.InvalidData, string.Join("; ", messages));
             }
+
+            var validation = await _createEntryValidator.ValidateBatchAsync(request.Entries!, _logger);
+
+            if (!validation.HasAnySuccess)
+            {
+                var messages = string.Join("; ", validation.Errors.Select(e => e.ErrorMessage));
+                return RequestResult<Vocabulary>.Failure(ErrorCode.InvalidData, messages);
+            }
+
+
+            var mapped = _mapper.Map<List<VocabularyEntry>>(validation.Values);
+
+            var resolving = await _entryService.ResolveVocabularyEntriesAsync(userId, mapped, ExistingPolicy.ReuseExisting);
+
 
             var vocab = _mapper.Map<Vocabulary>(request);
             vocab.OwnerId = userId;
-            vocab.EntryLinks = linksToAdd;
-
+            vocab.EntryLinks = resolving.Values.Select(e => new VocabularyEntryLink() { VocabularyEntry = e }).ToList();
 
             await _context.Vocabularies.AddAsync(vocab);
             await _context.SaveChangesAsync();
@@ -279,17 +280,17 @@ namespace Mnemo.Services.VocabularyService
 
 
             var entries = await _entryQueries.GetEntriesByVocabularyGuidQuery(userId, sourceGuid).ToListAsync();
-            var linkResults = await _entryService.SetVocabularyLinksAsync(userId, targetVocab.Id, entries);
+            var linking = await _entryService.LinkVocabularyEntriesAsync(userId, targetVocab.Id, entries);
 
-
-            var messages = string.Join("; ", linkResults.FailedResults.Select(e => e.ErrorMessage));
-            var duplicationErrors = RequestResult<Vocabulary>.Failure(ErrorCode.DuplicateEntry, messages);
-
-            if (linkResults.IsAllFailure)
+            if (!linking.HasAnySuccess)
+            {
+                var messages = string.Join("; ", linking.Errors.Select(e => e.ErrorMessage));
+                var duplicationErrors = RequestResult<Vocabulary>.Failure(ErrorCode.DuplicateEntry, messages);
                 return duplicationErrors;
+            }
 
 
-            var linksToAdd = linkResults.SucceededResults.Select(r => r.Value!);
+            var linksToAdd = linking.Values;
 
             targetVocab.EntryLinks.AddRange(linksToAdd);
             await _context.SaveChangesAsync();
