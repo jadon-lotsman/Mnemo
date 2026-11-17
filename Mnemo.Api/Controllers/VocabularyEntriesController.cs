@@ -54,16 +54,16 @@ namespace Mnemo.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateVocabularyEntry(Guid guid, [FromBody] CreateEntryRequest request)
+        public async Task<IActionResult> CreateVocabularyEntries(Guid guid, [FromBody] CreateEntryRequest[] requests)
         {
-            var result = await _entryService.CreateVocabularyEntryAsync(UserId, guid, request);
+            var result = await _entryService.CreateVocabularyEntriesAsync(UserId, guid, requests);
             return result.ToActionResult<VocabularyEntry, EntryResponse>(_mapper, StatusCodes.Status201Created);
         }
 
         [HttpPost("/api/inbox/entries")]
-        public async Task<IActionResult> CreateInboxEntry([FromBody] CreateEntryRequest request)
+        public async Task<IActionResult> CreateInboxEntry([FromBody] CreateEntryRequest[] requests)
         {
-            var result = await _entryService.CreateInboxEntryAsync(UserId, request);
+            var result = await _entryService.CreateInboxEntriesAsync(UserId, requests);
             return result.ToActionResult<VocabularyEntry, EntryResponse>(_mapper, StatusCodes.Status201Created);
         }
 

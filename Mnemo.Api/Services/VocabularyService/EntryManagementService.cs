@@ -116,12 +116,6 @@ namespace Mnemo.Services.VocabularyService
             return RequestResult<PageValue<EntryResponse>>.Success(pageValue);
         }
 
-        public async Task<RequestResult<VocabularyEntry>> CreateInboxEntryAsync(int userId, CreateEntryRequest request)
-        {
-            var result = await CreateInboxEntriesAsync(userId, [request]);
-            return result.Results.FirstOrDefault() ?? RequestResult<VocabularyEntry>.Failure(ErrorCode.InvalidData);
-        }
-
         public async Task<BatchRequestResult<VocabularyEntry>> CreateInboxEntriesAsync(int userId, IReadOnlyCollection<CreateEntryRequest> requests)
         {
             _logger.LogInformation("Creating {Count} vocabulary entries for user (UserId:{UserId})...", requests.Count, userId);
@@ -153,12 +147,6 @@ namespace Mnemo.Services.VocabularyService
             _logger.LogInformation("Created {Count} entries to inbox (UserId:{UserId})!", resolving.Values.Count, userId);
 
             return BatchRequestResult<VocabularyEntry>.Concat(validationErr, resolving);
-        }
-
-        public async Task<RequestResult<VocabularyEntry>> CreateVocabularyEntryAsync(int userId, Guid guid, CreateEntryRequest request)
-        {
-            var result = await CreateVocabularyEntriesAsync(userId, guid, [request]);
-            return result.Results.FirstOrDefault() ?? RequestResult<VocabularyEntry>.Failure(ErrorCode.InvalidData);
         }
 
         public async Task<BatchRequestResult<VocabularyEntry>> CreateVocabularyEntriesAsync(int userId, Guid guid, IReadOnlyCollection<CreateEntryRequest> requests)
