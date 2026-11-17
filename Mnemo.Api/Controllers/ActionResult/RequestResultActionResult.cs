@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Mnemo.Shared;
-using Mnemo.Shared.Enums;
+using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Controllers.ActionResult
 {
@@ -34,41 +34,19 @@ namespace Mnemo.Controllers.ActionResult
             if (_result.IsSuccess)
             {
                 response.StatusCode = _successStatusCode;
+
                 if (!IsStatusCodeWithoutBody(_successStatusCode))
                 {
-                    if (_mapFunc != null)
-                    {
-                        var mappedValue = _mapFunc(_result.Value!);
-                        await response.WriteAsJsonAsync(mappedValue, jsonOptions.JsonSerializerOptions);
-                    }
-                    else
-                    {
-                        await response.WriteAsJsonAsync(_result.Value, jsonOptions.JsonSerializerOptions);
-                    }
+                    object value = _mapFunc != null
+                        ? _mapFunc(_result.Value!)!
+                        : _result.Value!;
+
+                    await response.WriteAsJsonAsync(value, jsonOptions.JsonSerializerOptions);
                 }
             }
             else
             {
-                response.StatusCode = _result.ErrorCode switch
-                {
-                    // BadRequest
-                    ErrorCode.InvalidData       => StatusCodes.Status400BadRequest,
-                    ErrorCode.InvalidPassword   => StatusCodes.Status400BadRequest,
-                    // NotFound
-                    ErrorCode.UserNotFound          => StatusCodes.Status404NotFound,
-                    ErrorCode.VocabularyNotFound    => StatusCodes.Status404NotFound,
-                    ErrorCode.EntryNotFound         => StatusCodes.Status404NotFound,
-                    ErrorCode.StateNotFound         => StatusCodes.Status404NotFound,
-                    ErrorCode.RepetitionNotFound    => StatusCodes.Status404NotFound,
-                    ErrorCode.TaskNotFound          => StatusCodes.Status404NotFound,
-                    // Conflict/Duplicate
-                    ErrorCode.UsernameTaken     => StatusCodes.Status409Conflict,
-                    ErrorCode.DuplicateEntry    => StatusCodes.Status409Conflict,
-                    // UnprocessableEntity
-                    ErrorCode.TaskGenerationFailed      => StatusCodes.Status422UnprocessableEntity,
-                    ErrorCode.ExternalDictionaryError   => StatusCodes.Status422UnprocessableEntity,
-                    _ => StatusCodes.Status418ImATeapot
-                };
+                response.StatusCode = _result.ErrorCode.ToHttpCode();
 
                 var errorResponse = new { message = _result.ErrorMessage };
                 await response.WriteAsJsonAsync(errorResponse, jsonOptions.JsonSerializerOptions);
