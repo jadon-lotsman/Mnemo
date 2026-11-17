@@ -25,18 +25,11 @@ namespace Mnemo.Services.AccountService
         public async Task<RequestResult<bool>> CreateAsync(string username)
         {
             if (await _accountQueries.ExistsByUsernameAsync(username))
-                return RequestResult<bool>.Failure(ErrorCode.UsernameTaken, $"Username '{username}' Is Taken");
+                return RequestResult<bool>.Failure(ErrorCode.UsernameTaken, $"Username '{username}' is taken");
 
 
-            var user = new User
-            {
-                Username = username,
-            };
-            user.Vocabularies.Add(new Vocabulary()
-            {
-                Name = $"{username.Capitalize()}'s Vocabulary",
-            });
-
+            var user = new User();
+            user.Username = username;
 
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
