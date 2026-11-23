@@ -8,7 +8,7 @@
 
         // NotFound
         UserNotFound,
-        VocabularyNotFound,
+        GlossaryNotFound,
         EntryNotFound,
         LinkNotFound,
         StateNotFound,

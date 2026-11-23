@@ -42,7 +42,7 @@ namespace Mnemo.Services.RepetitionService
 
             var states = _stateQueries
                 .GetByUserIdQuery(userId)
-                .Include(s => s.VocabularyEntry);
+                .Include(s => s.Entry);
 
             var grouped = states
                 .Where(s => s.NextRepetitionAt <= dateToday.AddDays(7 + daysUntilNext))
@@ -51,7 +51,7 @@ namespace Mnemo.Services.RepetitionService
                 {
                     Date = d.Key,
                     IsImportantDay = d.Count() > _options.Value.RepetitionTaskCount,
-                    VocabularyForeigns = d.Select(s => s.VocabularyEntry.Foreign).ToArray()
+                    Foreigns = d.Select(s => s.Entry.Foreign).ToArray()
                 })
                 .OrderBy(d => d.Date)
                 .ToList();
@@ -86,7 +86,7 @@ namespace Mnemo.Services.RepetitionService
 
             foreach (var state in stateDict.Values)
             {
-                if (!entryIdToQuality.TryGetValue(state.VocabularyEntryId, out double quality))
+                if (!entryIdToQuality.TryGetValue(state.EntryId, out double quality))
                     continue;
 
                 if (quality < _sm2.Value.MinQuality || quality > _sm2.Value.MaxQuality)

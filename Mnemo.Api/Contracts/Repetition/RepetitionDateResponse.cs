@@ -4,6 +4,6 @@
     {
         public DateOnly Date { get; set; }
         public bool IsImportantDay { get; set; }
-        public string[]? VocabularyForeigns { get; set; }
+        public string[]? Foreigns { get; set; }
     }
 }

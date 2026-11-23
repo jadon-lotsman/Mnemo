@@ -6,9 +6,9 @@ namespace Mnemo.Data
     public class AppDbContext : DbContext
     {
         public DbSet<User> Users { get; set; }
-        public DbSet<Vocabulary> Vocabularies { get; set; }
-        public DbSet<VocabularyEntry> VocabularyEntries { get; set; }
-        public DbSet<VocabularyEntryLink> VocabularyEntryLinks { get; set; }
+        public DbSet<Glossary> Glossaries { get; set; }
+        public DbSet<GlossaryLink> GlossaryLinks { get; set; }
+        public DbSet<GlossaryEntry> GlossaryEntries { get; set; }
         public DbSet<RepetitionTask> RepetitionTasks { get; set; }
         public DbSet<RepetitionState> RepetitionStates { get; set; }
 
@@ -18,22 +18,22 @@ namespace Mnemo.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Indexes
-            modelBuilder.Entity<Vocabulary>()
+            modelBuilder.Entity<Glossary>()
                 .HasIndex(v => v.OwnerId);
 
-            modelBuilder.Entity<VocabularyEntry>()
+            modelBuilder.Entity<GlossaryEntry>()
                 .HasIndex(e => new { e.OwnerId, e.Foreign, e.PartOfSpeech });
 
-            modelBuilder.Entity<VocabularyEntryLink>()
-                .HasIndex(l => l.VocabularyEntryId);
+            modelBuilder.Entity<GlossaryLink>()
+                .HasIndex(l => l.EntryId);
 
             modelBuilder.Entity<RepetitionState>()
-                .HasIndex(s => s.VocabularyEntryId)
+                .HasIndex(s => s.EntryId)
                 .IsUnique();
 
             // Relations
             modelBuilder.Entity<User>()
-                .HasMany(p => p.Vocabularies)
+                .HasMany(p => p.Glossaries)
                 .WithOne(u => u.Owner)
                 .HasForeignKey(p => p.OwnerId)
                 .OnDelete(DeleteBehavior.Cascade);
@@ -46,24 +46,24 @@ namespace Mnemo.Data
 
 
 
-            modelBuilder.Entity<VocabularyEntryLink>()
-                .HasKey(l => new { l.VocabularyId, l.VocabularyEntryId });
+            modelBuilder.Entity<GlossaryLink>()
+                .HasKey(l => new { l.GlossaryId, l.EntryId });
 
-            modelBuilder.Entity<VocabularyEntryLink>()
-                .HasOne(v => v.Vocabulary)
-                .WithMany(l => l.EntryLinks)
-                .HasForeignKey(v => v.VocabularyId)
+            modelBuilder.Entity<GlossaryLink>()
+                .HasOne(v => v.Glossary)
+                .WithMany(l => l.Links)
+                .HasForeignKey(v => v.GlossaryId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<VocabularyEntryLink>()
-                .HasOne(e => e.VocabularyEntry)
-                .WithMany(l => l.VocabularyLinks)
-                .HasForeignKey(e => e.VocabularyEntryId);
+            modelBuilder.Entity<GlossaryLink>()
+                .HasOne(e => e.Entry)
+                .WithMany(l => l.Links)
+                .HasForeignKey(e => e.EntryId);
 
-            modelBuilder.Entity<VocabularyEntry>()
+            modelBuilder.Entity<GlossaryEntry>()
                 .HasOne(e => e.RepetitionState)
-                .WithOne(s => s.VocabularyEntry)
-                .HasForeignKey<RepetitionState>(s => s.VocabularyEntryId)
+                .WithOne(s => s.Entry)
+                .HasForeignKey<RepetitionState>(s => s.EntryId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Discriminators

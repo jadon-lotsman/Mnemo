@@ -8,7 +8,7 @@
         public DateTime RegisteredAt { get; set; }
 
 
-        public List<Vocabulary> Vocabularies { get; set; }
+        public List<Glossary> Glossaries { get; set; }
         public List<RepetitionTask> RepetitionTasks { get; set; }
 
 
@@ -16,7 +16,7 @@
         {
             RegisteredAt = DateTime.UtcNow;
 
-            Vocabularies = new List<Vocabulary>();
+            Glossaries = new List<Glossary>();
             RepetitionTasks = new List<RepetitionTask>();
         }
     }

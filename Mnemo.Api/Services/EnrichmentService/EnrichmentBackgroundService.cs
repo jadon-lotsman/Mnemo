@@ -109,7 +109,7 @@ namespace Mnemo.Services.EnrichmentService
 
             try
             {
-                List<int> pendingIds = await context.VocabularyEntries
+                List<int> pendingIds = await context.GlossaryEntries
                     .Where(e => e.EnrichmentStatus == EnrichmentStatus.Pending)
                     .OrderBy(e => e.Id)
                     .Select(e => e.Id)
@@ -138,7 +138,7 @@ namespace Mnemo.Services.EnrichmentService
                     return;
 
 
-                var entries = await context.VocabularyEntries
+                var entries = await context.GlossaryEntries
                     .Where(e => capturedIds.Contains(e.Id))
                     .ToListAsync(stoppingToken);
 

@@ -5,7 +5,7 @@ namespace Mnemo.Shared.Extensions
 {
     public static class QueriableExtension
     {
-        public static IQueryable<VocabularyEntry> DueEntries(this IQueryable<VocabularyEntry> source)
+        public static IQueryable<GlossaryEntry> DueEntries(this IQueryable<GlossaryEntry> source)
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
@@ -14,7 +14,7 @@ namespace Mnemo.Shared.Extensions
                         e.RepetitionState.NextRepetitionAt <= today);
         }
 
-        public static IQueryable<VocabularyEntry> NotDueEntries(this IQueryable<VocabularyEntry> source)
+        public static IQueryable<GlossaryEntry> NotDueEntries(this IQueryable<GlossaryEntry> source)
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
@@ -23,7 +23,7 @@ namespace Mnemo.Shared.Extensions
                      && e.RepetitionState.NextRepetitionAt > today);
         }
 
-        public static IQueryable<VocabularyEntry> NotRepeatedTodayEntries(this IQueryable<VocabularyEntry> source)
+        public static IQueryable<GlossaryEntry> NotRepeatedTodayEntries(this IQueryable<GlossaryEntry> source)
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
@@ -32,7 +32,7 @@ namespace Mnemo.Shared.Extensions
                     && e.RepetitionState.LastRepetitionAt < today);
         }
 
-        public static IQueryable<VocabularyEntry> GetRandomEntries(this IQueryable<VocabularyEntry> source, int? take = null, params int[] excludeIds)
+        public static IQueryable<GlossaryEntry> GetRandomEntries(this IQueryable<GlossaryEntry> source, int? take = null, params int[] excludeIds)
         {
             var query = source;
 

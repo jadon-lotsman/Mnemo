@@ -10,9 +10,9 @@ namespace Mnemo.Services.RepetitionService.Factories
         private readonly IOptions<RepetitionOptions> _options;
         private readonly IDistractorProvider _provider;
         private readonly SyllableDistractorProvider _syllable;
-        private readonly VocabularyEntryQueries _vocabularyQueries;
+        private readonly GlossaryEntryQueries _vocabularyQueries;
 
-        public RepetitionTaskFactory(IOptions<RepetitionOptions> options, IDistractorProvider provider, SyllableDistractorProvider syllable, VocabularyEntryQueries vocabularyQueries)
+        public RepetitionTaskFactory(IOptions<RepetitionOptions> options, IDistractorProvider provider, SyllableDistractorProvider syllable, GlossaryEntryQueries vocabularyQueries)
         {
             _options = options;
             _provider = provider;
@@ -21,7 +21,7 @@ namespace Mnemo.Services.RepetitionService.Factories
         }
 
 
-        public async Task<RepetitionTask> CreateByTypeAsync(bool isForward, Type taskType, VocabularyEntry baseEntry, params int[] excludeIds)
+        public async Task<RepetitionTask> CreateByTypeAsync(bool isForward, Type taskType, GlossaryEntry baseEntry, params int[] excludeIds)
         {
             bool showPartOfSpeechLabel = await _vocabularyQueries.HasAltPartOfSpeechAsync(baseEntry.OwnerId, baseEntry.Foreign, baseEntry.PartOfSpeech) && isForward;
 
@@ -67,7 +67,7 @@ namespace Mnemo.Services.RepetitionService.Factories
             return CreateTextTask(isForward, showPartOfSpeechLabel, baseEntry);
         }
 
-        public TextRepetitionTask CreateTextTask(bool isForward, bool showPartOfSpeechLabel, VocabularyEntry baseEntry)
+        public TextRepetitionTask CreateTextTask(bool isForward, bool showPartOfSpeechLabel, GlossaryEntry baseEntry)
         {
             string prompt = isForward ? baseEntry.Foreign : baseEntry.Translations[0];
             var partOfSpeech = showPartOfSpeechLabel ? baseEntry.PartOfSpeech : null;
@@ -77,7 +77,7 @@ namespace Mnemo.Services.RepetitionService.Factories
             return new TextRepetitionTask(prompt, partOfSpeech, baseEntry.OwnerId, baseEntry.Id, correct);
         }
 
-        public OptionRepetitionTask CreateOptionsTask(bool isForward, bool showPartOfSpeechLabel, VocabularyEntry baseEntry, List<string> distractors)
+        public OptionRepetitionTask CreateOptionsTask(bool isForward, bool showPartOfSpeechLabel, GlossaryEntry baseEntry, List<string> distractors)
         {
             string prompt = isForward ? baseEntry.Foreign : baseEntry.Translations[0];
             var partOfSpeech = showPartOfSpeechLabel ? baseEntry.PartOfSpeech : null;
@@ -87,7 +87,7 @@ namespace Mnemo.Services.RepetitionService.Factories
             return new OptionRepetitionTask(prompt, partOfSpeech, baseEntry.OwnerId, baseEntry.Id, distractors, correct);
         }
 
-        public SentenceReorderRepetitionTask CreateSentenceReorderTask(VocabularyEntry baseEntry, List<string> sentences)
+        public SentenceReorderRepetitionTask CreateSentenceReorderTask(GlossaryEntry baseEntry, List<string> sentences)
         {
             int index = Random.Shared.Next(sentences.Count);
             var sentence = sentences[index];
@@ -95,7 +95,7 @@ namespace Mnemo.Services.RepetitionService.Factories
             return new SentenceReorderRepetitionTask(baseEntry.OwnerId, baseEntry.Id, sentence);
         }
 
-        public SyllableReorderRepetitionTask CreateSyllableReorderTask(bool showPartOfSpeechLabel, VocabularyEntry baseEntry, List<string> distractors)
+        public SyllableReorderRepetitionTask CreateSyllableReorderTask(bool showPartOfSpeechLabel, GlossaryEntry baseEntry, List<string> distractors)
         {
             var foreign = baseEntry.Foreign;
             var partOfSpeech = showPartOfSpeechLabel ? baseEntry.PartOfSpeech : null;
@@ -103,7 +103,7 @@ namespace Mnemo.Services.RepetitionService.Factories
             return new SyllableReorderRepetitionTask(partOfSpeech, baseEntry.OwnerId, baseEntry.Id, foreign, distractors);
         }
 
-        public YesOrNoRepetitionTask CreateYesOrNoTask(VocabularyEntry baseEntry, string distractor)
+        public YesOrNoRepetitionTask CreateYesOrNoTask(GlossaryEntry baseEntry, string distractor)
         {
             string prompt = baseEntry.Foreign;
 

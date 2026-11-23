@@ -11,7 +11,7 @@ namespace Mnemo.Shared.Extensions
             ErrorCode.InvalidPassword   => StatusCodes.Status400BadRequest,
             // NotFound
             ErrorCode.UserNotFound          => StatusCodes.Status404NotFound,
-            ErrorCode.VocabularyNotFound    => StatusCodes.Status404NotFound,
+            ErrorCode.GlossaryNotFound    => StatusCodes.Status404NotFound,
             ErrorCode.EntryNotFound         => StatusCodes.Status404NotFound,
             ErrorCode.LinkNotFound          => StatusCodes.Status404NotFound,
             ErrorCode.StateNotFound         => StatusCodes.Status404NotFound,

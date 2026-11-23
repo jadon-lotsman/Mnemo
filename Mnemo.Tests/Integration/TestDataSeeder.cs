@@ -28,10 +28,10 @@ namespace Mnemo.Tests.Integration
             return user;
         }
 
-        public VocabularyEntry CreateEntry(int id, int userId,
+        public GlossaryEntry CreateEntry(int id, int userId,
             string foreign, params string[] translations)
         {
-            var entry = new VocabularyEntry()
+            var entry = new GlossaryEntry()
             {
                 Id = id,
                 Foreign = foreign,
@@ -58,7 +58,7 @@ namespace Mnemo.Tests.Integration
                 CanSelfAssess = canSelfAssess,
                 LastRepetitionAt = DateOnly.FromDateTime(DateTime.UtcNow),
                 UserId = userId,
-                VocabularyEntryId = entryId
+                EntryId = entryId
             };
 
             _appDbContext.RepetitionStates.Add(state);

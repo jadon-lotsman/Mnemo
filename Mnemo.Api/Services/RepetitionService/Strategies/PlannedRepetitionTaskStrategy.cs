@@ -10,7 +10,7 @@ namespace Mnemo.Services.RepetitionService.Strategies
 {
     public class PlannedRepetitionTaskStrategy : RepetitionTaskStrategy
     {
-        private readonly VocabularyEntryQueries _vocabularyQueries;
+        private readonly GlossaryEntryQueries _vocabularyQueries;
 
         public PlannedRepetitionTaskStrategy(
             IOptions<RepetitionOptions> options,
@@ -18,13 +18,13 @@ namespace Mnemo.Services.RepetitionService.Strategies
             ILogger<PlannedRepetitionTaskStrategy> logger,
             RepetitionTaskFactory factory,
             ITaskTypeProvider typeProvider,
-            VocabularyEntryQueries vocabularyQueries) : base(options, sm2, logger, factory, typeProvider)
+            GlossaryEntryQueries vocabularyQueries) : base(options, sm2, logger, factory, typeProvider)
         {
             _vocabularyQueries = vocabularyQueries;
         }
 
 
-        protected override async Task<IQueryable<VocabularyEntry>> GetTargetEntriesQuery(int userId, int take)
+        protected override async Task<IQueryable<GlossaryEntry>> GetTargetEntriesQuery(int userId, int take)
         {
             var query = _vocabularyQueries
                 .GetByOwnerIdQuery(userId)

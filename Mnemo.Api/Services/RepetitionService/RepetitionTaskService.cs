@@ -16,8 +16,8 @@ namespace Mnemo.Services.RepetitionService
         private readonly IOptions<SM2Options> _sm2;
         private readonly AppDbContext _context;
 
-        private readonly AccountQueries _accountQueries;
-        private readonly VocabularyQueries _vocabularyQueries;
+        private readonly UserQueries _accountQueries;
+        private readonly GlossaryQueries _vocabularyQueries;
 
         private readonly TaskQueries _taskQueries;
         private readonly StateManagementService _stateService;
@@ -31,8 +31,8 @@ namespace Mnemo.Services.RepetitionService
             ILogger<RepetitionTaskService> logger,
             IOptions<SM2Options> sm2,
             AppDbContext context,
-            AccountQueries accountQueries,
-            VocabularyQueries vocabularyQueries,
+            UserQueries accountQueries,
+            GlossaryQueries vocabularyQueries,
             TaskQueries taskQueries,
             StateManagementService stateService,
             QualityCalculationService qualityService,
@@ -182,8 +182,8 @@ namespace Mnemo.Services.RepetitionService
                 if (!task.HasUserAnswer)
                     unansweredCount++;
 
-                if (!entryIdToQuality.ContainsKey(task.VocabularyEntryId))
-                    entryIdToQuality.Add(task.VocabularyEntryId, taskResult.Quality);
+                if (!entryIdToQuality.ContainsKey(task.EntryId))
+                    entryIdToQuality.Add(task.EntryId, taskResult.Quality);
 
                 taskResults.Add(new TaskResultResponse()
                 {

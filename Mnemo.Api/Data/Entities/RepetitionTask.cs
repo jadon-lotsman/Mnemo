@@ -7,7 +7,7 @@ namespace Mnemo.Data.Entities
     public abstract class RepetitionTask
     {
         public int Id { get; set; }
-        public int VocabularyEntryId { get; set; }
+        public int EntryId { get; set; }
         public PartOfSpeech? EntryPartOfSpeech { get; set; }
 
         public string Prompt { get; set; }
@@ -31,7 +31,7 @@ namespace Mnemo.Data.Entities
             EntryPartOfSpeech = partOfSpeech;
 
             OwnerId = userId;
-            VocabularyEntryId = entryId;
+            EntryId = entryId;
         }
 
 

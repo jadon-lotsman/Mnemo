@@ -79,6 +79,6 @@ namespace Mnemo.Services.RepetitionService.Strategies
         }
 
 
-        protected abstract Task<IQueryable<VocabularyEntry>> GetTargetEntriesQuery(int userId, int take);
+        protected abstract Task<IQueryable<GlossaryEntry>> GetTargetEntriesQuery(int userId, int take);
     }
 }

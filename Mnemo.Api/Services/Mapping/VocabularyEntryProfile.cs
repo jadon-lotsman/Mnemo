@@ -10,10 +10,10 @@ namespace Mnemo.Services.Mapping
     {
         public VocabularyEntryProfile()
         {
-            CreateMap<CreateEntryRequest, VocabularyEntry>()
+            CreateMap<CreateEntryRequest, GlossaryEntry>()
                 .IncludeBase<CreateEntryRequest, VocabularyDefinition>();
 
-            CreateMap<VocabularyEntry, EntryResponse>()
+            CreateMap<GlossaryEntry, EntryResponse>()
                 .ForMember(dest => dest.PartOfSpeech, opt => opt.MapFrom(src => src.PartOfSpeech.HasValue ? src.PartOfSpeech.Value.ToString() : null))
                 .ForMember(dest => dest.CERF, opt => opt.MapFrom(src => src.CEFR.HasValue ? src.CEFR.Value.ToString() : null));
 
