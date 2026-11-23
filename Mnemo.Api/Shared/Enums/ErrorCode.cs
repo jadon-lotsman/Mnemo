@@ -15,6 +15,7 @@
         TaskNotFound,
 
         // Conflict/Dublicate
+        EntryHasLinks,
         UsernameTaken,
         DuplicateEntry,
 

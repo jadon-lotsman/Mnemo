@@ -17,6 +17,7 @@ namespace Mnemo.Shared.Extensions
             ErrorCode.RepetitionNotFound    => StatusCodes.Status404NotFound,
             ErrorCode.TaskNotFound          => StatusCodes.Status404NotFound,
             // Conflict/Duplicate
+            ErrorCode.EntryHasLinks     => StatusCodes.Status409Conflict,
             ErrorCode.UsernameTaken     => StatusCodes.Status409Conflict,
             ErrorCode.DuplicateEntry    => StatusCodes.Status409Conflict,
             // UnprocessableEntity

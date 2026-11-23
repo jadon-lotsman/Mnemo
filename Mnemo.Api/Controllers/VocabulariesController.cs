@@ -45,14 +45,6 @@ namespace Mnemo.Controllers
             return result.ToActionResult();
         }
 
-        [HttpGet("public")]
-        public async Task<IActionResult> GetAllPublic()
-        {
-            var vocabs = await _vocabularyQueries.GetPublishedAsync();
-            var vocabsResponse = _mapper.Map<List<VocabularyResponse>>(vocabs);
-            return Ok(vocabsResponse);
-        }
-
         [HttpGet("{guid}/sectors")]
         public async Task<IActionResult> GetVocabularySectors(Guid guid, [FromQuery] string isDescending)
         {

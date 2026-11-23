@@ -119,7 +119,7 @@ namespace Mnemo.Services.VocabularyService
 
         public async Task<List<VocabularySectorResponse>> GetVocabularySectorsAsync(int userId, Guid guid, bool isDescending)
         {
-            var query = _entryQueries.GetEntriesByVocabularyGuidQuery(userId, guid);
+            var query = _entryQueries.GetByVocabularyGuidQuery(userId, guid);
             int minSectorSize = Math.Max(10, query.Count() / 7);
 
             var groupQuery = query
@@ -265,7 +265,7 @@ namespace Mnemo.Services.VocabularyService
         {
             _logger.LogInformation("Starting merge vocabulary (TargetGuid:{TargetGuid}) with vocabulary (SourceGuid:{SourceGuid}) for user (UserId:{UserId})", targetGuid, sourceGuid, userId);
 
-            if (!await _vocabularyQueries.ExistsByIdAsync(userId, sourceGuid))
+            if (!await _vocabularyQueries.ExistsByGuidAsync(userId, sourceGuid))
             {
                 _logger.LogWarning("Source vocabulary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})", sourceGuid, userId);
                 return RequestResult<Vocabulary>.Failure(ErrorCode.VocabularyNotFound);
@@ -279,7 +279,7 @@ namespace Mnemo.Services.VocabularyService
             }
 
 
-            var entries = await _entryQueries.GetEntriesByVocabularyGuidQuery(userId, sourceGuid).ToListAsync();
+            var entries = await _entryQueries.GetByVocabularyGuidQuery(userId, sourceGuid).ToListAsync();
             var linking = await _entryService.LinkVocabularyEntriesAsync(userId, targetVocab.Id, entries);
 
             if (!linking.HasAnySuccess)

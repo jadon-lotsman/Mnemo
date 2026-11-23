@@ -23,8 +23,6 @@ namespace Mnemo.Data
 
             modelBuilder.Entity<VocabularyEntry>()
                 .HasIndex(e => new { e.OwnerId, e.Foreign, e.PartOfSpeech });
-            modelBuilder.Entity<VocabularyEntry>()
-                .HasIndex(e => new { e.OwnerId, e.MergedFromId });
 
             modelBuilder.Entity<VocabularyEntryLink>()
                 .HasIndex(l => l.VocabularyEntryId);

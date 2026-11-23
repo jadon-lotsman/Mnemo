@@ -27,7 +27,8 @@ namespace Mnemo.Services.RepetitionService.Strategies
         protected override async Task<IQueryable<VocabularyEntry>> GetTargetEntriesQuery(int userId, int take)
         {
             var query = _vocabularyQueries
-                .GetEntriesOfActiveVocabulariesByOwnerIdQuery(userId)
+                .GetByOwnerIdQuery(userId)
+                .Where(e => e.IsEnrolled)
                 .DueEntries()
                 .GetRandomEntries(take);
 

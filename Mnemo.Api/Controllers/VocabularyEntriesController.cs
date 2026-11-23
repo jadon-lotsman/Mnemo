@@ -77,7 +77,7 @@ namespace Mnemo.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteEntry(Guid guid, int id)
         {
-            var result = await _entryService.RemoveEntryByIdAsync(UserId, guid, id);
+            var result = await _entryService.UnlinkEntryByIdAsync(UserId, guid, id);
             return result.ToActionResult(StatusCodes.Status204NoContent);
         }
     }

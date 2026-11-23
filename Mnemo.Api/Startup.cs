@@ -106,8 +106,9 @@ namespace Mnemo
             services.AddScoped<AccountQueries>();
             services.AddScoped<TaskQueries>();
             services.AddScoped<StateQueries>();
-            services.AddScoped<VocabularyEntryQueries>();
             services.AddScoped<VocabularyQueries>();
+            services.AddScoped<VocabularyEntryQueries>();
+            services.AddScoped<VocabularyEntryLinkQueries>();
 
             // DI Services
             services.AddScoped<AccountManagementService>();

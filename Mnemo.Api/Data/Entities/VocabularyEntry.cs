@@ -6,6 +6,7 @@ namespace Mnemo.Data.Entities
     public class VocabularyEntry : VocabularyDefinition
     {
         public int Id { get; set; }
+        public bool IsEnrolled { get; set; }
         public EnrichmentStatus EnrichmentStatus { get; set; }
         public DateTime LastEnrichmentAt { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -14,18 +15,20 @@ namespace Mnemo.Data.Entities
 
         public int OwnerId { get; set; }
         public User Owner { get; set; }
-        public int? MergedFromId { get; set; }
-        public Vocabulary? MergedFrom { get; set; }
         public RepetitionState? RepetitionState { get; set; }
         public List<VocabularyEntryLink> VocabularyLinks { get; set; }
 
 
         public VocabularyEntry()
         {
-            CreatedAt = DateTime.UtcNow;
-            UpdatedAt = CreatedAt;
+            IsEnrolled = false;
+            RepetitionState = null;
+
             LastEnrichmentAt = CreatedAt;
             EnrichmentStatus = EnrichmentStatus.Pending;
+
+            CreatedAt = DateTime.UtcNow;
+            UpdatedAt = CreatedAt;
         }
 
 

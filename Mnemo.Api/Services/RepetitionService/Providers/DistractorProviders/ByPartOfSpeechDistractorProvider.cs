@@ -18,7 +18,7 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
         public async Task<List<string>> GetDistractorsAsync(bool isForward, VocabularyEntry baseEntry, int take, params int[] excludeIds)
         {
             var entries = await _entryQueries
-                    .GetEntriesByOwnerIdQuery(baseEntry.OwnerId)
+                    .GetByOwnerIdQuery(baseEntry.OwnerId)
                     .Where(e => baseEntry.PartOfSpeech != null && e.PartOfSpeech == baseEntry.PartOfSpeech)
                     .GetRandomEntries(take, excludeIds)
                     .ToListAsync();

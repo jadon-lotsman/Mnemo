@@ -30,6 +30,7 @@ namespace Mnemo.Services.VocabularyService
         private readonly AccountQueries _accountQueries;
         private readonly VocabularyQueries _vocabularyQueries;
         private readonly VocabularyEntryQueries _entryQueries;
+        private readonly VocabularyEntryLinkQueries _linkQueries;
 
 
         public EntryManagementService(
@@ -41,7 +42,8 @@ namespace Mnemo.Services.VocabularyService
             AppDbContext context,
             AccountQueries accountQueries,
             VocabularyQueries vocabularyQueries,
-            VocabularyEntryQueries entryQueries)
+            VocabularyEntryQueries entryQueries,
+            VocabularyEntryLinkQueries linkQueries)
         {
             _logger = logger;
             _createValidator = createValidator;
@@ -52,6 +54,7 @@ namespace Mnemo.Services.VocabularyService
             _accountQueries = accountQueries;
             _vocabularyQueries = vocabularyQueries;
             _entryQueries = entryQueries;
+            _linkQueries = linkQueries;
         }
 
 
@@ -78,7 +81,7 @@ namespace Mnemo.Services.VocabularyService
             var upperBound = maxLetter.Substring(0, 1) + char.MaxValue;
 
             var filteredQuery = _entryQueries
-                .GetEntriesByVocabularyGuidQuery(userId, guid)
+                .GetByVocabularyGuidQuery(userId, guid)
                 .Where(e => string.Compare(e.Foreign, lowerBound) >= 0 &&
                             string.Compare(e.Foreign, upperBound) <= 0);
 
@@ -309,7 +312,7 @@ namespace Mnemo.Services.VocabularyService
         {
             _logger.LogInformation("Patching entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
 
-            if (!await _vocabularyQueries.ExistsByIdAsync(userId, guid))
+            if (!await _vocabularyQueries.ExistsByGuidAsync(userId, guid))
             {
                 _logger.LogWarning("Vocabulary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})", guid, userId);
                 return RequestResult<VocabularyEntry>.Failure(ErrorCode.VocabularyNotFound);
@@ -391,9 +394,9 @@ namespace Mnemo.Services.VocabularyService
             return RequestResult<VocabularyEntry>.Success(currentEntry);
         }
 
-        public async Task<RequestResult<bool>> RemoveEntryByIdAsync(int userId, Guid guid, int entryId)
+        public async Task<RequestResult<bool>> UnlinkEntryByIdAsync(int userId, Guid guid, int entryId)
         {
-            _logger.LogInformation("Attempting to delete entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
+            _logger.LogInformation("Unlinking entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
 
             int? id = await _vocabularyQueries.GetIdByGuidAsync(userId, guid);
             if (!id.HasValue)
@@ -402,19 +405,44 @@ namespace Mnemo.Services.VocabularyService
                 return RequestResult<bool>.Failure(ErrorCode.VocabularyNotFound);
             }
 
-            var currentEntry = await _entryQueries.GetByIdAsync(userId, entryId);
-            if (currentEntry == null)
+            var currentLink = await _linkQueries.GetByPairIdAsync(id.Value, entryId);
+            if (currentLink == null)
             {
-                _logger.LogWarning("Entry (EntryId:{EntryId}) not found for user (UserId:{UserId})", entryId, userId);
+                _logger.LogWarning("Link (EntryId:{EntryId}) not found for user (UserId:{UserId})", entryId, userId);
                 return RequestResult<bool>.Failure(ErrorCode.EntryNotFound);
             }
 
 
-            _context.VocabularyEntries.Remove(currentEntry);
+            _context.VocabularyEntryLinks.Remove(currentLink);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Successfully deleted entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
 
             return RequestResult<bool>.Success(true);
+        }
+
+        public async Task<RequestResult<bool>> RemoveEntryByIdAsync(int userId, int entryId)
+        {
+            _logger.LogInformation("Attempting to delete entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
+
+            var inboxEntry = await _entryQueries.GetInInboxByIdAsync(userId, entryId);
+            if (inboxEntry != null)
+            {
+                _context.VocabularyEntries.Remove(inboxEntry);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Successfully deleted entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
+
+                return RequestResult<bool>.Success(true);
+            }
+
+            if (!await _entryQueries.ExistsByIdAsync(userId, entryId))
+            {
+                _logger.LogWarning("Entry (EntryId:{EntryId}) not found for user (UserId:{UserId})", entryId, userId);
+
+                return RequestResult<bool>.Failure(ErrorCode.EntryNotFound);
+            }
+
+            _logger.LogWarning("Entry (EntryId:{EntryId}) not cannot inbox for user (UserId:{UserId})", entryId, userId);
+            return RequestResult<bool>.Failure(ErrorCode.EntryHasLinks);
         }
     }
 }

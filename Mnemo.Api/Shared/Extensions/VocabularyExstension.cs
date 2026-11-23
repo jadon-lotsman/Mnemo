@@ -18,32 +18,9 @@ namespace Mnemo.Shared.Extensions
                 _name = normalized;
             }
 
-            string? _description = null;
-            if (patch.Description != null)
-            {
-                var normalized = vocab.Description.RemoveMultispaces().Capitalize();
-                if (string.IsNullOrWhiteSpace(_description))
-                    return false;
-
-                _description = normalized;
-            }
-
-            Visibility? _visibility = null;
-            if (patch.Visibility != null)
-            {
-                if (!Enum.TryParse<Visibility>(patch.Visibility, true, out var parsedVisibility))
-                    return false;
-
-                _visibility = parsedVisibility;
-            }
-
 
             if (_name != null)
                 vocab.Name = _name;
-            if (_description != null)
-                vocab.Description = _description;
-            if (_visibility != null)
-                vocab.Visibility = _visibility.Value;
 
             return true;
         }
