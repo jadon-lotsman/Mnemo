@@ -60,10 +60,10 @@ namespace Mnemo.Controllers
             return result.ToActionResult<VocabularyEntry, EntryResponse>(_mapper, StatusCodes.Status201Created);
         }
 
-        [HttpPost("/api/inbox/entries")]
+        [HttpPost("/api/entries")]
         public async Task<IActionResult> CreateInboxEntry([FromBody] CreateEntryRequest[] requests)
         {
-            var result = await _entryService.CreateInboxEntriesAsync(UserId, requests);
+            var result = await _entryService.CreateEntriesAsync(UserId, requests);
             return result.ToActionResult<VocabularyEntry, EntryResponse>(_mapper, StatusCodes.Status201Created);
         }
 

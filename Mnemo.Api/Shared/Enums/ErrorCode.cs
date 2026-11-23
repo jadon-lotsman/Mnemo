@@ -10,6 +10,7 @@
         UserNotFound,
         VocabularyNotFound,
         EntryNotFound,
+        LinkNotFound,
         StateNotFound,
         RepetitionNotFound,
         TaskNotFound,

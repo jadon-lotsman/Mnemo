@@ -119,9 +119,9 @@ namespace Mnemo.Services.VocabularyService
             return RequestResult<PageValue<EntryResponse>>.Success(pageValue);
         }
 
-        public async Task<BatchRequestResult<VocabularyEntry>> CreateInboxEntriesAsync(int userId, IReadOnlyCollection<CreateEntryRequest> requests)
+        public async Task<BatchRequestResult<VocabularyEntry>> CreateEntriesAsync(int userId, IReadOnlyCollection<CreateEntryRequest> requests)
         {
-            _logger.LogInformation("Creating {Count} vocabulary entries for user (UserId:{UserId})...", requests.Count, userId);
+            _logger.LogInformation("Creating {Count} entries for user (UserId:{UserId})...", requests.Count, userId);
 
             if (!await _accountQueries.ExistsByIdAsync(userId))
             {
@@ -138,7 +138,7 @@ namespace Mnemo.Services.VocabularyService
 
             var mapped = _mapper.Map<List<VocabularyEntry>>(validation.Values);
 
-            var resolving = await ResolveVocabularyEntriesAsync(userId, mapped, ExistingPolicy.Error);
+            var resolving = await ResolveExistingEntriesAsync(userId, mapped, ExistingPolicy.Error);
             var resolvingErr = BatchRequestResult<VocabularyEntry>.ProjectErrors(resolving);
 
             if (!resolving.HasAnySuccess)
@@ -172,14 +172,14 @@ namespace Mnemo.Services.VocabularyService
 
             var mapped = _mapper.Map<List<VocabularyEntry>>(validation.Values);
 
-            var resolving = await ResolveVocabularyEntriesAsync(userId, mapped, ExistingPolicy.ReuseExisting);
+            var resolving = await ResolveExistingEntriesAsync(userId, mapped, ExistingPolicy.ReuseExisting);
             var resolvingErr = BatchRequestResult<VocabularyEntry>.ProjectErrors(resolving);
 
             if (!resolving.HasAnySuccess)
                 return BatchRequestResult<VocabularyEntry>.Concat(validationErr, resolvingErr);
 
 
-            var linking = await LinkVocabularyEntriesAsync(userId, id.Value, resolving.Values);
+            var linking = await CreateLinksFromEntriesAsync(userId, id.Value, resolving.Values);
             var linkingErr = BatchRequestResult<VocabularyEntry>.ProjectErrors(linking);
 
             if (!linking.HasAnySuccess)
@@ -195,7 +195,7 @@ namespace Mnemo.Services.VocabularyService
             return BatchRequestResult<VocabularyEntry>.Concat(validationErr, resolvingErr, linkingSucc, linkingErr);
         }
 
-        public async Task<BatchRequestResult<VocabularyEntry>> ResolveVocabularyEntriesAsync(int userId, IReadOnlyCollection<VocabularyEntry> entries, ExistingPolicy policy)
+        public async Task<BatchRequestResult<VocabularyEntry>> ResolveExistingEntriesAsync(int userId, IReadOnlyCollection<VocabularyEntry> entries, ExistingPolicy policy)
         {
             int total = entries.Count;
 
@@ -256,7 +256,7 @@ namespace Mnemo.Services.VocabularyService
             return BatchRequestResult<VocabularyEntry>.Return(results);
         }
 
-        public async Task<BatchRequestResult<VocabularyEntryLink>> LinkVocabularyEntriesAsync(int userId, int vocabId, IReadOnlyCollection<VocabularyEntry> entries)
+        public async Task<BatchRequestResult<VocabularyEntryLink>> CreateLinksFromEntriesAsync(int userId, int vocabId, IReadOnlyCollection<VocabularyEntry> entries)
         {
             entries = entries
                 .GroupBy(e => (e.Foreign, e.PartOfSpeech))
@@ -394,9 +394,9 @@ namespace Mnemo.Services.VocabularyService
             return RequestResult<VocabularyEntry>.Success(currentEntry);
         }
 
-        public async Task<RequestResult<bool>> UnlinkEntryByIdAsync(int userId, Guid guid, int entryId)
+        public async Task<RequestResult<bool>> RemoveLinkAsync(int userId, Guid guid, int entryId)
         {
-            _logger.LogInformation("Unlinking entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
+            _logger.LogInformation("Removing link for entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
 
             int? id = await _vocabularyQueries.GetIdByGuidAsync(userId, guid);
             if (!id.HasValue)
@@ -409,7 +409,7 @@ namespace Mnemo.Services.VocabularyService
             if (currentLink == null)
             {
                 _logger.LogWarning("Link (EntryId:{EntryId}) not found for user (UserId:{UserId})", entryId, userId);
-                return RequestResult<bool>.Failure(ErrorCode.EntryNotFound);
+                return RequestResult<bool>.Failure(ErrorCode.LinkNotFound);
             }
 
 
@@ -420,11 +420,35 @@ namespace Mnemo.Services.VocabularyService
             return RequestResult<bool>.Success(true);
         }
 
-        public async Task<RequestResult<bool>> RemoveEntryByIdAsync(int userId, int entryId)
+        public async Task<RequestResult<bool>> RemoveAllLinksAsync(int userId, int entryId)
+        {
+            _logger.LogInformation("Removing all links for entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
+
+            if (!await _entryQueries.ExistsByIdAsync(userId, entryId))
+            {
+                _logger.LogWarning("Entry (EntryId:{EntryId}) not found for user (UserId:{UserId})", entryId, userId);
+                return RequestResult<bool>.Failure(ErrorCode.EntryNotFound);
+            }
+
+            var allLinks = await _linkQueries.GetLinksByEntryIdAsync(entryId);
+            if (allLinks.Count == 0)
+            {
+                _logger.LogInformation("Any links not found for entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
+                return RequestResult<bool>.Failure(ErrorCode.LinkNotFound);
+            }
+
+            _context.VocabularyEntryLinks.RemoveRange(allLinks);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Successfully deleted {Count} links for entry (EntryId:{EntryId}) for user (UserId:{UserId})", allLinks.Count, entryId, userId);
+
+            return RequestResult<bool>.Success(true);
+        }
+
+        public async Task<RequestResult<bool>> RemoveEntryAsync(int userId, int entryId)
         {
             _logger.LogInformation("Attempting to delete entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
 
-            var inboxEntry = await _entryQueries.GetInInboxByIdAsync(userId, entryId);
+            var inboxEntry = await _entryQueries.GetInboxedByIdAsync(userId, entryId);
             if (inboxEntry != null)
             {
                 _context.VocabularyEntries.Remove(inboxEntry);

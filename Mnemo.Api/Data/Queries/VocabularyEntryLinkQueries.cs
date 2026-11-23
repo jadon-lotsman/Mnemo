@@ -16,17 +16,23 @@ namespace Mnemo.Data.Queries
 
 
         // Queries
-        public IQueryable<VocabularyEntryLink> GetLinksByIdsQuery(int vocabId, int entryId)
+        public IQueryable<VocabularyEntryLink> GetLinksByPairIdQuery(int vocabId, int entryId)
             => _context.VocabularyEntryLinks.Where(l => l.VocabularyId == vocabId && l.VocabularyEntryId == entryId);
+
+        public IQueryable<VocabularyEntryLink> GetLinksByEntryIdQuery(int entryId)
+            => _context.VocabularyEntryLinks.Where(l => l.VocabularyEntryId == entryId);
 
         // Getters
         public async Task<bool> ExistByEntryIdAsync(int entryId)
-            => await _context.VocabularyEntryLinks.AnyAsync(e => e.VocabularyEntryId == entryId);
+            => await GetLinksByEntryIdQuery(entryId).AnyAsync();
 
         public async Task<bool> ExistByVocabularyIdAsync(int vocabId)
             => await _context.VocabularyEntryLinks.AnyAsync(e => e.VocabularyId == vocabId);
 
         public async Task<VocabularyEntryLink?> GetByPairIdAsync(int vocabId, int entryId)
-            => await GetLinksByIdsQuery(vocabId, entryId).FirstOrDefaultAsync();
+            => await GetLinksByPairIdQuery(vocabId, entryId).FirstOrDefaultAsync();
+
+        public async Task<List<VocabularyEntryLink>> GetLinksByEntryIdAsync(int entryId)
+            => await GetLinksByEntryIdQuery(entryId).ToListAsync();
     }
 }

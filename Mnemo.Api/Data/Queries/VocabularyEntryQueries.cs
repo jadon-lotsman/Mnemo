@@ -38,7 +38,7 @@ namespace Mnemo.Data.Queries
         public async Task<VocabularyEntry?> GetByIdAsync(int ownerId, int entryId)
             => await GetByOwnerIdQuery(ownerId).FirstOrDefaultAsync(e => e.Id == entryId);
 
-        public async Task<VocabularyEntry?> GetInInboxByIdAsync(int ownerId, int entryId)
+        public async Task<VocabularyEntry?> GetInboxedByIdAsync(int ownerId, int entryId)
             => await GetByOwnerIdQuery(ownerId).FirstOrDefaultAsync(e => e.Id == entryId && !e.VocabularyLinks.Any());
 
         public async Task<Dictionary<(string foreign, PartOfSpeech? partOfSpeech), VocabularyEntry>> GetKeysByForeignsAsync(int ownerId, List<string> foreigns)

@@ -247,7 +247,7 @@ namespace Mnemo.Services.VocabularyService
 
             var mapped = _mapper.Map<List<VocabularyEntry>>(validation.Values);
 
-            var resolving = await _entryService.ResolveVocabularyEntriesAsync(userId, mapped, ExistingPolicy.ReuseExisting);
+            var resolving = await _entryService.ResolveExistingEntriesAsync(userId, mapped, ExistingPolicy.ReuseExisting);
 
 
             var vocab = _mapper.Map<Vocabulary>(request);
@@ -280,7 +280,7 @@ namespace Mnemo.Services.VocabularyService
 
 
             var entries = await _entryQueries.GetByVocabularyGuidQuery(userId, sourceGuid).ToListAsync();
-            var linking = await _entryService.LinkVocabularyEntriesAsync(userId, targetVocab.Id, entries);
+            var linking = await _entryService.CreateLinksFromEntriesAsync(userId, targetVocab.Id, entries);
 
             if (!linking.HasAnySuccess)
             {

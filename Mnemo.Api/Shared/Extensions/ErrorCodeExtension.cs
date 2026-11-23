@@ -13,6 +13,7 @@ namespace Mnemo.Shared.Extensions
             ErrorCode.UserNotFound          => StatusCodes.Status404NotFound,
             ErrorCode.VocabularyNotFound    => StatusCodes.Status404NotFound,
             ErrorCode.EntryNotFound         => StatusCodes.Status404NotFound,
+            ErrorCode.LinkNotFound          => StatusCodes.Status404NotFound,
             ErrorCode.StateNotFound         => StatusCodes.Status404NotFound,
             ErrorCode.RepetitionNotFound    => StatusCodes.Status404NotFound,
             ErrorCode.TaskNotFound          => StatusCodes.Status404NotFound,
