@@ -2,7 +2,7 @@
 {
     public class EntryResponse
     {
-        public int Id { get; set; }
+        public string? Id { get; set; }
         public int LinkCount { get; set; }
         public string? PartOfSpeech { get; set; }
         public string? CERF { get; set; }

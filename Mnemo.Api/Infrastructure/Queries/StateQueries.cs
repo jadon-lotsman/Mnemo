@@ -20,10 +20,10 @@ namespace Mnemo.Infrastructure.Queries
 
 
         // Getters
-        public async Task<RepetitionState?> GetByEntryIdAsync(int userId, int entryId)
+        public async Task<RepetitionState?> GetByEntryIdAsync(int userId, Guid entryId)
             => await GetByUserIdQuery(userId).FirstOrDefaultAsync(s => s.EntryId == entryId);
 
-        public async Task<Dictionary<int, RepetitionState>> GetDictByEntryIdsAsync(int userId, IEnumerable<int> ids)
+        public async Task<Dictionary<int, RepetitionState>> GetDictByEntryIdsAsync(int userId, IEnumerable<Guid> ids)
         {
             var list = await GetByUserIdQuery(userId)
                 .Where(s => ids.Contains(s.EntryId))

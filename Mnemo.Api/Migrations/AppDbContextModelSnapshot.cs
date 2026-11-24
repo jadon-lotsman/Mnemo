@@ -54,11 +54,10 @@ namespace Mnemo.Migrations
 
             modelBuilder.Entity("Mnemo.Entities.GlossaryEntry", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("uuidv7()");
 
                     b.Property<List<string>>("Antonyms")
                         .IsRequired()
@@ -122,8 +121,8 @@ namespace Mnemo.Migrations
                     b.Property<Guid>("GlossaryId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("EntryId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("EntryId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("AddedAt")
                         .HasColumnType("timestamp with time zone");
@@ -146,8 +145,8 @@ namespace Mnemo.Migrations
                     b.Property<double>("EasinessFactor")
                         .HasColumnType("double precision");
 
-                    b.Property<int>("EntryId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("EntryId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateOnly>("LastRepetitionAt")
                         .HasColumnType("date");
@@ -183,8 +182,8 @@ namespace Mnemo.Migrations
                     b.Property<TimeSpan>("ElapsedTime")
                         .HasColumnType("interval");
 
-                    b.Property<int>("EntryId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("EntryId")
+                        .HasColumnType("uuid");
 
                     b.Property<int?>("EntryPartOfSpeech")
                         .HasColumnType("integer");

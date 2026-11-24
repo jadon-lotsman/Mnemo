@@ -105,7 +105,7 @@ namespace Mnemo.Services.EntityManagementServices
 
             var entryIds = entries.Select(e => e.Id).ToList();
             var linkCounts = entryIds.Count == 0
-                ? new Dictionary<int, int>()
+                ? new Dictionary<Guid, int>()
                 : await _context.GlossaryLinks
                     .Where(l => entryIds.Contains(l.EntryId))
                     .GroupBy(l => l.EntryId)
@@ -275,7 +275,7 @@ namespace Mnemo.Services.EntityManagementServices
             }
 
 
-            var entryIds = entries.Where(e => e.Id > 0).Select(e => e.Id).ToList();
+            var entryIds = entries.Where(e => e.Id != Guid.Empty).Select(e => e.Id).ToList();
             var linkedIds = await _entryQueries
                 .GetAlreadyLinkedIdsAsync(glossId, entryIds);
 
@@ -309,7 +309,7 @@ namespace Mnemo.Services.EntityManagementServices
             return BatchRequestResult<GlossaryLink>.Return(results);
         }
 
-        public async Task<RequestResult<GlossaryEntry>> PatchEntryAsync(int userId, Guid glossId, int entryId, PatchEntryRequest request)
+        public async Task<RequestResult<GlossaryEntry>> PatchEntryAsync(int userId, Guid glossId, Guid entryId, PatchEntryRequest request)
         {
             _logger.LogInformation("Patching an entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
 
@@ -395,7 +395,7 @@ namespace Mnemo.Services.EntityManagementServices
             return RequestResult<GlossaryEntry>.Success(currentEntry);
         }
 
-        public async Task<RequestResult<bool>> RemoveLinkAsync(int userId, Guid glossId, int entryId)
+        public async Task<RequestResult<bool>> RemoveLinkAsync(int userId, Guid glossId, Guid entryId)
         {
             _logger.LogInformation("Removing link for entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
 
@@ -420,7 +420,7 @@ namespace Mnemo.Services.EntityManagementServices
             return RequestResult<bool>.Success(true);
         }
 
-        public async Task<RequestResult<bool>> RemoveAllLinksAsync(int userId, int entryId)
+        public async Task<RequestResult<bool>> RemoveAllLinksAsync(int userId, Guid entryId)
         {
             _logger.LogInformation("Removing all links for entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
 
@@ -444,7 +444,7 @@ namespace Mnemo.Services.EntityManagementServices
             return RequestResult<bool>.Success(true);
         }
 
-        public async Task<RequestResult<bool>> RemoveEntryAsync(int userId, int entryId)
+        public async Task<RequestResult<bool>> RemoveEntryAsync(int userId, Guid entryId)
         {
             _logger.LogInformation("Attempting to delete entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
 

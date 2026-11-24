@@ -32,7 +32,7 @@ namespace Mnemo.Shared.Extensions
                     && e.RepetitionState.LastRepetitionAt < today);
         }
 
-        public static IQueryable<GlossaryEntry> GetRandomEntries(this IQueryable<GlossaryEntry> source, int? take = null, params int[] excludeIds)
+        public static IQueryable<GlossaryEntry> GetRandomEntries(this IQueryable<GlossaryEntry> source, int? take = null, params Guid[] excludeIds)
         {
             var query = source;
 

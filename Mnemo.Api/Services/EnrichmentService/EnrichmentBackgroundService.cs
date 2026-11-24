@@ -90,7 +90,7 @@ namespace Mnemo.Services.EnrichmentService
 
         private async Task ProcessBatchAsync(CancellationToken stoppingToken)
         {
-            List<long>? capturedIds = null;
+            List<Guid>? capturedIds = null;
             string? idsForCapture = null;
 
             int completedCount = 0;
@@ -109,7 +109,7 @@ namespace Mnemo.Services.EnrichmentService
 
             try
             {
-                List<int> pendingIds = await context.GlossaryEntries
+                var pendingIds = await context.GlossaryEntries
                     .Where(e => e.EnrichmentStatus == EnrichmentStatus.Pending)
                     .OrderBy(e => e.Id)
                     .Select(e => e.Id)
@@ -124,7 +124,7 @@ namespace Mnemo.Services.EnrichmentService
 
                 idsForCapture = string.Join(",", pendingIds);
                 capturedIds = await context.Database
-                    .SqlQueryRaw<long>(
+                    .SqlQueryRaw<Guid>(
                         $"UPDATE \"VocabularyEntries\" SET \"EnrichmentStatus\" = {processing}, \"LastEnrichmentAt\" = {{0}} " +
                         $"WHERE \"Id\" IN ({idsForCapture}) AND \"EnrichmentStatus\" = {pending} " +
                         $"RETURNING \"Id\"", now)

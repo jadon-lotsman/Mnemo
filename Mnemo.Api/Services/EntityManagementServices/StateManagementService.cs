@@ -61,7 +61,7 @@ namespace Mnemo.Services.EntityManagementServices
         }
 
 
-        public async Task RecordQualityRepetitionStateAsync(int userId, Dictionary<int, double> entryIdToQuality)
+        public async Task RecordQualityRepetitionStateAsync(int userId, Dictionary<Guid, double> entryIdToQuality)
         {
             _logger.LogInformation("Attempting to record quality for {Count} entries from user (UserId:{UserId})", entryIdToQuality.Count, userId);
 

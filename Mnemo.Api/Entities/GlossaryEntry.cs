@@ -5,7 +5,7 @@ namespace Mnemo.Entities
 {
     public class GlossaryEntry : VocabularyDefinition
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public bool IsEnrolled { get; set; }
         public EnrichmentStatus EnrichmentStatus { get; set; }
         public DateTime LastEnrichmentAt { get; set; }
@@ -15,14 +15,13 @@ namespace Mnemo.Entities
 
         public int OwnerId { get; set; }
         public User Owner { get; set; }
-        public RepetitionState? RepetitionState { get; set; }
-        public List<GlossaryLink> Links { get; set; }
+        public RepetitionState? RepetitionState { get; set; } = null;
+        public List<GlossaryLink> Links { get; set; } = [];
 
 
         public GlossaryEntry()
         {
             IsEnrolled = false;
-            RepetitionState = null;
 
             LastEnrichmentAt = CreatedAt;
             EnrichmentStatus = EnrichmentStatus.Pending;

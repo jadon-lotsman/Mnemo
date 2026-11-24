@@ -160,7 +160,7 @@ namespace Mnemo.Services.RepetitionService
                 );
 
 
-            var entryIdToQuality = new Dictionary<int, double>();
+            var entryIdToQuality = new Dictionary<Guid, double>();
             var taskResults = new List<TaskResultResponse>();
 
             int totalTasks = tasks.Count;

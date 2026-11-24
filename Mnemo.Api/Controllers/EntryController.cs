@@ -66,14 +66,14 @@ namespace Mnemo.Controllers
         }
 
         [HttpPatch("{id:int}")]
-        public async Task<IActionResult> PatchEntry(Guid guid, int id, [FromBody] PatchEntryRequest request)
+        public async Task<IActionResult> PatchEntry(Guid guid, Guid id, [FromBody] PatchEntryRequest request)
         {
             var result = await _entryService.PatchEntryAsync(UserId, guid, id, request);
             return result.ToActionResult<GlossaryEntry, EntryResponse>(_mapper);
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> DeleteEntry(Guid guid, int id)
+        public async Task<IActionResult> DeleteEntry(Guid guid, Guid id)
         {
             var result = await _entryService.RemoveLinkAsync(UserId, guid, id);
             return result.ToActionResult(StatusCodes.Status204NoContent);

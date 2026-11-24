@@ -15,7 +15,7 @@ namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders
         }
 
 
-        public async Task<List<string>> GetDistractorsAsync(bool isForward, GlossaryEntry baseEntry, int take, params int[] excludeIds)
+        public async Task<List<string>> GetDistractorsAsync(bool isForward, GlossaryEntry baseEntry, int take, params Guid[] excludeIds)
         {
             var entries = await _entryQueries
                     .GetByOwnerIdQuery(baseEntry.OwnerId)

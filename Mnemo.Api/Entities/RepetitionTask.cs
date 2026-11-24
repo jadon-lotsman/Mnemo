@@ -7,7 +7,7 @@ namespace Mnemo.Entities
     public abstract class RepetitionTask
     {
         public int Id { get; set; }
-        public int EntryId { get; set; }
+        public Guid EntryId { get; set; }
         public PartOfSpeech? EntryPartOfSpeech { get; set; }
 
         public string Prompt { get; set; }
@@ -24,7 +24,7 @@ namespace Mnemo.Entities
 
         public RepetitionTask() { }
 
-        public RepetitionTask(string prompt, int userId, int entryId, PartOfSpeech? partOfSpeech = null)
+        public RepetitionTask(string prompt, int userId, Guid entryId, PartOfSpeech? partOfSpeech = null)
         {
             Prompt = prompt;
             UserAnswer = string.Empty;
@@ -58,7 +58,7 @@ namespace Mnemo.Entities
 
         public TextRepetitionTask() { }
 
-        public TextRepetitionTask(string prompt, PartOfSpeech? partOfSpeech, int userId, int entryId, List<string> correctAnswers) : base(prompt, userId, entryId, partOfSpeech)
+        public TextRepetitionTask(string prompt, PartOfSpeech? partOfSpeech, int userId, Guid entryId, List<string> correctAnswers) : base(prompt, userId, entryId, partOfSpeech)
         {
             CorrectAnswers = correctAnswers;
         }
@@ -87,7 +87,7 @@ namespace Mnemo.Entities
 
         public OptionRepetitionTask() { }
 
-        public OptionRepetitionTask(string prompt, PartOfSpeech? partOfSpeech, int userId, int entryId, List<string> options, string correctOption) : base(prompt, userId, entryId, partOfSpeech)
+        public OptionRepetitionTask(string prompt, PartOfSpeech? partOfSpeech, int userId, Guid entryId, List<string> options, string correctOption) : base(prompt, userId, entryId, partOfSpeech)
         {
             if (!options.Contains(correctOption))
                 options.Add(correctOption);
@@ -120,7 +120,7 @@ namespace Mnemo.Entities
 
         public SentenceReorderRepetitionTask() { }
 
-        public SentenceReorderRepetitionTask(int userId, int entryId, string sentence) : base("", userId, entryId)
+        public SentenceReorderRepetitionTask(int userId, Guid entryId, string sentence) : base("", userId, entryId)
         {
             CorrectOrder = TextNormalizer.NormalizeExample(sentence);
 
@@ -170,7 +170,7 @@ namespace Mnemo.Entities
 
         public SyllableReorderRepetitionTask() { }
 
-        public SyllableReorderRepetitionTask(PartOfSpeech? partOfSpeech, int userId, int entryId, string word, List<string> distractors) : base("", userId, entryId, partOfSpeech)
+        public SyllableReorderRepetitionTask(PartOfSpeech? partOfSpeech, int userId, Guid entryId, string word, List<string> distractors) : base("", userId, entryId, partOfSpeech)
         {
             CorrectOrder = word.ToLower();
 
@@ -202,7 +202,7 @@ namespace Mnemo.Entities
 
         public YesOrNoRepetitionTask() { }
 
-        public YesOrNoRepetitionTask(string prompt, int userId, int entryId, string option, bool correctYesOrNo) : base(prompt, userId, entryId)
+        public YesOrNoRepetitionTask(string prompt, int userId, Guid entryId, string option, bool correctYesOrNo) : base(prompt, userId, entryId)
         {
             Option = option;
             CorrectYesOrNo = correctYesOrNo;

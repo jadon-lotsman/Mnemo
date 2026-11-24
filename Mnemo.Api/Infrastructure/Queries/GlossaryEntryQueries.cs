@@ -26,16 +26,16 @@ namespace Mnemo.Infrastructure.Queries
         public async Task<bool> HasAltPartOfSpeechAsync(int ownerId, string foreign, PartOfSpeech? partOfSpeech)
             => await GetByOwnerIdQuery(ownerId).AnyAsync(e => e.Foreign == foreign && e.PartOfSpeech != partOfSpeech);
 
-        public async Task<bool> ExistsByIdAsync(int ownerId, int entryId)
+        public async Task<bool> ExistsByIdAsync(int ownerId, Guid entryId)
             => await GetByOwnerIdQuery(ownerId).AnyAsync(e => e.Id == entryId);
 
         public async Task<bool> ExistsByKeyAsync(int ownerId, string foreign, PartOfSpeech? partOfSpeech)
             => await GetByOwnerIdQuery(ownerId).AnyAsync(e => e.Foreign == foreign && e.PartOfSpeech == partOfSpeech);
 
-        public async Task<GlossaryEntry?> GetByIdAsync(int ownerId, int entryId)
+        public async Task<GlossaryEntry?> GetByIdAsync(int ownerId, Guid entryId)
             => await GetByOwnerIdQuery(ownerId).FirstOrDefaultAsync(e => e.Id == entryId);
 
-        public async Task<GlossaryEntry?> GetInboxedByIdAsync(int ownerId, int entryId)
+        public async Task<GlossaryEntry?> GetInboxedByIdAsync(int ownerId, Guid entryId)
             => await GetByOwnerIdQuery(ownerId).FirstOrDefaultAsync(e => e.Id == entryId && !e.Links.Any());
 
         public async Task<Dictionary<(string foreign, PartOfSpeech? partOfSpeech), GlossaryEntry>> GetKeysByForeignsAsync(int ownerId, List<string> foreigns)
@@ -43,10 +43,10 @@ namespace Mnemo.Infrastructure.Queries
             .Where(e => foreigns.Contains(e.Foreign))
             .ToDictionaryAsync(k => (k.Foreign, k.PartOfSpeech), v => v);
 
-        public async Task<HashSet<int>> GetAlreadyLinkedIdsAsync(Guid glossId, List<int> entryIds)
+        public async Task<HashSet<Guid>> GetAlreadyLinkedIdsAsync(Guid glossId, List<Guid> entryIds)
         {
             if (entryIds.Count == 0)
-                return new HashSet<int>();
+                return new HashSet<Guid>();
 
             var ids = await _context.GlossaryLinks
                 .Where(l => l.GlossaryId == glossId

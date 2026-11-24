@@ -11,7 +11,7 @@
         public DateOnly NextRepetitionAt { get; set; }
 
 
-        public int EntryId { get; set; }
+        public Guid EntryId { get; set; }
         public GlossaryEntry Entry { get; set; }
 
 

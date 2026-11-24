@@ -21,7 +21,7 @@ namespace Mnemo.Services.RepetitionService.Factories
         }
 
 
-        public async Task<RepetitionTask> CreateByTypeAsync(bool isForward, Type taskType, GlossaryEntry baseEntry, params int[] excludeIds)
+        public async Task<RepetitionTask> CreateByTypeAsync(bool isForward, Type taskType, GlossaryEntry baseEntry, params Guid[] excludeIds)
         {
             bool showPartOfSpeechLabel = await _vocabularyQueries.HasAltPartOfSpeechAsync(baseEntry.OwnerId, baseEntry.Foreign, baseEntry.PartOfSpeech) && isForward;
 

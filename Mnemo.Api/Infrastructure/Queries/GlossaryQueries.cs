@@ -26,7 +26,7 @@ namespace Mnemo.Infrastructure.Queries
         public async Task<Glossary?> GetByIdAsync(int ownerId, Guid glossId)
             => await GetByOwnerIdQuery(ownerId).FirstOrDefaultAsync(g => g.Id == glossId);
 
-        public async Task<List<Glossary>> GetByEntryIdAsync(int ownerId, int entryId)
+        public async Task<List<Glossary>> GetByEntryIdAsync(int ownerId, Guid entryId)
             => await _context.GlossaryLinks.Where(l => l.Glossary.OwnerId == ownerId && l.EntryId == entryId).Select(l => l.Glossary).ToListAsync();
     }
 }
