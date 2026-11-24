@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Mnemo.Entities;
 using Mnemo.Infrastructure.Configurations;
+using Mnemo.Infrastructure.Conventions;
 
 namespace Mnemo.Infrastructure
 {
@@ -15,6 +16,13 @@ namespace Mnemo.Infrastructure
 
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+        {
+            base.ConfigureConventions(configurationBuilder);
+
+            configurationBuilder.Conventions.Add(_ => new GuidV7DefaultValueConvention());
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
