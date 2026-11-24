@@ -56,7 +56,7 @@ namespace Mnemo.Controllers
         [HttpGet("{guid}")]
         public async Task<IActionResult> GetGlossaryByGuid([FromRoute] Guid guid)
         {
-            var gloss = await _glossaryQueries.GetByGuidAsync(UserId, guid);
+            var gloss = await _glossaryQueries.GetByIdAsync(UserId, guid);
 
             if (gloss == null)
                 return NotFound();

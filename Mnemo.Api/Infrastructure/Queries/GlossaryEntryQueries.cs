@@ -19,11 +19,8 @@ namespace Mnemo.Infrastructure.Queries
         public IQueryable<GlossaryEntry> GetByOwnerIdQuery(int ownerId)
             => _context.GlossaryEntries.Where(e => e.OwnerId == ownerId);
 
-        public IQueryable<GlossaryEntry> GetByGlossaryIdQuery(int ownerId, int glossId)
+        public IQueryable<GlossaryEntry> GetByGlossaryIdQuery(int ownerId, Guid glossId)
             => _context.GlossaryLinks.Where(l => l.Glossary.OwnerId == ownerId && l.GlossaryId == glossId).Select(l => l.Entry);
-
-        public IQueryable<GlossaryEntry> GetByGlossaryGuidQuery(int ownerId, Guid guid)
-            => _context.GlossaryLinks.Where(l => l.Glossary.Guid == guid && l.Glossary.OwnerId == ownerId).Select(l => l.Entry);
 
         // Getters
         public async Task<bool> HasAltPartOfSpeechAsync(int ownerId, string foreign, PartOfSpeech? partOfSpeech)
@@ -46,7 +43,7 @@ namespace Mnemo.Infrastructure.Queries
             .Where(e => foreigns.Contains(e.Foreign))
             .ToDictionaryAsync(k => (k.Foreign, k.PartOfSpeech), v => v);
 
-        public async Task<HashSet<int>> GetAlreadyLinkedIdsAsync(int glossId, List<int> entryIds)
+        public async Task<HashSet<int>> GetAlreadyLinkedIdsAsync(Guid glossId, List<int> entryIds)
         {
             if (entryIds.Count == 0)
                 return new HashSet<int>();

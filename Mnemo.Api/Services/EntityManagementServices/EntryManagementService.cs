@@ -61,7 +61,7 @@ namespace Mnemo.Services.EntityManagementServices
 
 
 
-        public async Task<RequestResult<PageValue<EntryResponse>>> PageEntriesAsync(int userId, Guid guid, string startLetter, string endLetter, int page, int pageSize)
+        public async Task<RequestResult<PageValue<EntryResponse>>> PageEntriesAsync(int userId, Guid glossId, string startLetter, string endLetter, int page, int pageSize)
         {
             var messages = new List<string>();
             if (page < 1) messages.Add($"Page must be >= 1");
@@ -83,7 +83,7 @@ namespace Mnemo.Services.EntityManagementServices
             var upperBound = maxLetter.Substring(0, 1) + char.MaxValue;
 
             var filteredQuery = _entryQueries
-                .GetByGlossaryGuidQuery(userId, guid)
+                .GetByGlossaryIdQuery(userId, glossId)
                 .Where(e => string.Compare(e.Foreign, lowerBound) >= 0 &&
                             string.Compare(e.Foreign, upperBound) <= 0);
 
@@ -154,16 +154,9 @@ namespace Mnemo.Services.EntityManagementServices
             return BatchRequestResult<GlossaryEntry>.Concat(validationErr, resolving);
         }
 
-        public async Task<BatchRequestResult<GlossaryEntry>> CreateGlossaryEntriesAsync(int userId, Guid guid, IReadOnlyCollection<CreateEntryRequest> requests)
+        public async Task<BatchRequestResult<GlossaryEntry>> CreateGlossaryEntriesAsync(int userId, Guid glossId, IReadOnlyCollection<CreateEntryRequest> requests)
         {
-            _logger.LogInformation("Creating {Count} vocabulary entries for user (UserId:{UserId})...", requests.Count, userId);
-
-            int? id = await _glossaryQueries.GetIdByGuidAsync(userId, guid);
-            if (!id.HasValue)
-            {
-                _logger.LogWarning("Vocabulary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})!", guid, userId);
-                return BatchRequestResult<GlossaryEntry>.BatchFailure(ErrorCode.GlossaryNotFound);
-            }
+            _logger.LogInformation("Creating {Count} glossary entries for user (UserId:{UserId})...", requests.Count, userId);
 
             var validation = await _createValidator.ValidateBatchAsync(requests, _logger);
             var validationErr = BatchRequestResult<GlossaryEntry>.ProjectErrors(validation);
@@ -171,6 +164,12 @@ namespace Mnemo.Services.EntityManagementServices
             if (!validation.HasAnySuccess)
                 return validationErr;
 
+
+            if (!await _glossaryQueries.ExistsByIdAsync(userId, glossId))
+            {
+                _logger.LogWarning("Glossary (GlossId:{GlossId}) not found for user (UserId:{UserId})!", glossId, userId);
+                return BatchRequestResult<GlossaryEntry>.BatchFailure(ErrorCode.GlossaryNotFound);
+            }
 
             var mapped = _mapper.Map<List<GlossaryEntry>>(validation.Values);
 
@@ -181,7 +180,7 @@ namespace Mnemo.Services.EntityManagementServices
                 return BatchRequestResult<GlossaryEntry>.Concat(validationErr, resolvingErr);
 
 
-            var linking = await CreateLinksFromEntriesAsync(userId, id.Value, resolving.Values);
+            var linking = await CreateLinksFromEntriesAsync(userId, glossId, resolving.Values);
             var linkingErr = BatchRequestResult<GlossaryEntry>.ProjectErrors(linking);
 
             if (!linking.HasAnySuccess)
@@ -192,7 +191,7 @@ namespace Mnemo.Services.EntityManagementServices
 
             await _context.GlossaryLinks.AddRangeAsync(linking.Values);
             await _context.SaveChangesAsync();
-            _logger.LogInformation("Created {Count} vocabulary entry (UserId:{UserId}, glossId:{glossId})!", linking.Values.Count, userId, id.Value);
+            _logger.LogInformation("Created {Count} glossary entry (UserId:{UserId}, GlossId:{GlossId})!", linking.Values.Count, userId, glossId);
 
             return BatchRequestResult<GlossaryEntry>.Concat(validationErr, resolvingErr, linkingSucc, linkingErr);
         }
@@ -258,7 +257,7 @@ namespace Mnemo.Services.EntityManagementServices
             return BatchRequestResult<GlossaryEntry>.Return(results);
         }
 
-        public async Task<BatchRequestResult<GlossaryLink>> CreateLinksFromEntriesAsync(int userId, int glossId, IReadOnlyCollection<GlossaryEntry> entries)
+        public async Task<BatchRequestResult<GlossaryLink>> CreateLinksFromEntriesAsync(int userId, Guid glossId, IReadOnlyCollection<GlossaryEntry> entries)
         {
             entries = entries
                 .GroupBy(e => (e.Foreign, e.PartOfSpeech))
@@ -267,11 +266,11 @@ namespace Mnemo.Services.EntityManagementServices
 
             int total = entries.Count;
 
-            _logger.LogDebug("Linking {Count} entries (UserId: {UserId}, glossId: {glossId})...", total, userId, glossId);
+            _logger.LogDebug("Linking {Count} entries (UserId: {UserId}, GlossId: {GlossId})...", total, userId, glossId);
 
             if (total == 0)
             {
-                _logger.LogDebug("No entries (UserId: {UserId}, glossId: {glossId})!", userId, glossId);
+                _logger.LogDebug("No entries (UserId: {UserId}, GlossId: {GlossId})!", userId, glossId);
                 return BatchRequestResult<GlossaryLink>.BatchFailure(ErrorCode.InvalidData);
             }
 
@@ -301,22 +300,22 @@ namespace Mnemo.Services.EntityManagementServices
             }
 
             if (duplicates == total)
-                _logger.LogWarning("Set link completed (UserId:{UserId}, glossId:{glossId}): all {Total} entries are diplicates!", userId, glossId, total);
+                _logger.LogWarning("Set link completed (UserId:{UserId}, GlossId:{GlossId}): all {Total} entries are diplicates!", userId, glossId, total);
             else if (duplicates > 0)
-                _logger.LogInformation("Set link completed (UserId:{UserId}, glossId:{glossId}): {Failed} duplicates out of {Total}!", userId, glossId, duplicates, total);
+                _logger.LogInformation("Set link completed (UserId:{UserId}, GlossId:{GlossId}): {Failed} duplicates out of {Total}!", userId, glossId, duplicates, total);
             else
-                _logger.LogDebug("Set link completed (UserId:{UserId}, glossId:{glossId}): all {Total} entries are unique!", userId, glossId, total);
+                _logger.LogDebug("Set link completed (UserId:{UserId}, GlossId:{GlossId}): all {Total} entries are unique!", userId, glossId, total);
 
             return BatchRequestResult<GlossaryLink>.Return(results);
         }
 
-        public async Task<RequestResult<GlossaryEntry>> PatchEntryAsync(int userId, Guid guid, int entryId, PatchEntryRequest request)
+        public async Task<RequestResult<GlossaryEntry>> PatchEntryAsync(int userId, Guid glossId, int entryId, PatchEntryRequest request)
         {
-            _logger.LogInformation("Patching entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
+            _logger.LogInformation("Patching an entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
 
-            if (!await _glossaryQueries.ExistsByGuidAsync(userId, guid))
+            if (!await _glossaryQueries.ExistsByIdAsync(userId, glossId))
             {
-                _logger.LogWarning("Vocabulary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})", guid, userId);
+                _logger.LogWarning("Vocabulary (GlossId:{GlossId}) not found for user (UserId:{UserId})", glossId, userId);
                 return RequestResult<GlossaryEntry>.Failure(ErrorCode.GlossaryNotFound);
             }
 
@@ -396,18 +395,17 @@ namespace Mnemo.Services.EntityManagementServices
             return RequestResult<GlossaryEntry>.Success(currentEntry);
         }
 
-        public async Task<RequestResult<bool>> RemoveLinkAsync(int userId, Guid guid, int entryId)
+        public async Task<RequestResult<bool>> RemoveLinkAsync(int userId, Guid glossId, int entryId)
         {
             _logger.LogInformation("Removing link for entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);
 
-            int? id = await _glossaryQueries.GetIdByGuidAsync(userId, guid);
-            if (!id.HasValue)
+            if (!await _glossaryQueries.ExistsByIdAsync(userId, glossId))
             {
-                _logger.LogWarning("Vocabulary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})", guid, userId);
+                _logger.LogWarning("Glossary (GlossId:{GlossId}) not found or access denied for user (UserId:{UserId})", glossId, userId);
                 return RequestResult<bool>.Failure(ErrorCode.GlossaryNotFound);
             }
 
-            var currentLink = await _linkQueries.GetByPairIdAsync(id.Value, entryId);
+            var currentLink = await _linkQueries.GetByPairIdAsync(glossId, entryId);
             if (currentLink == null)
             {
                 _logger.LogWarning("Link (EntryId:{EntryId}) not found for user (UserId:{UserId})", entryId, userId);
@@ -432,7 +430,7 @@ namespace Mnemo.Services.EntityManagementServices
                 return RequestResult<bool>.Failure(ErrorCode.EntryNotFound);
             }
 
-            var allLinks = await _linkQueries.GetLinksByEntryIdAsync(entryId);
+            var allLinks = await _linkQueries.GetByEntryIdAsync(entryId);
             if (allLinks.Count == 0)
             {
                 _logger.LogInformation("Any links not found for entry (EntryId:{EntryId}) for user (UserId:{UserId})", entryId, userId);

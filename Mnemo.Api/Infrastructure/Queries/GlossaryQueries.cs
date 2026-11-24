@@ -17,35 +17,16 @@ namespace Mnemo.Infrastructure.Queries
 
         // Queries
         public IQueryable<Glossary> GetByOwnerIdQuery(int ownerId)
-            => _context.Glossaries.Where(p => p.OwnerId == ownerId);
-
-        public IQueryable<Glossary> GetByIdQuery(int ownerId, int glossId)
-            => _context.Glossaries.Where(p => p.OwnerId == ownerId && p.Id == glossId);
-
-        public IQueryable<Glossary> GetByGuidQuery(int ownerId, Guid guid)
-            => _context.Glossaries.Where(p => p.OwnerId == ownerId && p.Guid == guid);
-
-        public IQueryable<Glossary> GetByEntryIdQuery(int ownerId, int entryId)
-            => _context.GlossaryLinks.Where(l => l.Glossary.OwnerId == ownerId && l.EntryId == entryId).Select(l => l.Glossary);
-
+            => _context.Glossaries.Where(g => g.OwnerId == ownerId);
 
         // Getters
-        public async Task<bool> ExistsByGuidAsync(int ownerId, Guid guid)
-            => await GetByGuidQuery(ownerId, guid).AnyAsync();
+        public async Task<bool> ExistsByIdAsync(int ownerId, Guid glossId)
+            => await GetByOwnerIdQuery(ownerId).AnyAsync(g => g.Id == glossId);
 
-        public async Task<Glossary?> GetByGuidAsync(int ownerId, Guid guid)
-            => await GetByGuidQuery(ownerId, guid).FirstOrDefaultAsync();
-
-        public async Task<int?> GetIdByGuidAsync(int ownerId, Guid guid)
-            => await GetByGuidQuery(ownerId, guid).Select(v => v.Id).FirstOrDefaultAsync();
-
-        public async Task<bool> ExistsByIdAsync(int ownerId, int glossId)
-            => await GetByIdQuery(ownerId, glossId).AnyAsync();
-
-        public async Task<Glossary?> GetByIdAsync(int ownerId, int glossId)
-            => await GetByIdQuery(ownerId, glossId).FirstOrDefaultAsync();
+        public async Task<Glossary?> GetByIdAsync(int ownerId, Guid glossId)
+            => await GetByOwnerIdQuery(ownerId).FirstOrDefaultAsync(g => g.Id == glossId);
 
         public async Task<List<Glossary>> GetByEntryIdAsync(int ownerId, int entryId)
-            => await GetByEntryIdQuery(ownerId, entryId).ToListAsync();
+            => await _context.GlossaryLinks.Where(l => l.Glossary.OwnerId == ownerId && l.EntryId == entryId).Select(l => l.Glossary).ToListAsync();
     }
 }

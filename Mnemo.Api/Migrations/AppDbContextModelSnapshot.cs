@@ -23,129 +23,15 @@ namespace Mnemo.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Mnemo.Data.Entities.RepetitionState", b =>
+            modelBuilder.Entity("Mnemo.Entities.Glossary", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<double>("EasinessFactor")
-                        .HasColumnType("double precision");
-
-                    b.Property<DateOnly>("LastRepetitionAt")
-                        .HasColumnType("date");
-
-                    b.Property<DateOnly>("NextRepetitionAt")
-                        .HasColumnType("date");
-
-                    b.Property<int>("RepetitionCounter")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("RepetitionInterval")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("VocabularyEntryId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("VocabularyEntryId")
-                        .IsUnique();
-
-                    b.ToTable("RepetitionStates");
-                });
-
-            modelBuilder.Entity("Mnemo.Data.Entities.RepetitionTask", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ActionCounter")
-                        .HasColumnType("integer");
-
-                    b.Property<TimeSpan>("ElapsedTime")
-                        .HasColumnType("interval");
-
-                    b.Property<int?>("EntryPartOfSpeech")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("OrderIndex")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("OwnerId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Prompt")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("UserAnswer")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("VocabularyEntryId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("task_type")
-                        .IsRequired()
-                        .HasMaxLength(21)
-                        .HasColumnType("character varying(21)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OwnerId");
-
-                    b.ToTable("RepetitionTasks");
-
-                    b.HasDiscriminator<string>("task_type").HasValue("RepetitionTask");
-
-                    b.UseTphMappingStrategy();
-                });
-
-            modelBuilder.Entity("Mnemo.Data.Entities.User", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("RegisteredAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("Mnemo.Data.Entities.Vocabulary", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("uuidv7()");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("Guid")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
@@ -153,20 +39,20 @@ namespace Mnemo.Migrations
                     b.Property<int>("OwnerId")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("ShareGuid")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Visibility")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Vocabularies");
+                    b.ToTable("Glossaries");
                 });
 
-            modelBuilder.Entity("Mnemo.Data.Entities.VocabularyEntry", b =>
+            modelBuilder.Entity("Mnemo.Entities.GlossaryEntry", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -198,11 +84,11 @@ namespace Mnemo.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsEnrolled")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime>("LastEnrichmentAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("MergedFromId")
-                        .HasColumnType("integer");
 
                     b.Property<int>("OwnerId")
                         .HasColumnType("integer");
@@ -226,36 +112,136 @@ namespace Mnemo.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MergedFromId");
-
-                    b.HasIndex("OwnerId", "MergedFromId");
-
                     b.HasIndex("OwnerId", "Foreign", "PartOfSpeech");
 
-                    b.ToTable("VocabularyEntries");
+                    b.ToTable("GlossaryEntries");
                 });
 
-            modelBuilder.Entity("Mnemo.Data.Entities.VocabularyEntryLink", b =>
+            modelBuilder.Entity("Mnemo.Entities.GlossaryLink", b =>
                 {
-                    b.Property<int>("VocabularyId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("GlossaryId")
+                        .HasColumnType("uuid");
 
-                    b.Property<int>("VocabularyEntryId")
+                    b.Property<int>("EntryId")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("AddedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("VocabularyId", "VocabularyEntryId");
+                    b.HasKey("GlossaryId", "EntryId");
 
-                    b.HasIndex("VocabularyEntryId");
+                    b.HasIndex("EntryId");
 
-                    b.ToTable("VocabularyEntryLinks");
+                    b.ToTable("GlossaryLinks");
                 });
 
-            modelBuilder.Entity("Mnemo.Data.Entities.OptionRepetitionTask", b =>
+            modelBuilder.Entity("Mnemo.Entities.RepetitionState", b =>
                 {
-                    b.HasBaseType("Mnemo.Data.Entities.RepetitionTask");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("EasinessFactor")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("EntryId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("LastRepetitionAt")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("NextRepetitionAt")
+                        .HasColumnType("date");
+
+                    b.Property<int>("RepetitionCounter")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("RepetitionInterval")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EntryId")
+                        .IsUnique();
+
+                    b.ToTable("RepetitionStates");
+                });
+
+            modelBuilder.Entity("Mnemo.Entities.RepetitionTask", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ActionCounter")
+                        .HasColumnType("integer");
+
+                    b.Property<TimeSpan>("ElapsedTime")
+                        .HasColumnType("interval");
+
+                    b.Property<int>("EntryId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("EntryPartOfSpeech")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Prompt")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserAnswer")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("task_type")
+                        .IsRequired()
+                        .HasMaxLength(21)
+                        .HasColumnType("character varying(21)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("RepetitionTasks");
+
+                    b.HasDiscriminator<string>("task_type").HasValue("RepetitionTask");
+
+                    b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("Mnemo.Entities.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("RegisteredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Mnemo.Entities.OptionRepetitionTask", b =>
+                {
+                    b.HasBaseType("Mnemo.Entities.RepetitionTask");
 
                     b.Property<string>("CorrectOption")
                         .IsRequired()
@@ -268,9 +254,9 @@ namespace Mnemo.Migrations
                     b.HasDiscriminator().HasValue("option");
                 });
 
-            modelBuilder.Entity("Mnemo.Data.Entities.SentenceReorderRepetitionTask", b =>
+            modelBuilder.Entity("Mnemo.Entities.SentenceReorderRepetitionTask", b =>
                 {
-                    b.HasBaseType("Mnemo.Data.Entities.RepetitionTask");
+                    b.HasBaseType("Mnemo.Entities.RepetitionTask");
 
                     b.Property<string>("CorrectOrder")
                         .IsRequired()
@@ -283,9 +269,9 @@ namespace Mnemo.Migrations
                     b.HasDiscriminator().HasValue("sentence");
                 });
 
-            modelBuilder.Entity("Mnemo.Data.Entities.SyllableReorderRepetitionTask", b =>
+            modelBuilder.Entity("Mnemo.Entities.SyllableReorderRepetitionTask", b =>
                 {
-                    b.HasBaseType("Mnemo.Data.Entities.RepetitionTask");
+                    b.HasBaseType("Mnemo.Entities.RepetitionTask");
 
                     b.Property<string>("CorrectOrder")
                         .IsRequired()
@@ -304,9 +290,9 @@ namespace Mnemo.Migrations
                     b.HasDiscriminator().HasValue("syllable");
                 });
 
-            modelBuilder.Entity("Mnemo.Data.Entities.TextRepetitionTask", b =>
+            modelBuilder.Entity("Mnemo.Entities.TextRepetitionTask", b =>
                 {
-                    b.HasBaseType("Mnemo.Data.Entities.RepetitionTask");
+                    b.HasBaseType("Mnemo.Entities.RepetitionTask");
 
                     b.Property<List<string>>("CorrectAnswers")
                         .IsRequired()
@@ -315,9 +301,9 @@ namespace Mnemo.Migrations
                     b.HasDiscriminator().HasValue("text");
                 });
 
-            modelBuilder.Entity("Mnemo.Data.Entities.YesOrNoRepetitionTask", b =>
+            modelBuilder.Entity("Mnemo.Entities.YesOrNoRepetitionTask", b =>
                 {
-                    b.HasBaseType("Mnemo.Data.Entities.RepetitionTask");
+                    b.HasBaseType("Mnemo.Entities.RepetitionTask");
 
                     b.Property<bool>("CorrectYesOrNo")
                         .HasColumnType("boolean");
@@ -329,20 +315,61 @@ namespace Mnemo.Migrations
                     b.HasDiscriminator().HasValue("yesorno");
                 });
 
-            modelBuilder.Entity("Mnemo.Data.Entities.RepetitionState", b =>
+            modelBuilder.Entity("Mnemo.Entities.Glossary", b =>
                 {
-                    b.HasOne("Mnemo.Data.Entities.VocabularyEntry", "VocabularyEntry")
-                        .WithOne("RepetitionState")
-                        .HasForeignKey("Mnemo.Data.Entities.RepetitionState", "VocabularyEntryId")
+                    b.HasOne("Mnemo.Entities.User", "Owner")
+                        .WithMany("Glossaries")
+                        .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("VocabularyEntry");
+                    b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("Mnemo.Data.Entities.RepetitionTask", b =>
+            modelBuilder.Entity("Mnemo.Entities.GlossaryEntry", b =>
                 {
-                    b.HasOne("Mnemo.Data.Entities.User", "Owner")
+                    b.HasOne("Mnemo.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("Mnemo.Entities.GlossaryLink", b =>
+                {
+                    b.HasOne("Mnemo.Entities.GlossaryEntry", "Entry")
+                        .WithMany("Links")
+                        .HasForeignKey("EntryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Mnemo.Entities.Glossary", "Glossary")
+                        .WithMany("Links")
+                        .HasForeignKey("GlossaryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Entry");
+
+                    b.Navigation("Glossary");
+                });
+
+            modelBuilder.Entity("Mnemo.Entities.RepetitionState", b =>
+                {
+                    b.HasOne("Mnemo.Entities.GlossaryEntry", "Entry")
+                        .WithOne("RepetitionState")
+                        .HasForeignKey("Mnemo.Entities.RepetitionState", "EntryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Entry");
+                });
+
+            modelBuilder.Entity("Mnemo.Entities.RepetitionTask", b =>
+                {
+                    b.HasOne("Mnemo.Entities.User", "Owner")
                         .WithMany("RepetitionTasks")
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -351,70 +378,23 @@ namespace Mnemo.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("Mnemo.Data.Entities.Vocabulary", b =>
+            modelBuilder.Entity("Mnemo.Entities.Glossary", b =>
                 {
-                    b.HasOne("Mnemo.Data.Entities.User", "Owner")
-                        .WithMany("Vocabularies")
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Owner");
+                    b.Navigation("Links");
                 });
 
-            modelBuilder.Entity("Mnemo.Data.Entities.VocabularyEntry", b =>
+            modelBuilder.Entity("Mnemo.Entities.GlossaryEntry", b =>
                 {
-                    b.HasOne("Mnemo.Data.Entities.Vocabulary", "MergedFrom")
-                        .WithMany()
-                        .HasForeignKey("MergedFromId");
+                    b.Navigation("Links");
 
-                    b.HasOne("Mnemo.Data.Entities.User", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("MergedFrom");
-
-                    b.Navigation("Owner");
-                });
-
-            modelBuilder.Entity("Mnemo.Data.Entities.VocabularyEntryLink", b =>
-                {
-                    b.HasOne("Mnemo.Data.Entities.VocabularyEntry", "VocabularyEntry")
-                        .WithMany("VocabularyLinks")
-                        .HasForeignKey("VocabularyEntryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Mnemo.Data.Entities.Vocabulary", "Vocabulary")
-                        .WithMany("EntryLinks")
-                        .HasForeignKey("VocabularyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Vocabulary");
-
-                    b.Navigation("VocabularyEntry");
-                });
-
-            modelBuilder.Entity("Mnemo.Data.Entities.User", b =>
-                {
-                    b.Navigation("RepetitionTasks");
-
-                    b.Navigation("Vocabularies");
-                });
-
-            modelBuilder.Entity("Mnemo.Data.Entities.Vocabulary", b =>
-                {
-                    b.Navigation("EntryLinks");
-                });
-
-            modelBuilder.Entity("Mnemo.Data.Entities.VocabularyEntry", b =>
-                {
                     b.Navigation("RepetitionState");
+                });
 
-                    b.Navigation("VocabularyLinks");
+            modelBuilder.Entity("Mnemo.Entities.User", b =>
+                {
+                    b.Navigation("Glossaries");
+
+                    b.Navigation("RepetitionTasks");
                 });
 #pragma warning restore 612, 618
         }

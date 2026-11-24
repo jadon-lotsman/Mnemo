@@ -81,7 +81,7 @@ namespace Mnemo.Services.EntityManagementServices
             var headers = await orderedQuery
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(v => new { v.Id, v.Name, v.Guid })
+                .Select(v => new { v.Id, v.Name })
                 .ToListAsync();
 
             var vocabIds = headers.Select(e => e.Id).ToList();
@@ -106,7 +106,7 @@ namespace Mnemo.Services.EntityManagementServices
             var items = headers.Select(v => new HeaderResponse
             {
                 Name = v.Name,
-                Guid = v.Guid,
+                Guid = v.Id,
                 EntriesCount = entryCounts.GetValueOrDefault(v.Id, 0),
                 TranslationsCount = translationCounts.GetValueOrDefault(v.Id, 0)
             }).ToList();
@@ -117,9 +117,9 @@ namespace Mnemo.Services.EntityManagementServices
             return RequestResult<PageValue<HeaderResponse>>.Success(pageValue);
         }
 
-        public async Task<List<GlossarySectorResponse>> GetGlossarySectorsAsync(int userId, Guid guid, bool isDescending)
+        public async Task<List<GlossarySectorResponse>> GetGlossarySectorsAsync(int userId, Guid glossId, bool isDescending)
         {
-            var query = _entryQueries.GetByGlossaryGuidQuery(userId, guid);
+            var query = _entryQueries.GetByGlossaryIdQuery(userId, glossId);
             int minSectorSize = Math.Max(10, query.Count() / 7);
 
             var groupQuery = query
@@ -256,30 +256,30 @@ namespace Mnemo.Services.EntityManagementServices
 
             await _context.Glossaries.AddAsync(gloss);
             await _context.SaveChangesAsync();
-            _logger.LogInformation("Successfully created glossary (Guid:{Guid}) for user (UserId:{UserId})!", gloss.Guid, userId);
+            _logger.LogInformation("Successfully created glossary (Guid:{Guid}) for user (UserId:{UserId})!", gloss.Id, userId);
 
             return RequestResult<Glossary>.Success(gloss);
         }
 
-        public async Task<RequestResult<Glossary>> ImportGlossaryAsync(int userId, Guid targetGuid, Guid sourceGuid)
+        public async Task<RequestResult<Glossary>> ImportGlossaryAsync(int userId, Guid targetId, Guid sourceId)
         {
-            _logger.LogInformation("Importing glossary (TargetGuid:{TargetGuid}) with glossary (SourceGuid:{SourceGuid}) for user (UserId:{UserId})", targetGuid, sourceGuid, userId);
+            _logger.LogInformation("Importing glossary (TargetId:{TargetId}) from glossary (SourceId:{SourceId}) for user (UserId:{UserId})", targetId, sourceId, userId);
 
-            if (!await _glossaryQueries.ExistsByGuidAsync(userId, sourceGuid))
+            if (!await _glossaryQueries.ExistsByIdAsync(userId, sourceId))
             {
-                _logger.LogWarning("Source glossary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})", sourceGuid, userId);
+                _logger.LogWarning("Source glossary (SourceId:{SourceId}) not found for user (UserId:{UserId})", sourceId, userId);
                 return RequestResult<Glossary>.Failure(ErrorCode.GlossaryNotFound);
             }
 
-            var targetGloss = await _glossaryQueries.GetByGuidAsync(userId, targetGuid);
+            var targetGloss = await _glossaryQueries.GetByIdAsync(userId, targetId);
             if (targetGloss == null)
             {
-                _logger.LogWarning("Target glossary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})", targetGuid, userId);
+                _logger.LogWarning("Target glossary (TargetId:{TargetId}) not found for user (UserId:{UserId})", targetId, userId);
                 return RequestResult<Glossary>.Failure(ErrorCode.GlossaryNotFound);
             }
 
 
-            var entries = await _entryQueries.GetByGlossaryGuidQuery(userId, sourceGuid).ToListAsync();
+            var entries = await _entryQueries.GetByGlossaryIdQuery(userId, sourceId).ToListAsync();
             var linking = await _entryService.CreateLinksFromEntriesAsync(userId, targetGloss.Id, entries);
 
             if (!linking.HasAnySuccess)
@@ -294,70 +294,70 @@ namespace Mnemo.Services.EntityManagementServices
 
             targetGloss.Links.AddRange(linksToAdd);
             await _context.SaveChangesAsync();
-            _logger.LogInformation("Successfully imported (TargetGuid:{TargetGuid}) with glossary (SourceGuid:{SourceGuid}) for user (UserId:{UserId})", targetGuid, sourceGuid, userId);
+            _logger.LogInformation("Successfully imported (TargetId:{TargetId}) with glossary (SourceId:{SourceId}) for user (UserId:{UserId})", targetId, sourceId, userId);
 
             return RequestResult<Glossary>.Success(targetGloss);
         }
 
-        public async Task<RequestResult<Glossary>> PatchGlossaryAsync(int userId, Guid guid, PatchGlossaryRequest request)
+        public async Task<RequestResult<Glossary>> PatchGlossaryAsync(int userId, Guid glossId, PatchGlossaryRequest request)
         {
-            _logger.LogInformation("Attempting to patch a glossary for user (UserId:{UserId})", userId);
+            _logger.LogInformation("Patching a glossary for user (UserId:{UserId})", userId);
 
-            var currentGloss = await _glossaryQueries.GetByGuidAsync(userId, guid);
+            var currentGloss = await _glossaryQueries.GetByIdAsync(userId, glossId);
             if (currentGloss == null)
             {
-                _logger.LogWarning("Glossary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})", guid, userId);
+                _logger.LogWarning("Glossary (GlossId:{GlossId}) not found for user (UserId:{UserId})", glossId, userId);
                 return RequestResult<Glossary>.Failure(ErrorCode.GlossaryNotFound);
             }
 
             var isPatched = currentGloss.TryPatch(request);
             if (!isPatched)
             {
-                _logger.LogError("TryPatch failed for glossary (Guid:{Guid}): Invalid Data", guid);
+                _logger.LogError("TryPatch failed for glossary (GlossId:{GlossId}): Invalid Data", glossId);
                 return RequestResult<Glossary>.Failure(ErrorCode.InvalidData, "Failed to apply patch");
             }
 
 
             await _context.SaveChangesAsync();
-            _logger.LogInformation("Successfully patched glossary (Guid:{Guid}) for user (UserId:{UserId})", guid, userId);
+            _logger.LogInformation("Successfully patched glossary (Guid:{Guid}) for user (UserId:{UserId})", glossId, userId);
 
             return RequestResult<Glossary>.Success(currentGloss);
         }
 
-        public async Task<RequestResult<Guid>> RevokeSharingGuidAsync(int userId, Guid guid)
+        public async Task<RequestResult<Guid>> RevokeSharingGuidAsync(int userId, Guid glossId)
         {
-            _logger.LogInformation("Revoking sh-guid for glossary (Guid:{Guid}) for user (UserId:{UserId})", guid, userId);
+            _logger.LogInformation("Revoking sh-guid for glossary (GlossId:{GlossId}) for user (UserId:{UserId})", glossId, userId);
 
-            var currentGloss = await _glossaryQueries.GetByGuidAsync(userId, guid);
+            var currentGloss = await _glossaryQueries.GetByIdAsync(userId, glossId);
             if (currentGloss == null)
             {
-                _logger.LogWarning("Glossary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})", guid, userId);
+                _logger.LogWarning("Glossary (GlossId:{GlossId}) not found or access denied for user (UserId:{UserId})", glossId, userId);
                 return RequestResult<Guid>.Failure(ErrorCode.GlossaryNotFound);
             }
 
 
             var newGuid = Guid.NewGuid();
-            currentGloss.SharingGuid = newGuid;
+            currentGloss.ShareGuid = newGuid;
             await _context.SaveChangesAsync();
-            _logger.LogInformation("Successfully revoked sh-guid for glossary (Guid:{Guid}) for user (UserId:{UserId})", guid, userId);
+            _logger.LogInformation("Successfully revoked sh-guid for glossary (GlossId:{GlossId}) for user (UserId:{UserId})", glossId, userId);
 
             return RequestResult<Guid>.Success(newGuid);
         }
 
-        public async Task<RequestResult<bool>> RemoveGlossaryAsync(int userId, Guid guid)
+        public async Task<RequestResult<bool>> RemoveGlossaryAsync(int userId, Guid glossId)
         {
-            _logger.LogInformation("Attempting to delete glossary (Guid:{Guid}) for user (UserId:{UserId})", guid, userId);
+            _logger.LogInformation("Attempting to delete glossary (GlossId:{GlossId}) for user (UserId:{UserId})", glossId, userId);
 
-            var currentGloss = await _glossaryQueries.GetByGuidAsync(userId, guid);
+            var currentGloss = await _glossaryQueries.GetByIdAsync(userId, glossId);
             if (currentGloss == null)
             {
-                _logger.LogWarning("Glossary (Guid:{Guid}) not found or access denied for user (UserId:{UserId})", guid, userId);
+                _logger.LogWarning("Glossary (GlossId:{GlossId}) not found or access denied for user (UserId:{UserId})", glossId, userId);
                 return RequestResult<bool>.Failure(ErrorCode.GlossaryNotFound);
             }
 
             _context.Glossaries.Remove(currentGloss);
             await _context.SaveChangesAsync();
-            _logger.LogInformation("Successfully deleted glossary (Guid:{Guid}) for user (UserId:{UserId})", guid, userId);
+            _logger.LogInformation("Successfully deleted glossary (GlossId:{GlossId}) for user (UserId:{UserId})", glossId, userId);
 
             return RequestResult<bool>.Success(true);
         }
