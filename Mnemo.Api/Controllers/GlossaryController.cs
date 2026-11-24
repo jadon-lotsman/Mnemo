@@ -6,10 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using Mnemo.Contracts.Glossary;
 using Mnemo.Contracts.Glossary.Requests;
 using Mnemo.Entities;
-using Mnemo.Infrastructure.ErrorCodes;
 using Mnemo.Infrastructure.Queries;
 using Mnemo.Infrastructure.RequestResults;
-using Mnemo.Services.ManagementServices;
+using Mnemo.Infrastructure.RequestResults.ErrorCodes;
+using Mnemo.Services.EntityManagementServices;
 using System.Security.Claims;
 
 namespace Mnemo.Controllers

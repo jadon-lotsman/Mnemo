@@ -1,4 +1,4 @@
-﻿using Mnemo.Infrastructure.ErrorCodes;
+﻿using Mnemo.Infrastructure.RequestResults.ErrorCodes;
 using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Infrastructure.RequestResults

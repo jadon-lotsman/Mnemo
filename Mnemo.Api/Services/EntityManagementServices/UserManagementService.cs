@@ -3,9 +3,9 @@ using Mnemo.Infrastructure.Queries;
 using Mnemo.Entities;
 using Mnemo.Shared.Extensions;
 using Mnemo.Infrastructure.RequestResults;
-using Mnemo.Infrastructure.ErrorCodes;
+using Mnemo.Infrastructure.RequestResults.ErrorCodes;
 
-namespace Mnemo.Services.ManagementServices
+namespace Mnemo.Services.EntityManagementServices
 {
     public class UserManagementService
     {

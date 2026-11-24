@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
-using Mnemo.Infrastructure.ErrorCodes;
 using Mnemo.Infrastructure.RequestResults;
+using Mnemo.Infrastructure.RequestResults.ErrorCodes;
 
 namespace Mnemo.Shared.Extensions
 {

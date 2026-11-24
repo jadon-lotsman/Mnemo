@@ -9,9 +9,9 @@ using Mnemo.Contracts.Entry;
 using Mnemo.Contracts.Entry.Requests;
 using Mnemo.Entities;
 using Mnemo.Infrastructure;
-using Mnemo.Infrastructure.ErrorCodes;
 using Mnemo.Infrastructure.Queries;
 using Mnemo.Infrastructure.RequestResults;
+using Mnemo.Infrastructure.RequestResults.ErrorCodes;
 using Mnemo.Services.RepetitionService;
 using Mnemo.Shared;
 using Mnemo.Shared.Enums;
@@ -19,7 +19,7 @@ using Mnemo.Shared.Extensions;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 
-namespace Mnemo.Services.ManagementServices
+namespace Mnemo.Services.EntityManagementServices
 {
     public class EntryManagementService
     {

@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.Caching.Memory;
 using Mnemo.Contracts.Entry;
-using Mnemo.Infrastructure.ErrorCodes;
 using Mnemo.Infrastructure.RequestResults;
+using Mnemo.Infrastructure.RequestResults.ErrorCodes;
 using Mnemo.Shared.Enums;
 using System.Text.Json;
 

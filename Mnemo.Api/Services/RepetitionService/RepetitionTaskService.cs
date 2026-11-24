@@ -3,9 +3,9 @@ using Microsoft.Extensions.Options;
 using Mnemo.Contracts.Repetition.Results;
 using Mnemo.Entities;
 using Mnemo.Infrastructure;
-using Mnemo.Infrastructure.ErrorCodes;
 using Mnemo.Infrastructure.Queries;
 using Mnemo.Infrastructure.RequestResults;
+using Mnemo.Infrastructure.RequestResults.ErrorCodes;
 using Mnemo.Services.EntityManagementServices;
 using Mnemo.Services.RepetitionService.Strategies;
 

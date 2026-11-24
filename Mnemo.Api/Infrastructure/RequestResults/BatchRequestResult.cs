@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Mnemo.Infrastructure.ErrorCodes;
+using Mnemo.Infrastructure.RequestResults.ErrorCodes;
 
 namespace Mnemo.Infrastructure.RequestResults
 {

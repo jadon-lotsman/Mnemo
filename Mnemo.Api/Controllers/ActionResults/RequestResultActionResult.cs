@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Mnemo.Infrastructure.ErrorCodes;
 using Mnemo.Infrastructure.RequestResults;
+using Mnemo.Infrastructure.RequestResults.ErrorCodes;
 
 namespace Mnemo.Controllers.ActionResults
 {

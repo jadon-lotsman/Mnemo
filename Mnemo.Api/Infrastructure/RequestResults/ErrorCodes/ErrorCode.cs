@@ -1,4 +1,4 @@
-﻿namespace Mnemo.Infrastructure.ErrorCodes
+﻿namespace Mnemo.Infrastructure.RequestResults.ErrorCodes
 {
     public enum ErrorCode
     {

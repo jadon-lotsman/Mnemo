@@ -6,7 +6,7 @@ using Mnemo.Contracts.Entry.Requests;
 using Mnemo.Entities;
 using Mnemo.Infrastructure.Queries;
 using Mnemo.Infrastructure.RequestResults;
-using Mnemo.Services.ManagementServices;
+using Mnemo.Services.EntityManagementServices;
 using Mnemo.Shared.Enums;
 using System.Security.Claims;
 

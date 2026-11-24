@@ -7,7 +7,7 @@ using Mnemo.Infrastructure;
 using Mnemo.Infrastructure.Queries;
 using Mnemo.Services.EnrichmentService;
 using Mnemo.Services.EnrichmentService.ExternalDictionaries;
-using Mnemo.Services.ManagementServices;
+using Mnemo.Services.EntityManagementServices;
 using Mnemo.Services.RepetitionService;
 using Mnemo.Services.RepetitionService.Factories;
 using Mnemo.Services.RepetitionService.Providers.DistractorProviders;
