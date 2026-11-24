@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Mnemo.Contracts.Entry;
 using Mnemo.Contracts.Entry.Requests;
-using Mnemo.Data.Entities;
-using Mnemo.Data.Queries;
-using Mnemo.Services.GlossaryService;
+using Mnemo.Entities;
+using Mnemo.Infrastructure.Queries;
+using Mnemo.Infrastructure.RequestResults;
+using Mnemo.Services.ManagementServices;
 using Mnemo.Shared.Enums;
-using Mnemo.Shared.Extensions;
 using System.Security.Claims;
 
 namespace Mnemo.Controllers

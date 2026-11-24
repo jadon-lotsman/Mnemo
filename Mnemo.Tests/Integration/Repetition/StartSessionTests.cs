@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Mnemo.Data.Entities;
+using Mnemo.Entities;
 using Mnemo.Services;
 using Mnemo.Shared;
 

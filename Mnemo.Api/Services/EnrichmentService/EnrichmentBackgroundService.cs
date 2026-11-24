@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Mnemo.Data;
+using Mnemo.Infrastructure;
 using Mnemo.Services.EnrichmentService.ExternalDictionaries;
 using Mnemo.Shared.Enums;
 using System.Diagnostics;

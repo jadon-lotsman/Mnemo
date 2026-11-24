@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using Mnemo.Data.Entities;
+using Mnemo.Entities;
 
 namespace Mnemo.Services.RepetitionService.Providers.TaskTypeProviders
 {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Mnemo.Data.Entities;
-using Mnemo.Data.Queries;
+using Mnemo.Entities;
+using Mnemo.Infrastructure.Queries;
 using Mnemo.Services.RepetitionService.Factories;
 using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
 using Mnemo.Shared.Extensions;

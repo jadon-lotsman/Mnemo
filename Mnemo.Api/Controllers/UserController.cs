@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Mnemo.Contracts.User.Requests;
-using Mnemo.Data.Entities;
-using Mnemo.Data.Queries;
-using Mnemo.Services.UserService;
+using Mnemo.Entities;
+using Mnemo.Infrastructure.Queries;
+using Mnemo.Infrastructure.RequestResults;
+using Mnemo.Services.EntityManagementServices;
 using Mnemo.Shared.Enums;
-using Mnemo.Shared.Extensions;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;

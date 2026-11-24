@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
-using Mnemo.Data.Entities;
-using Mnemo.Shared.Enums;
+using Mnemo.Infrastructure.ErrorCodes;
+using Mnemo.Infrastructure.RequestResults;
 
 namespace Mnemo.Shared.Extensions
 {

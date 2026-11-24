@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Mnemo.Contracts.Entry.Requests;
 using Mnemo.Contracts.Glossary.Requests;
+using Mnemo.Controllers.Validation.Rules;
 
 namespace Mnemo.Controllers.Validation
 {

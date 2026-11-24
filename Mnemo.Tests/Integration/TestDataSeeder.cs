@@ -1,5 +1,5 @@
-﻿using Mnemo.Data;
-using Mnemo.Data.Entities;
+﻿using Mnemo.Entities;
+using Mnemo.Infrastructure;
 using Mnemo.Shared;
 
 namespace Mnemo.Tests.Integration

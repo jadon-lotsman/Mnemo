@@ -3,17 +3,16 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Mnemo.Data;
-using Mnemo.Data.Queries;
+using Mnemo.Infrastructure;
+using Mnemo.Infrastructure.Queries;
 using Mnemo.Services.EnrichmentService;
 using Mnemo.Services.EnrichmentService.ExternalDictionaries;
-using Mnemo.Services.GlossaryService;
+using Mnemo.Services.ManagementServices;
 using Mnemo.Services.RepetitionService;
 using Mnemo.Services.RepetitionService.Factories;
 using Mnemo.Services.RepetitionService.Providers.DistractorProviders;
 using Mnemo.Services.RepetitionService.Providers.TaskTypeProviders;
 using Mnemo.Services.RepetitionService.Strategies;
-using Mnemo.Services.UserService;
 using System.Text;
 
 namespace Mnemo

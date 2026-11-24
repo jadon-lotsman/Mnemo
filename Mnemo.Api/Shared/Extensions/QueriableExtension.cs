@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Mnemo.Data.Entities;
+using Mnemo.Entities;
 
 namespace Mnemo.Shared.Extensions
 {

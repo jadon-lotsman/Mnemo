@@ -4,11 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Mnemo.Contracts.Repetition;
 using Mnemo.Contracts.Repetition.Requests;
-using Mnemo.Data.Entities;
-using Mnemo.Data.Queries;
+using Mnemo.Entities;
+using Mnemo.Infrastructure.ErrorCodes;
+using Mnemo.Infrastructure.Queries;
+using Mnemo.Infrastructure.RequestResults;
+using Mnemo.Services.EntityManagementServices;
 using Mnemo.Services.RepetitionService;
-using Mnemo.Shared.Enums;
-using Mnemo.Shared.Extensions;
 using System.Security.Claims;
 
 namespace Mnemo.Controllers

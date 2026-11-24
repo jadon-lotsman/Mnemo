@@ -1,12 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Mnemo.Contracts.Repetition.Results;
-using Mnemo.Data;
-using Mnemo.Data.Entities;
-using Mnemo.Data.Queries;
+using Mnemo.Entities;
+using Mnemo.Infrastructure;
+using Mnemo.Infrastructure.ErrorCodes;
+using Mnemo.Infrastructure.Queries;
+using Mnemo.Infrastructure.RequestResults;
+using Mnemo.Services.EntityManagementServices;
 using Mnemo.Services.RepetitionService.Strategies;
-using Mnemo.Shared;
-using Mnemo.Shared.Enums;
 
 namespace Mnemo.Services.RepetitionService
 {

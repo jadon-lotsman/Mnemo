@@ -1,4 +1,4 @@
-﻿using Mnemo.Data.Entities;
+﻿using Mnemo.Entities;
 using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders

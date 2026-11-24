@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Mnemo.Data;
+using Mnemo.Infrastructure;
 using Mnemo.Services;
 using Mnemo.Services.Queries;
 

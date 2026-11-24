@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Mnemo.Data.Entities;
-using Mnemo.Data.Queries;
+using Mnemo.Entities;
+using Mnemo.Infrastructure.Queries;
 using Mnemo.Shared.Extensions;
 
 namespace Mnemo.Services.RepetitionService.Providers.DistractorProviders

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
-using Mnemo.Data.Entities;
-using Mnemo.Data.Queries;
+using Mnemo.Entities;
+using Mnemo.Infrastructure.Queries;
 using Mnemo.Services.RepetitionService.Providers.DistractorProviders;
 
 namespace Mnemo.Services.RepetitionService.Factories
