@@ -72,11 +72,11 @@ namespace Mnemo.Services.EnrichmentService
                 DateTime threshold = DateTime.UtcNow.AddMinutes(-stuckTimeout);
 
                 int processingResetCount = await context.Database.ExecuteSqlRawAsync(
-                    $"UPDATE \"VocabularyEntries\" SET \"EnrichmentStatus\" = {pending} " +
+                    $"UPDATE \"GlossaryEntries\" SET \"EnrichmentStatus\" = {pending} " +
                     $"WHERE \"EnrichmentStatus\" = {processing} AND \"LastEnrichmentAt\" < {{0}}", threshold);
 
                 int failedResetCount = await context.Database.ExecuteSqlRawAsync(
-                    $"UPDATE \"VocabularyEntries\" SET \"EnrichmentStatus\" = {pending} " +
+                    $"UPDATE \"GlossaryEntries\" SET \"EnrichmentStatus\" = {pending} " +
                     $"WHERE \"EnrichmentStatus\" = {failed}");
 
                 if (processingResetCount > 0 || failedResetCount > 0)
@@ -91,7 +91,7 @@ namespace Mnemo.Services.EnrichmentService
         private async Task ProcessBatchAsync(CancellationToken stoppingToken)
         {
             List<Guid>? capturedIds = null;
-            string? idsForCapture = null;
+            Guid[]? idsForCapture = null;
 
             int completedCount = 0;
             int failedCount = 0;
@@ -122,12 +122,16 @@ namespace Mnemo.Services.EnrichmentService
 
                 DateTime now = DateTime.UtcNow;
 
-                idsForCapture = string.Join(",", pendingIds);
+                idsForCapture = pendingIds.ToArray();
                 capturedIds = await context.Database
-                    .SqlQueryRaw<Guid>(
-                        $"UPDATE \"VocabularyEntries\" SET \"EnrichmentStatus\" = {processing}, \"LastEnrichmentAt\" = {{0}} " +
-                        $"WHERE \"Id\" IN ({idsForCapture}) AND \"EnrichmentStatus\" = {pending} " +
-                        $"RETURNING \"Id\"", now)
+                    .SqlQuery<Guid>($"""
+                            UPDATE "GlossaryEntries"
+                            SET "EnrichmentStatus" = {processing},
+                                "LastEnrichmentAt" = {now}
+                            WHERE "Id" = ANY({idsForCapture})
+                              AND "EnrichmentStatus" = {pending}
+                            RETURNING "Id"
+                            """)
                     .ToListAsync(stoppingToken);
 
                 if (capturedIds.Count < pendingIds.Count)
